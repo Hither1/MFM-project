@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MFM: Multimodal Filesystem Memory</title>
+  <meta name="description" content="Multimodal Filesystem Memory (MFM): an agent memory made of ordinary files. One episode per plan entry, each with the frame it started from, a searchable index, and the agent's own notes, procedures and reflexes, carried from one life to the next.">
+  <meta property="og:title" content="MFM: Multimodal Filesystem Memory">
+  <meta property="og:description" content="An agent memory made of ordinary files: frames, states, outcomes, and the agent's own procedures, carried across lives.">
+  <meta property="og:image" content="assets/img/dragon_mfm_callouts.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar" id="top">
+  <nav class="wrap topbar-inner" aria-label="Sections">
+    <a class="brand" href="#top">MFM</a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#memory">Memory</a></li>
+      <li><a href="#lookback">Looking back</a></li>
+      <li><a href="#benchmarks">Benchmarks</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#kicad">KiCad</a></li>
+      <li><a href="#limits">Limits</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Long-horizon agent memory</p>
+    <h1>Multimodal Filesystem Memory</h1>
+    <p class="lede">
+      A memory for long-horizon agents that is nothing but files. Every plan entry becomes an
+      episode with the frame it started from; a harness-written index makes the episodes
+      searchable; and the agent keeps its own notes, procedures and reflexes beside them.
+      The whole directory is carried into the next life.
+    </p>
+
+    <!-- AUTHORS: edit this block. Add co-authors and affiliations as <span class="author"> items. -->
+    <p class="authors">
+      <span class="author">Chloe Su</span>
+    </p>
+    <p class="affil">Harvard University</p>
+
+    <p class="actions">
+      <a class="btn btn-primary" href="https://github.com/Hither1/MFM">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+        Code
+      </a>
+      <a class="btn" href="#results">Results</a>
+      <a class="btn" href="#video">Video</a>
+    </p>
+  </div>
+</section>
+
+<section class="teaser">
+  <div class="wrap wide">
+    <figure class="fig">
+      <img src="assets/img/dragon_mfm_callouts.png" width="2256" height="1488"
+           alt="Milestone staircase of the MFM arm on the Ender Dragon task with GPT-6-Astra, reaching 16 of 24 milestones within 36k steps. Five callouts pair a recorded frame with the later moment the agent retrieved it.">
+      <figcaption>
+        <strong>One life, and five times it looked back.</strong>
+        The MFM arm on the Ender Dragon task (gpt-6-astra, 16/24 milestones, first 36k steps).
+        Each callout pairs a frame the memory <em>recorded</em> with the moment the agent
+        <em>retrieved</em> it and what the look changed: centring over a hole it was straddling (a),
+        replacing an aim routine that had pitched wrong (b), not attacking a wolf (c), digging in at
+        an iron entrance recorded two lives earlier (d), and identifying a sheep as food (e).
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================ OVERVIEW ============================ -->
+<section class="section" id="overview">
+  <div class="wrap">
+    <h2>Overview</h2>
+    <p>
+      An agent that plays for tens of thousands of steps cannot hold its history in context. The
+      usual answer is a text log that the model greps. A log records what was done and what the
+      state was; it does not record what the agent <em>saw</em>. MFM keeps the log and adds the
+      rest: the frame each plan entry opened on, the state, the action and the outcome, stored as
+      a directory per episode and indexed so that the model can ask for them by step, by place,
+      by tag, by action or by text.
+    </p>
+    <p>
+      The memory is read with shell commands inside the coding agent's own turn. Nothing is
+      embedded and nothing is retrieved by similarity. What the model knows beyond its weights
+      is a file it can open, and what it learns is a file it wrote, which makes both inspectable
+      after the run.
+    </p>
+
+    <div class="cards three">
+      <div class="card">
+        <h3>Episodes with frames</h3>
+        <p>One <code>episodes/ep_NNNNNN/</code> per plan entry: the frame it started from,
+        <code>state.json</code>, <code>action.json</code>, <code>outcome.json</code>, and a row
+        in <code>index.jsonl</code>.</p>
+      </div>
+      <div class="card">
+        <h3>The agent's own files</h3>
+        <p><code>mine/</code> holds what the model writes for itself: a digest, notes, a working
+        note shown every turn, procedures and reflexes as Python scripts.</p>
+      </div>
+      <div class="card">
+        <h3>Carry across lives</h3>
+        <p>Earlier lives are linked under <code>previous/life_i/</code>. The contract says where
+        they are. Reading them is the model's act.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ MEMORY ============================ -->
+<section class="section alt" id="memory">
+  <div class="wrap">
+    <h2>What the memory is</h2>
+    <p>
+      The tree below is the workspace of a real run at step 26,654, the turn after the agent died
+      to a piglin brute in the Nether. Files marked <span class="tag harness">harness</span> are
+      written by the store and never edited by the model; files marked
+      <span class="tag agent">agent</span> are written by the model inside its turn.
+    </p>
+
+<pre class="tree" tabindex="0"><code>memory/
+  AGENTS.md                 <span class="tag harness">harness</span>  the brief: tools, memory layout, safety
+  logs.txt                  <span class="tag harness">harness</span>  append-only log, 12,483 lines at this step
+  index.jsonl               <span class="tag harness">harness</span>  1,392 rows, one per closed episode
+  grid.jsonl                <span class="tag harness">harness</span>  spatial grid rows
+  episodes/ep_000000 .. ep_001391/
+      observation/image.png <span class="tag harness">harness</span>  the 320x180 frame the episode opened on
+      state/state.json      <span class="tag harness">harness</span>  position, vitals, hotbar, inventory, goals
+      action.json           <span class="tag harness">harness</span>  the plan entry executed
+      outcome.json          <span class="tag harness">harness</span>  moved, inventory delta, events, notes, tags
+  previous/                 <span class="tag harness">harness</span>  the carry
+      index.jsonl                    merged index of the carried lives
+      life_1/                        2,787 episodes, its logs.txt, its mine/
+      life_2/                        3,083 episodes, its logs.txt, its mine/
+  tools/                    <span class="tag harness">harness</span>  episodes.py (queries)  zoom.py (crops)
+  references/  skills/      <span class="tag harness">harness</span>  read on demand
+  mine/                     <span class="tag agent">agent</span>    carried to the next life
+      digest.md  notes.md  working.md
+      procedures/*.py                scripts the agent wrote and calls as actions
+      reflexes/*.py                  scripts that run while a plan executes</code></pre>
+
+    <h3>Four operations at one real step</h3>
+    <div class="ops">
+      <div class="op">
+        <span class="op-letter">a</span>
+        <div>
+          <h4>Record</h4>
+          <p>The episode that ended in the death is <code>ep_001391</code>: the frame (a brute and
+          a raised shield), the state (health 1.5), the plan entry, and the outcome, in which the
+          whole kit is lost.</p>
+        </div>
+      </div>
+      <div class="op">
+        <span class="op-letter">b</span>
+        <div>
+          <h4>Index</h4>
+          <p>The store appends one row to <code>index.jsonl</code>. Steps, position, tags, action
+          kind, summary, note and events are searchable; the image and path are references that
+          the tool opens and never matches on.</p>
+        </div>
+      </div>
+      <div class="op">
+        <span class="op-letter">c</span>
+        <div>
+          <h4>Retrieve</h4>
+          <p>The agent asks for the last sixty steps as a contact sheet, then for the stair
+          entrance near its surviving portal, then for the first frames at spawn. Each query
+          carries the question it was for.</p>
+        </div>
+      </div>
+      <div class="op">
+        <span class="op-letter">d</span>
+        <div>
+          <h4>Consolidate</h4>
+          <p>One patch in the same turn: a bullet in <code>digest.md</code>, a forensics bullet
+          in <code>notes.md</code> citing the episode, and <code>working.md</code> rewritten as
+          the recovery plan.</p>
+        </div>
+      </div>
+    </div>
+
+<pre class="term" tabindex="0"><code><span class="prompt">$</span> ./tools/episodes.py --steps 26594 26654 --sheet /tmp/death_26654.png \
+    --q 'What killed us despite holding a shield, and where were the attacker and support?'
+
+ep_001387  steps 26592-26612  tags=inventory_changed,damage  action=pillar_up
+ep_001388  steps 26612-26613  tags=note                      note: pillar_up: 3 cobblestone under the feet
+ep_001389  steps 26613-26620                                 action=sneak+use
+ep_001390  steps 26620-26621                                 action=sneak+use+camera
+ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (-429, 46, -791) ...</code></pre>
+
+    <figure class="fig tight">
+      <img src="assets/img/death_sheet_row.png" width="1632" height="180" loading="lazy"
+           alt="Five consecutive stored frames from the Nether: the interrupted pillar, a placed cobblestone block, a piglin brute at close range, and a raised shield.">
+      <figcaption>The five frames that query returned, <code>ep_001387</code> to
+      <code>ep_001391</code>, as stored.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================ LOOK BACK ============================ -->
+<section class="section" id="lookback">
+  <div class="wrap">
+    <h2>Looking back changes the plan</h2>
+    <p>
+      Two tools put a stored frame in front of the model. <code>zoom.py</code> crops the current
+      view. <code>episodes.py --then-now</code> writes a remembered frame beside the live one,
+      from this life or from an earlier one.
+    </p>
+
+    <div class="pair">
+      <figure class="fig">
+        <img src="assets/img/then_now_iron_entrance.png" width="1288" height="378" loading="lazy"
+             alt="Then-now sheet: on the left a grass bank recorded in an earlier life at step 4867, on the right the live view of the same bank.">
+        <figcaption>
+          <strong>Across lives.</strong> The live grass bank against life 1's frame of its shallow
+          iron entrance. "The recorded entrance matches the live bank." The agent dug in there and
+          mined its first iron ore 427 steps later.
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <div class="duo">
+          <img src="assets/img/frame_wolf.jpg" width="640" height="360" loading="lazy"
+               alt="A Minecraft hillside at dusk with a small pale animal in the distance.">
+          <img class="pixel" src="assets/img/zoom_wolf.png" width="260" height="216" loading="lazy"
+               alt="Zoomed crop of the pale animal, showing a muzzle and tail.">
+        </div>
+        <figcaption>
+          <strong>Within a turn.</strong> A pale animal on the hillside, and the crop the agent
+          made of it. "The close-up shows a muzzle and tail: this is a wolf, not a sheep." It did
+          not attack.
+        </figcaption>
+      </figure>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/img/frame_look_effect.png" width="1480" height="520" loading="lazy"
+           alt="Dot plot. Turns that opened a stored frame name a new destination in 19 percent of cases against 11 percent without a look, pooled. Of those, 88 percent land within 8 blocks of the retrieved episode against a 33 percent positional null.">
+      <figcaption>
+        <strong>The effect of a look.</strong> Pooled over both tasks, a turn that opened a stored
+        frame names a place the current plan did not have in 19% of cases (65/338), against 11%
+        (147/1,356) for turns that did not. Of the plans that changed, 88% (57/65) went to within
+        8 blocks of the retrieved episode, against 33% for a positional null.
+      </figcaption>
+    </figure>
+
+    <figure class="fig">
+      <img src="assets/img/note_accuracy.png" width="2772" height="1056" loading="lazy"
+           alt="Two stacked bar charts. Left: share of note lines that cite an episode or a step, and the number contradicted by the record. Right: what the agent said about the episode it cited.">
+      <figcaption>
+        <strong>Are the notes true?</strong> Every line the agents ever wrote into their notes was
+        checked against the record: 2,284 lines on Mine Diamond with none contradicted, 10,081 on
+        Ender Dragon with 9 contradicted. About a third of the lines cite an episode or a step.
+        Most sentences that name a cited episode neither confirm nor dispute it; the looks that
+        found a difference caused 12 and about 15 corrections.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================ BENCHMARKS ============================ -->
+<section class="section alt" id="benchmarks">
+  <div class="wrap">
+    <h2>Benchmarks and arms</h2>
+    <div class="split">
+      <div>
+        <h3>Minecraft (MCU)</h3>
+        <p>
+          Two long-horizon tasks scored by milestones. <em>Mine a diamond from scratch</em> has
+          10 milestones under a 12,000-step budget. <em>Kill the Ender Dragon</em> adds 14
+          more, through obsidian, the Nether, blazes and endermen, to the End.
+        </p>
+        <h3>KiCad</h3>
+        <p>
+          Twenty-four circuit design and editing tasks in one desktop application, driven by
+          screenshots, mouse and keyboard. Rewards come from the saved schematic and netlist.
+        </p>
+        <h3>One harness, one flag</h3>
+        <p>
+          Every arm of a benchmark runs on the same harness and differs by a single flag. The
+          engine, macro set, perception, caps, knowledge text and step budget are identical
+          across arms.
+        </p>
+        <table class="data compact">
+          <thead><tr><th>Arm</th><th>Memory</th></tr></thead>
+          <tbody>
+            <tr><td>Direct</td><td>none: one memoryless call per step</td></tr>
+            <tr><td>Logbook (PRO-LONG)</td><td>append-only text log, grep</td></tr>
+            <tr><td>VISTA</td><td>one thread with <code>play</code> and <code>inspect</code> tools, checkpoint handoff</td></tr>
+            <tr><td><strong>MFM</strong></td><td>the log, plus episodes with frames, the index, <code>mine/</code>, and the carry</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="fig">
+        <img src="assets/img/task_milestones.png" width="1539" height="1253" loading="lazy"
+             alt="The two long-horizon tasks: ten milestones shared by both, from log to diamond, and fourteen further milestones added by the Ender Dragon task, ending with the dragon.">
+        <figcaption>The milestone ladders of the two Minecraft tasks.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ RESULTS ============================ -->
+<section class="section" id="results">
+  <div class="wrap">
+    <h2>Results</h2>
+
+    <h3>Minecraft: milestones reached</h3>
+    <div class="table-scroll">
+      <table class="data">
+        <thead>
+          <tr>
+            <th rowspan="2">Method</th>
+            <th colspan="3" class="grp">Mine Diamond (of 10)</th>
+            <th colspan="3" class="grp">Ender Dragon (of 24)</th>
+          </tr>
+          <tr>
+            <th>gpt-6-astra</th><th>gpt-5.6-sol</th><th>opus-5</th>
+            <th>gpt-6-astra</th><th>gpt-5.6-sol</th><th>opus-5</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Direct</td><td>0</td><td>2</td><td>6</td><td>6</td><td>6</td><td>6</td></tr>
+          <tr><td>Logbook</td><td>9</td><td>8</td><td>8</td><td>15</td><td>12</td><td>9</td></tr>
+          <tr><td>VISTA</td><td class="best">10</td><td class="best">9</td><td class="best">9</td><td class="best">16</td><td>11</td><td>8</td></tr>
+          <tr class="ours"><td>MFM</td><td class="best">10</td><td class="best">9</td><td>7<sup>a</sup></td><td class="best">16<sup>b</sup></td><td>9</td><td>9<sup>c</sup></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      Single runs, full length. The GPT columns, where every arm runs on codex, are the
+      like-for-like comparison; the Opus column mixes Claude Code and codex across its rows.
+      <sup>a</sup> The run ended at 9.2k steps on an API error.
+      <sup>b</sup> This run carried two prior lives; no from-scratch MFM run on this model exists.
+      <sup>c</sup> 912 of 1,068 turns were session-limit no-ops.
+      Dragon runs ended at different step counts (wall clock, memory, or API limits);
+      the figure below cuts them at a common 36k steps.
+    </p>
+
+    <figure class="fig">
+      <img src="assets/img/mfm_tokens_compare.png" width="2300" height="919" loading="lazy"
+           alt="Two scatter plots of milestones banked against cumulative billed tokens, for the diamond task and the first 36,000 steps of the dragon task, by method and model.">
+      <figcaption>
+        <strong>Milestones against tokens.</strong> Memory arms spend more tokens than direct
+        play and reach far more milestones. On the memory arms 91 to 95 percent of Minecraft
+        input tokens are cache reads. MFM is the most expensive memory arm on both tasks.
+      </figcaption>
+    </figure>
+
+    <h3>The Nether portal</h3>
+    <div class="pair">
+      <figure class="fig">
+        <img src="assets/img/portal_all_four.png" width="1304" height="812" loading="lazy"
+             alt="Four in-game views. The arc and MFM arms each built and lit a complete Nether portal. The VISTA and logbook arms left incomplete obsidian frames.">
+        <figcaption>
+          What each arm built in 6,000 steps. MFM and the coding-agent arm lit the portal;
+          VISTA struck eight times and the logbook twice on frames that were not legal.
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/img/portal_tool_calls_nodirect.png" width="1584" height="950" loading="lazy"
+             alt="Bar chart of model calls, tool calls and environment steps on the Nether portal task. MFM: 30, 77, 77. PRO-LONG: 43, 131, 151. VISTA: 141, 140, 129.">
+        <figcaption>
+          On this task MFM finished with the fewest model calls (30, against 43 and 141).
+        </figcaption>
+      </figure>
+    </div>
+
+    <h3>KiCad: mean reward over 24 tasks</h3>
+    <div class="table-scroll">
+      <table class="data">
+        <thead>
+          <tr><th>Method</th><th>gpt-6-astra</th><th>opus-5</th><th>Model calls</th><th>Tokens (M)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Direct<sup>d</sup></td><td>0.194</td><td></td><td>1,784</td><td>15.3</td></tr>
+          <tr><td>ProLong (log only)</td><td>0.375</td><td>0.306</td><td>1,131</td><td>58.0</td></tr>
+          <tr><td>VISTA</td><td>0.347</td><td></td><td>1,145</td><td>41.8</td></tr>
+          <tr><td>Coding agent (arc)</td><td>0.333</td><td></td><td>1,447</td><td>88.3</td></tr>
+          <tr class="ours"><td>MFM<sup>e</sup></td><td class="best">0.389</td><td class="best">0.333</td><td>968</td><td>66.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      Calls and tokens are for the gpt-6-astra runs.
+      <sup>d</sup> The direct arm never received its screenshot, so it is a text-only baseline in effect.
+      <sup>e</sup> The MFM cell adds design-turn and conventions prompt levers that the ProLong
+      cell does not carry. The differences between memory arms are one or two tasks out of 24.
+    </p>
+  </div>
+</section>
+
+<!-- ============================ SKILLS ============================ -->
+<section class="section alt" id="skills">
+  <div class="wrap">
+    <h2>Does the memory accumulate skills?</h2>
+    <p>
+      Milestone scores say whether an agent finished. They do not say whether it learned anything
+      on the way. Because everything the agent knows beyond its weights is a file it wrote, the
+      question can be answered by reading the files and the turns that wrote them.
+    </p>
+
+    <figure class="fig">
+      <img src="assets/img/skill_learning.png" width="2608" height="838" loading="lazy"
+           alt="Three panels. A: steps to each rung for a carried chain of three lives and two fresh replicates. B: share of game ticks run through the agent's own procedures over time. C: turns per KiCad task saved by carried memory along the task sequence.">
+      <figcaption>
+        <strong>Skills accumulate within a life and carry across lives.</strong>
+        (A) Life 3 of a carried chain reaches diamond at step 8,656; the one fresh life that
+        reaches it needs 11,412. (B) Fresh lives write their descent and tunnelling procedures
+        between steps 4.6k and 8.5k and then route 80 to 97 percent of their ticks through them;
+        carried lives inherit them at the first turn and cross 50 percent about 3,000 steps
+        earlier. (C) On KiCad the saving grows from about one turn per task to five along the
+        sequence, while the score is a tie.
+      </figcaption>
+    </figure>
+
+    <div class="cards three">
+      <div class="card">
+        <h3>Written after they work</h3>
+        <p>No procedure is installed for the agent. Life 1 reaches iron by hand and saves
+        <code>shaft_down</code> only after the descent has succeeded repeatedly: "I've saved the
+        repeatedly successful descent sequence as a guarded procedure."</p>
+      </div>
+      <div class="card">
+        <h3>Repaired and judged</h3>
+        <p>Life 2 changes one line of the inherited <code>tunnel</code>, validates it, and keeps
+        it. It reverts an inherited fall guard with a reason: the threshold "would interrupt
+        intentional shaft descent."</p>
+      </div>
+      <div class="card">
+        <h3>Facts change decisions</h3>
+        <p>Lives 2 and 3 walk to the iron column life 1 found, confirm the floor against its
+        frame, and mine their first iron at the same block, at steps 4,497 and 4,259 against
+        5,346.</p>
+      </div>
+    </div>
+
+    <details class="ledger">
+      <summary>The skill ledger of the carried chain</summary>
+      <div class="table-scroll">
+        <table class="data compact">
+          <thead><tr><th>Skill</th><th>Acquired</th><th>How</th><th>In later lives</th></tr></thead>
+          <tbody>
+            <tr><td><code>shaft_down</code> (procedure)</td><td>life 1, turn 48</td><td>written after the descent had worked by hand</td><td>inherited unchanged; iron pickaxe to y&le;13 in about 850 steps against 2.2k to 3.4k fresh</td></tr>
+            <tr><td><code>tunnel</code> (procedure)</td><td>life 1, turn 50</td><td>written after four manual cells worked</td><td>life 2 repairs one line (forward 6 to 12 ticks), validated, kept</td></tr>
+            <tr><td><code>probe</code> (procedure)</td><td>life 2, turn 56</td><td>new; embeds "release one tick between attacks"</td><td>inherited by life 3</td></tr>
+            <tr><td><code>aim_speckles</code> (procedure)</td><td>every life, turn 2</td><td>adapted from the harness template</td><td>unchanged; the call that mined the diamond</td></tr>
+            <tr><td>lava guard (reflex)</td><td>life 1</td><td>template, widened to own procedures and stationary mining</td><td>inherited; fired once in life 1, four times in life 3</td></tr>
+            <tr><td>fall guard (reflex)</td><td>life 1</td><td>template, rewritten to a 0.6-block threshold</td><td>life 2 reverts to the template with a stated reason</td></tr>
+            <tr><td>spruce approach</td><td>life 1</td><td>discovered</td><td>verified by a then-now check; first log at step 168 against 431 to 679</td></tr>
+            <tr><td>the iron column</td><td>life 1, step 5,346</td><td>found while shafting</td><td>lives 2 and 3 mine their first iron at the same block</td></tr>
+            <tr><td>lava hazard; a dirt seal does not persist</td><td>life 1</td><td>reflex firing and a failed seal</td><td>life 3 tunnels south of it</td></tr>
+            <tr><td>exhausted search lanes</td><td>lives 1, 2</td><td>each life's own search record</td><td>life 3 prefers a fresh branch, where the diamond was</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============================ KICAD ============================ -->
+<section class="section" id="kicad">
+  <div class="wrap">
+    <h2>KiCad: checking the screen against the plan</h2>
+    <p>
+      Task: change the supply of a 555 timer circuit from 9 V to 5 V. Both agents replace the
+      power symbol through the Change Symbol dialog, and in both cases the dialog reports
+      success while the value field still reads +9V.
+    </p>
+    <div class="pair">
+      <figure class="fig">
+        <img src="assets/img/kicad_mfm_s012.jpg" width="1280" height="720" loading="lazy"
+             alt="KiCad schematic editor with the symbol properties of the power symbol, value +5V.">
+        <figcaption>
+          <span class="score good">1.0</span> <strong>MFM, gpt-6-astra.</strong>
+          "The library replacement succeeded with zero reported errors, but the value remains
+          +9V." It edits the value field and confirms both before saving.
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/img/kicad_vista_s010.jpg" width="1280" height="720" loading="lazy"
+             alt="KiCad schematic editor showing the 555 timer circuit with the supply label still reading +9V.">
+        <figcaption>
+          <span class="score bad">0.67</span> <strong>VISTA, gpt-5.6-sol.</strong>
+          The label still reads +9V on screen. The agent reads it as +5V and saves; the graded
+          netlist still names the net +9V.
+        </figcaption>
+      </figure>
+    </div>
+    <p class="note">
+      One of the four tasks where this MFM run beat this VISTA run. The two runs use different
+      models, so the pair illustrates a behaviour and is not a controlled comparison.
+    </p>
+  </div>
+</section>
+
+<!-- ============================ VIDEO ============================ -->
+<section class="section alt" id="video">
+  <div class="wrap">
+    <h2>Video</h2>
+    <figure class="fig">
+      <video controls preload="none" playsinline poster="assets/img/video_poster.jpg" width="960" height="618">
+        <source src="assets/video/og9_mfm_reconstruction_h264.mp4" type="video/mp4">
+        Your browser does not play this video.
+        <a href="assets/video/og9_mfm_reconstruction_h264.mp4">Download it</a>.
+      </video>
+      <figcaption>
+        Reconstruction of an MFM run on the Ender Dragon half task (<code>og9_mfm</code>),
+        with the step, the milestone count and the executed action under the frame.
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============================ LIMITS ============================ -->
+<section class="section" id="limits">
+  <div class="wrap">
+    <h2>What this does not show</h2>
+    <ul class="limits">
+      <li>
+        <strong>Small n.</strong> Most cells are single runs. The skill-learning evidence is one
+        carried chain of three lives and two fresh replicates; two fresh lives already differ by
+        a thousand steps at the iron pickaxe.
+      </li>
+      <li>
+        <strong>One world.</strong> Every Minecraft run has the same world and spawn, so gains
+        across lives mix map memory with procedural memory. The within-life curves are the part
+        that does not depend on that.
+      </li>
+      <li>
+        <strong>The Nether chain is the counterexample.</strong> Runs with two, three and four
+        carried lives all scored 16/24 and all died in the same pocket around the portal. The
+        record carried the procedures and not the lesson that mattered.
+      </li>
+      <li>
+        <strong>MFM is not cheaper.</strong> On Minecraft it spends the most tokens of the memory arms, and on
+        gpt-5.6-sol it trails the logbook and VISTA on the dragon task.
+      </li>
+      <li>
+        <strong>Known departures from parity.</strong> A brief longer than 32 KiB is truncated
+        for the logbook and MFM arms on Minecraft; the KiCad direct arm is blind; the KiCad MFM
+        cell carries extra prompt levers; scores from before and after a session-policy change
+        are not averaged. The repository README lists them in full.
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================ CODE ============================ -->
+<section class="section alt" id="code">
+  <div class="wrap">
+    <h2>Code</h2>
+    <p>
+      The <code>mfm</code> package holds the episode store, retrieval, carry and consolidation,
+      and the agent base shared by both benchmarks. It has no dependencies.
+    </p>
+<pre class="term" tabindex="0"><code><span class="prompt">$</span> git clone https://github.com/Hither1/MFM.git
+<span class="prompt">$</span> cd MFM &amp;&amp; pip install -e .
+
+<span class="c"># Minecraft: one harness, the arm is a flag</span>
+<span class="prompt">$</span> python MCU/worldmodel_purple_agent.py --memory {direct,logbook,mfm,vista,arc}
+
+<span class="c"># KiCad</span>
+<span class="prompt">$</span> python gym_codex/run_eval.py --agent {direct,prolong-logonly,mfm-carry,vista}</code></pre>
+    <p>
+      Options, launch recipes and read-out scripts are documented in
+      <a href="https://github.com/Hither1/MFM/blob/publication/MCU/README-mfm-arms.md"><code>MCU/README-mfm-arms.md</code></a>.
+      The figures on this page and the scripts that draw them are under
+      <a href="https://github.com/Hither1/MFM/tree/publication/figures"><code>figures/</code></a> and
+      <a href="https://github.com/Hither1/MFM/tree/publication/scripts"><code>scripts/</code></a>.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>MFM: Multimodal Filesystem Memory. Released under the MIT License.</p>
+    <p><a href="https://github.com/Hither1/MFM">github.com/Hither1/MFM</a></p>
+  </div>
+</footer>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Enlarged figure" hidden>
+  <button class="lightbox-close" aria-label="Close">&times;</button>
+  <img alt="">
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
