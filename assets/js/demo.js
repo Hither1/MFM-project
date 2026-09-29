@@ -462,23 +462,29 @@
   }
 
   // ------------------------------------------------------------------ map
-  var KIND_COLOR = { walked: '#d8c49a', water: '#4a90d9', blocked: '#4a5260', hazard: '#c0392b',
-                     lava: '#e8590c', floor: '#c9cdd4', placed: '#8e6bbf', opened: '#8e6bbf' };
+  // Colours come from the stylesheet (demo.css, the --map-* and cell-kind variables).
+  function cssVar(name, fallback) {
+    var v = getComputedStyle(document.body).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  var KIND_VAR = { walked: '--walked', water: '--water', blocked: '--blocked', hazard: '--hazard',
+                   lava: '--lava', floor: '--floor', placed: '--placed', opened: '--placed' };
+  function kindColor(kind) { return KIND_VAR[kind] ? cssVar(KIND_VAR[kind], '#999') : '#999'; }
   var mapGeom = null;
 
   function renderMap(el) {
     if (!$('#dx-map', el)) {
       var kinds = D.grid.kinds.map(function (k) {
-        return '<span><i class="dx-sw" style="background:' + (KIND_COLOR[k] || '#999') + '"></i>' + esc(k) + ' cell</span>';
+        return '<span><i class="dx-sw" style="background:' + kindColor(k) + '"></i>' + esc(k) + ' cell</span>';
       }).join('');
       el.innerHTML =
         '<div class="dx-bar"><span id="dx-mapinfo"></span><span class="grow"></span>' +
         '<span>click a dot to open the episode, click the ground to query <code>--near</code> it</span></div>' +
         '<div class="dx-mapwrap"><canvas id="dx-map"></canvas></div>' +
         '<div class="dx-maplegend">' + kinds +
-        '<span><i class="dx-sw dot" style="background:#15181d"></i>where an episode began</span>' +
-        '<span><i class="dx-sw dot" style="background:#f2b01e"></i>returned by the query</span>' +
-        '<span><i class="dx-sw dot" style="background:#1f6fd6"></i>selected</span></div>';
+        '<span><i class="dx-sw dot" style="background:var(--map-dot)"></i>where an episode began</span>' +
+        '<span><i class="dx-sw dot" style="background:var(--match)"></i>returned by the query</span>' +
+        '<span><i class="dx-sw dot" style="background:var(--map-sel)"></i>selected</span></div>';
       var cv = $('#dx-map', el);
       cv.addEventListener('click', mapClick);
       cv.addEventListener('mousemove', mapHover);
@@ -504,7 +510,7 @@
     mapGeom = { k: k, ox: ox, oz: oz, b: b, pts: [] };
 
     // a light grid every 8 blocks
-    g.strokeStyle = '#eceef2'; g.lineWidth = 1; g.beginPath();
+    g.strokeStyle = cssVar('--map-grid', '#eceef2'); g.lineWidth = 1; g.beginPath();
     for (var x = Math.ceil(b.x0 / 8) * 8; x <= b.x1; x += 8) { g.moveTo(px(x) + 0.5, 0); g.lineTo(px(x) + 0.5, H); }
     for (var z = Math.ceil(b.z0 / 8) * 8; z <= b.z1; z += 8) { g.moveTo(0, pz(z) + 0.5); g.lineTo(W, pz(z) + 0.5); }
     g.stroke();
@@ -514,24 +520,26 @@
     order.forEach(function (kind) {
       var ki = D.grid.kinds.indexOf(kind);
       if (ki < 0) return;
-      g.fillStyle = KIND_COLOR[kind] || '#999';
+      g.fillStyle = kindColor(kind);
       cells.forEach(function (c) {
         if (c[3] === ki) g.fillRect(px(c[0]), pz(c[2]), Math.max(1, k - 0.5), Math.max(1, k - 0.5));
       });
     });
 
     var rows = closed().concat(opened()).filter(function (r) { return r.x != null; });
-    g.strokeStyle = 'rgba(21,24,29,0.28)'; g.lineWidth = 1; g.beginPath();
+    g.strokeStyle = cssVar('--map-path', 'rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
     rows.forEach(function (r, i) { if (i) g.lineTo(px(r.x), pz(r.z)); else g.moveTo(px(r.x), pz(r.z)); });
     g.stroke();
 
+    var match = cssVar('--match', '#f2b01e'), dotFill = cssVar('--map-dot', '#15181d'),
+        dotRing = cssVar('--map-dot-ring', '#fff');
     var o = S.result && !S.result.error ? S.result.options : null, hit = {};
     if (o) S.result.rows.forEach(function (r) { hit[r.id] = 1; });
     if (o && o.near) {
       g.beginPath();
       g.arc(px(o.near[0]), pz(o.near[1]), o.radius * k, 0, 2 * Math.PI);
-      g.fillStyle = 'rgba(242,176,30,0.16)'; g.fill();
-      g.strokeStyle = '#c98a00'; g.lineWidth = 1.5; g.setLineDash([5, 4]); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(255,212,71,0.16)'; g.fill();
+      g.strokeStyle = match; g.lineWidth = 1.5; g.setLineDash([5, 4]); g.stroke(); g.setLineDash([]);
     }
     function dot(r, radius, fill, ring) {
       g.beginPath(); g.arc(px(r.x), pz(r.z), radius, 0, 2 * Math.PI);
@@ -540,12 +548,12 @@
     }
     rows.forEach(function (r) {
       mapGeom.pts.push({ id: r.id, x: px(r.x), y: pz(r.z) });
-      if (!hit[r.id] && r.id !== S.ep) dot(r, 3, '#15181d', '#fff');
+      if (!hit[r.id] && r.id !== S.ep) dot(r, 3, dotFill, dotRing);
     });
-    rows.forEach(function (r) { if (hit[r.id] && r.id !== S.ep) dot(r, 4.5, '#f2b01e', '#15181d'); });
-    rows.forEach(function (r) { if (r.id === S.ep) dot(r, 6, '#1f6fd6', '#fff'); });
+    rows.forEach(function (r) { if (hit[r.id] && r.id !== S.ep) dot(r, 4.5, match, dotRing); });
+    rows.forEach(function (r) { if (r.id === S.ep) dot(r, 6, cssVar('--map-sel', '#1f6fd6'), '#fff'); });
 
-    g.fillStyle = '#7a8291'; g.font = '11px ' + getComputedStyle(document.body).fontFamily;
+    g.fillStyle = cssVar('--map-label', '#7a8291'); g.font = '11px ' + getComputedStyle(document.body).fontFamily;
     g.textBaseline = 'top'; g.textAlign = 'left';
     g.fillText('x ' + b.x0 + ', z ' + b.z0, 6, 5);
     g.textBaseline = 'bottom'; g.textAlign = 'right';

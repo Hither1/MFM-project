@@ -19,7 +19,8 @@ The site is then served at https://hither1.github.io/MFM-project/.
 | Path | Contents |
 | --- | --- |
 | `index.html` | the page; the author block is marked with an `AUTHORS` comment |
-| `assets/css/style.css` | styles |
+| `assets/css/style.css` | styles; the theme (colours, pixel font, bevels) is the `:root` block at the top |
+| `assets/img/sift_*.png` | the pixel-art block strips, drawn by `scripts/make_sift_tiles.py` |
 | `assets/js/main.js` | mobile navigation, section highlight, figure lightbox |
 | `assets/img/` | figures, copied from `figures/` of the MFM repository |
 | `assets/video/` | the run reconstruction, re-encoded to H.264 for browsers |
