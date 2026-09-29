@@ -24,6 +24,29 @@ The site is then served at https://hither1.github.io/MFM-project/.
 | `assets/img/` | figures, copied from `figures/` of the MFM repository |
 | `assets/video/` | the run reconstruction, re-encoded to H.264 for browsers |
 
+| `demo.html` | the memory explorer: a recorded run replayed step by step |
+| `assets/js/demo.js`, `assets/css/demo.css` | the explorer |
+| `assets/js/mfm-query.js` | a port of `mfm/memory/tools/episodes.py`, used by the query box |
+| `assets/demo/<run>/` | one exported run: `data.json`, `frames/*.jpg`, `check.json` |
+| `scripts/` | `export_demo.py` writes a run into `assets/demo/`; `check_demo.js` tests the port |
+
+## Memory explorer
+
+`demo.html` reads `assets/demo/runs.json` and the run it names. To add or refresh a run
+(PIL is needed for the frames):
+
+```bash
+python scripts/export_demo.py /path/to/MFM/MCU/output/<run> --title "Shown in the run menu"
+node scripts/check_demo.js assets/demo/<run>/data.json /path/to/MFM/MCU/output/<run>
+```
+
+The exporter copies the index, the episode files, the grid and the log, takes the agent's
+commands from `codex_turns/` and the history of `mine/` from the `apply_patch` calls in
+`codex_sessions/`, and rewrites the machine's paths, account and group names. The check
+re-runs every `episodes.py` call of the run through the port and compares the output with
+the record, line for line; it exits non-zero on a difference and writes the `check.json`
+that the page quotes. The page needs http (`fetch`), so preview it with the server above.
+
 Numbers on the page come from `figures/cost_per_run.md`,
 `figures/skill_learning/`, `figures/memory_detail_26654/` and the README of the MFM
 repository (branch `publication`). When a figure is redrawn there, copy the new PNG over

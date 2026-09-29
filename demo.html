@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MFM: Memory explorer</title>
+  <meta name="description" content="Replay a recorded MFM run and inspect its memory at any step: the index, the episodes and their frames, the map, the log, the agent's own notes, and what a query returns.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/demo.css">
+</head>
+<body class="dx">
+
+<header class="topbar" id="top">
+  <nav class="wrap topbar-inner" aria-label="Site">
+    <a class="brand" href="index.html">MFM</a>
+    <ul class="nav-links dx-nav">
+      <li><a href="index.html">Project page</a></li>
+      <li><a href="https://github.com/Hither1/MFM">Code</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+<section class="dx-head">
+  <div class="wrap wide">
+    <p class="eyebrow">Interactive</p>
+    <h1>Memory explorer</h1>
+    <p class="dx-lede">
+      A recorded run, replayed. Move the step and the memory is shown as it stood at that
+      moment: the rows of <code>index.jsonl</code>, the episodes and their frames, the map, the
+      log, and the notes the agent had written by then. Type a query and it runs over that
+      memory with the rules of the agent's own tool.
+    </p>
+    <div class="dx-runbar">
+      <label for="dx-run">Run</label>
+      <select id="dx-run"></select>
+      <span class="dx-runmeta" id="dx-runmeta"></span>
+    </div>
+  </div>
+</section>
+
+<div class="dx-status wrap wide" id="dx-status" role="status">Loading the run&hellip;</div>
+
+<div id="dx-app" hidden>
+
+<!-- ============================ TIME ============================ -->
+<section class="dx-time" aria-label="Step">
+  <div class="wrap wide">
+    <div class="dx-time-row">
+      <div class="dx-transport">
+        <button type="button" id="dx-prev" title="Previous turn" aria-label="Previous turn">&#9664;</button>
+        <button type="button" id="dx-play" class="dx-playbtn" aria-pressed="false">Play</button>
+        <button type="button" id="dx-next" title="Next turn" aria-label="Next turn">&#9654;</button>
+      </div>
+      <div class="dx-scrub">
+        <div class="dx-track" id="dx-track" aria-hidden="true"></div>
+        <input type="range" id="dx-step" min="0" max="1" step="1" value="0" aria-label="Step">
+      </div>
+      <div class="dx-readout" id="dx-readout"></div>
+    </div>
+    <div class="dx-stats" id="dx-stats"></div>
+  </div>
+</section>
+
+<!-- ============================ QUERY ============================ -->
+<section class="dx-query" aria-label="Query">
+  <div class="wrap wide">
+    <form class="dx-cmd" id="dx-form" autocomplete="off">
+      <label class="dx-cmd-prompt" for="dx-q"><span class="prompt">$</span> ./tools/episodes.py</label>
+      <input type="text" id="dx-q" spellcheck="false" placeholder="--near 3168 1414 --radius 8      (empty: no query)">
+      <button type="submit" class="dx-run-btn">Run</button>
+      <button type="button" id="dx-clear">Clear</button>
+    </form>
+    <div class="dx-helpers">
+      <span class="dx-helpers-label">Add a filter</span>
+      <button type="button" data-add="--last 5">--last 5</button>
+      <button type="button" data-add="--steps">--steps A B</button>
+      <select id="dx-add-tag" aria-label="Add a tag filter"><option value="">--tag &hellip;</option></select>
+      <select id="dx-add-action" aria-label="Add an action filter"><option value="">--action &hellip;</option></select>
+      <button type="button" data-add="--grep">--grep TEXT</button>
+      <span class="dx-hint">or click the map for <code>--near</code></span>
+    </div>
+    <div class="dx-result" id="dx-result" hidden></div>
+  </div>
+</section>
+
+<!-- ============================ PANELS ============================ -->
+<section class="dx-main">
+  <div class="wrap wide dx-cols">
+    <div class="dx-panel" id="dx-left">
+      <div class="dx-tabs" role="tablist" aria-label="Memory">
+        <button role="tab" data-tab="index" aria-selected="true">Index</button>
+        <button role="tab" data-tab="map">Map</button>
+        <button role="tab" data-tab="files">Files</button>
+        <button role="tab" data-tab="log">Log</button>
+      </div>
+      <div class="dx-body" id="dx-left-body" role="tabpanel"></div>
+    </div>
+    <div class="dx-panel" id="dx-right">
+      <div class="dx-tabs" role="tablist" aria-label="Detail">
+        <button role="tab" data-tab="episode" aria-selected="true">Episode</button>
+        <button role="tab" data-tab="turn">Agent turn</button>
+        <button role="tab" data-tab="asked">Queries it ran</button>
+      </div>
+      <div class="dx-body" id="dx-right-body" role="tabpanel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NOTES ============================ -->
+<section class="section alt dx-about">
+  <div class="wrap">
+    <h2>What you are looking at</h2>
+    <p>
+      Everything on this page is the record of one run, exported by
+      <code>scripts/export_demo.py</code>. Nothing is simulated and no model is called.
+    </p>
+    <ul class="limits">
+      <li>
+        <strong>The index is a file, and the query is a filter.</strong> MFM computes no
+        embeddings and ranks nothing. <code>index.jsonl</code> has one row per closed episode,
+        and <code>tools/episodes.py</code> selects rows by step range, by distance from a
+        point, by tag, by action, or by text found in the episode's files. Filters combine with
+        AND, and results come back in the order they were recorded.
+      </li>
+      <li>
+        <strong>The query box runs a port of that tool.</strong> It was checked against this
+        run: each <code>episodes.py</code> call the agent made was re-run over the index as it
+        stood at that turn and compared, line for line, with the output the run recorded.
+        <span id="dx-check"></span>
+      </li>
+      <li>
+        <strong>Replaying the harness's files is exact.</strong> The index, the grid and the
+        log are append-only and every row carries its step, so the memory at step
+        <em>s</em> is the rows written by step <em>s</em>.
+      </li>
+      <li>
+        <strong>The agent's own files are rebuilt from its patches.</strong> The run keeps
+        only the final <code>mine/</code> files. Their history here comes from the
+        <code>apply_patch</code> calls in the session record, and is shown only when replaying
+        those patches gives back the final file exactly.
+      </li>
+      <li>
+        <strong>Frames are reduced.</strong> The stored frames are 640&times;360 PNG; the page
+        shows 320&times;180 JPEG copies. Recorded command output is cut at 6,000 characters.
+        Reference and skill files are listed and not included.
+      </li>
+      <li>
+        <strong>One run.</strong> This is a single recorded life. It shows how the memory is
+        built and read, and says nothing about how often the agent succeeds.
+      </li>
+    </ul>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>MFM: Multimodal Filesystem Memory. Released under the MIT License.</p>
+    <p><a href="https://github.com/Hither1/MFM">github.com/Hither1/MFM</a></p>
+  </div>
+</footer>
+
+<div class="dx-tip" id="dx-tip" hidden></div>
+
+<script src="assets/js/mfm-query.js"></script>
+<script src="assets/js/demo.js"></script>
+</body>
+</html>
