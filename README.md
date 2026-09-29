@@ -14,6 +14,9 @@ python -m http.server 8000      # then open http://localhost:8000
 On GitHub: Settings -> Pages -> Deploy from a branch -> `main`, folder `/ (root)`.
 The site is then served at https://hither1.github.io/MFM-project/.
 
+After changing a stylesheet or script, bump the `?v=` number on its `<link>`/`<script>`
+in `index.html` and `demo.html`; GitHub Pages lets browsers cache these files for 10 minutes.
+
 ## Layout
 
 | Path | Contents |
