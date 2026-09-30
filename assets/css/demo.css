@@ -30,11 +30,13 @@
   background:
     radial-gradient(50% 120% at 10% 0%, rgba(63, 224, 208, 0.13), transparent 70%),
     radial-gradient(45% 110% at 92% 0%, rgba(255, 122, 200, 0.13), transparent 70%); }
-/* the Sift ground under the header, with the Blub on it (see .sift-ground in style.css) */
+/* the Sift ground under the header, with the Blub on it (see .sift-ground in style.css).
+   The Blub stands at the right end of the run bar, level with the wrap's right edge (its PNG has
+   ~8px of transparent margin on that side); the bar keeps that end clear for it. */
 .dx-head { padding-bottom: 0; }
-.dx-runbar { position: relative; z-index: 1; }
-.dx .dx-ground { height: 48px; margin-top: 22px; background-size: auto 96px; }
-.dx .dx-ground .blub { width: 104px; left: auto; right: max(24px, calc(50% - 600px)); bottom: calc(100% - 14px); }
+.dx-runbar { padding-right: 104px; }
+.dx .dx-ground { height: 48px; margin-top: 32px; background-size: auto 96px; }
+.dx .dx-ground .blub { width: 104px; left: auto; right: calc(max(20px, 50% - var(--wrap-wide) / 2 + 20px) - 8px); bottom: calc(100% - 14px); }
 .dx-head h1 { font-size: clamp(2.2rem, 5vw, 3.1rem); margin-bottom: 12px; }
 .dx-lede { max-width: 820px; color: var(--ink-soft); margin: 0 0 18px; }
 .dx-runbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.92rem; }
@@ -321,7 +323,9 @@ table.dx-index { width: 100%; border-collapse: collapse; font-size: 0.78rem; fon
   .dx-stats .dx-legend { margin-left: 0; }
 }
 @media (max-width: 640px) {
-  .dx .dx-ground { margin-top: 72px; }
+  /* too narrow to spare the bar's right end: the Blub stands below it instead, clear of it mid-hop */
+  .dx-runbar { padding-right: 0; }
+  .dx .dx-ground { margin-top: 84px; }
   .dx .dx-ground .blub { width: 76px; right: 16px; bottom: calc(100% - 10px); }
   .dx-time { position: static; }
   .dx-cmd { flex-wrap: wrap; }
