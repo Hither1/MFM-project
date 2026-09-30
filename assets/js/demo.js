@@ -87,6 +87,7 @@
       renderTrack();
       status('');
       $('#dx-app').hidden = false;
+      fitTrack();
       setupVideo();
       update();
       getJSON(BASE + name + '/check.json').then(function (c) {
@@ -343,24 +344,46 @@
       var cls = wrote[t.turn] ? 'w' : (asked ? 'q' : '');
       html += '<i class="dx-mark ' + cls + '" style="left:' + (100 * t.step / D.max) + '%"></i>';
     });
-    var m = D.run.milestones, lastLabel = -100;
-    m.order.filter(function (k) { return m.achieved[k] != null; }).sort(function (a, b) {
-      return m.achieved[a] - m.achieved[b];
-    }).forEach(function (k) {
-      var at = 100 * m.achieved[k] / D.max, room = at - lastLabel >= 9;   // a label needs about 9% of the track
-      if (room) lastLabel = at;
-      html += '<i class="dx-mark m" title="' + esc(k) + ', step ' + num(m.achieved[k]) + '" style="left:' + at + '%">' +
-        (room ? esc(k) : '') + '</i>';
+    var m = D.run.milestones;
+    m.order.filter(function (k) { return m.achieved[k] != null; }).forEach(function (k) {
+      html += '<i class="dx-mark m" title="' + esc(k) + ', step ' + num(m.achieved[k]) + '" style="left:' +
+        (100 * m.achieved[k] / D.max) + '%"><i class="dx-lab">' + esc(k) + '</i></i>';
     });
     if (D.memEnd < D.max) {                // the recording goes on after the memory stops
-      var from = 100 * D.memEnd / D.max;
-      html += '<i class="dx-hold" style="left:' + from + '%" title="Nothing was written to the memory after step ' +
-        num(D.memEnd) + '; the recording goes on to step ' + num(D.max) + '">' +
-        (100 - from >= 24 ? 'nothing written after step ' + num(D.memEnd) : '') + '</i>';
+      var from = 100 * D.memEnd / D.max, why = ' title="Nothing was written to the memory after step ' +
+        num(D.memEnd) + '; the recording goes on to step ' + num(D.max) + '"';
+      html += '<i class="dx-hold" style="left:' + from + '%"' + why + '></i>' +
+        '<i class="dx-hold-note" style="left:' + from + '%"' + why + '><i class="dx-lab">nothing written after step ' +
+        num(D.memEnd) + '</i></i>';
     }
     $('#dx-track').innerHTML = html;
     var slider = $('#dx-step');
     slider.max = D.max;
+  }
+
+  // Show the track's labels that fit: left to right, each one clear of the last one shown and inside the track.
+  // Goal labels near an end are slid inward rather than dropped. Measured, so it holds at any width.
+  function fitTrack() {
+    var track = $('#dx-track'), bar = track.getBoundingClientRect(), right = -Infinity;
+    var labs = Array.prototype.slice.call(track.querySelectorAll('.dx-lab'));
+    labs.forEach(function (el) {
+      var goal = el.parentNode.classList.contains('m');
+      el.style.transform = '';
+      el.hides = goal ? el : el.parentNode;      // the hold's note goes with its rule; a goal keeps its tick
+      el.hides.style.visibility = '';
+    });
+    labs.map(function (el) {
+      var r = el.getBoundingClientRect(), shift = 0;
+      if (el.hides === el) {
+        shift = Math.max(0, bar.left - r.left) - Math.max(0, r.right - bar.right);
+        if (shift) el.style.transform = 'translateX(calc(-50% + ' + shift + 'px))';
+      }
+      return { el: el, left: r.left + shift, right: r.right + shift };
+    }).sort(function (a, b) { return a.left - b.left; }).forEach(function (l) {
+      var fits = l.left >= right + 8 && l.right <= bar.right;
+      l.el.hides.style.visibility = fits ? '' : 'hidden';
+      if (fits) right = l.right;
+    });
   }
 
   function renderClock() {
@@ -1284,7 +1307,11 @@
     var resize = null;
     window.addEventListener('resize', function () {
       clearTimeout(resize);
-      resize = setTimeout(function () { if (D && S.left === 'map') drawMap(); }, 120);
+      resize = setTimeout(function () {
+        if (!D) return;
+        fitTrack();
+        if (S.left === 'map') drawMap();
+      }, 120);
     });
   }
 
