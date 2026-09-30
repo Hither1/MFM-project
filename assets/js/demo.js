@@ -725,6 +725,9 @@
                    lava: '--lava', floor: '--floor', placed: '--placed', opened: '--placed' };
   function kindColor(kind) { return KIND_VAR[kind] ? cssVar(KIND_VAR[kind], '#999') : '#999'; }
   var mapGeom = null;
+  // What part of the area the map shows: zoom 1 is the whole area, and the centre is in blocks.
+  // Kept per run and area, so it holds still while the step moves.
+  var mapView = null, MAP_MAX_PX = 24;      // zoom in no further than 24 px a block
 
   function renderMap(el) {
     if (!$('#dx-map', el)) {
@@ -733,7 +736,11 @@
       }).join('');
       el.innerHTML =
         '<div class="dx-bar"><span id="dx-mapinfo"></span><span class="grow"></span>' +
-        '<span>click a dot to open the episode, click the ground to query <code>--near</code> it</span></div>' +
+        '<span>click a dot to open the episode, click the ground to query <code>--near</code> it; ' +
+        'scroll or pinch to zoom, drag to move</span>' +
+        '<span class="dx-zoom"><button type="button" data-zoom="in" title="Zoom in" aria-label="Zoom in">+</button>' +
+        '<button type="button" data-zoom="out" title="Zoom out" aria-label="Zoom out">&minus;</button>' +
+        '<button type="button" data-zoom="fit" title="Show the whole area">fit</button></span></div>' +
         '<div class="dx-mapwrap"><canvas id="dx-map"></canvas></div>' +
         '<div class="dx-maplegend">' + kinds +
         '<span><i class="dx-sw dot" style="background:var(--map-dot)"></i>where a turn began</span>' +
@@ -743,6 +750,17 @@
       cv.addEventListener('click', mapClick);
       cv.addEventListener('mousemove', mapHover);
       cv.addEventListener('mouseleave', function () { $('#dx-tip').hidden = true; });
+      cv.addEventListener('wheel', mapWheel, { passive: false });
+      cv.addEventListener('pointerdown', mapDown);
+      cv.addEventListener('pointermove', mapMove);
+      cv.addEventListener('pointerup', mapUp);
+      cv.addEventListener('pointercancel', mapUp);
+      $('.dx-zoom', el).addEventListener('click', function (ev) {
+        var z = ev.target.closest('button');
+        if (!z || !mapGeom) return;
+        if (z.dataset.zoom === 'fit') zoomMap(1 / mapView.z);
+        else zoomMap(z.dataset.zoom === 'in' ? 2 : 0.5);
+      });
     }
     drawMap();
   }
@@ -759,21 +777,44 @@
     var b = D.regions[region], W = cv.parentNode.clientWidth, dpr = window.devicePixelRatio || 1;
     var spanX = b.x1 - b.x0, spanZ = b.z1 - b.z0;
     var H = Math.max(260, Math.min(520, Math.round(W * spanZ / spanX)));
-    var k = Math.min(W / spanX, H / spanZ);
-    var ox = (W - spanX * k) / 2, oz = (H - spanZ * k) / 2;
+    var k0 = Math.min(W / spanX, H / spanZ);
+    var key = S.run + ':' + region;
+    if (!mapView || mapView.key !== key) {
+      mapView = { key: key, z: 1, cx: (b.x0 + b.x1) / 2, cz: (b.z0 + b.z1) / 2, ep: S.ep };
+    }
+    mapGeom = { k0: k0, zmax: Math.max(1, MAP_MAX_PX / k0), W: W, H: H, b: b, pts: [] };
+    fitView();
+    var rows = closed().concat(opened()).filter(function (r) { return r.x != null && r._region === region; });
+    // a newly selected episode off the edge of a zoomed map: centre on it
+    var sel = S.ep !== mapView.ep && D.byId[S.ep];
+    mapView.ep = S.ep;
+    if (sel && rows.indexOf(sel) >= 0 && mapView.z > 1) {
+      var v = viewAt(), sx = v.ox + (sel.x - b.x0) * v.k, sy = v.oz + (sel.z - b.z0) * v.k;
+      if (sx < 12 || sx > W - 12 || sy < 12 || sy > H - 12) {
+        mapView.cx = Number(sel.x); mapView.cz = Number(sel.z); fitView();
+      }
+    }
+    var at = viewAt(), k = at.k, ox = at.ox, oz = at.oz;
     cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
+    cv.classList.toggle('zoomed', mapView.z > 1);
     var g = cv.getContext('2d');
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, W, H);
     function px(x) { return ox + (x - b.x0) * k; }
     function pz(z) { return oz + (z - b.z0) * k; }
-    mapGeom = { k: k, ox: ox, oz: oz, b: b, pts: [] };
+    mapGeom.k = k; mapGeom.ox = ox; mapGeom.oz = oz;
 
-    // a light grid every 8 blocks
-    g.strokeStyle = cssVar('--map-grid', '#eceef2'); g.lineWidth = 1; g.beginPath();
-    for (var x = Math.ceil(b.x0 / 8) * 8; x <= b.x1; x += 8) { g.moveTo(px(x) + 0.5, 0); g.lineTo(px(x) + 0.5, H); }
-    for (var z = Math.ceil(b.z0 / 8) * 8; z <= b.z1; z += 8) { g.moveTo(0, pz(z) + 0.5); g.lineTo(W, pz(z) + 0.5); }
-    g.stroke();
+    // a light grid every 8 blocks, and every block once they are big enough to tell apart
+    g.strokeStyle = cssVar('--map-grid', '#eceef2'); g.lineWidth = 1;
+    [[1, 0.45, k >= 16], [8, 1, true]].forEach(function (grid) {
+      if (!grid[2]) return;
+      var step = grid[0];
+      g.globalAlpha = grid[1]; g.beginPath();
+      for (var x = Math.ceil(b.x0 / step) * step; x <= b.x1; x += step) { g.moveTo(px(x) + 0.5, 0); g.lineTo(px(x) + 0.5, H); }
+      for (var z = Math.ceil(b.z0 / step) * step; z <= b.z1; z += step) { g.moveTo(0, pz(z) + 0.5); g.lineTo(W, pz(z) + 0.5); }
+      g.stroke();
+    });
+    g.globalAlpha = 1;
 
     var order = ['walked', 'floor', 'water', 'blocked', 'placed', 'opened', 'lava', 'hazard'];
     var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step && c[5] === region; });
@@ -786,8 +827,7 @@
       });
     });
 
-    var rows = closed().concat(opened()).filter(function (r) { return r.x != null && r._region === region; });
-    g.strokeStyle = cssVar('--map-path', 'rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
+    g.strokeStyle = cssVar('--map-path','rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
     rows.forEach(function (r, i) { if (i) g.lineTo(px(r.x), pz(r.z)); else g.moveTo(px(r.x), pz(r.z)); });
     g.stroke();
 
@@ -813,10 +853,17 @@
     rows.forEach(function (r) { if (r.id === S.ep) dot(r, 6, cssVar('--map-sel', '#1f6fd6'), '#fff'); });
 
     g.fillStyle = cssVar('--map-label', '#7a8291'); g.font = '11px ' + getComputedStyle(document.body).fontFamily;
+    // the corners of what is in view (the area's corners until zoomed in)
     g.textBaseline = 'top'; g.textAlign = 'left';
-    g.fillText('x ' + b.x0 + ', z ' + b.z0, 6, 5);
+    g.fillText('x ' + Math.max(b.x0, Math.floor(b.x0 - ox / k)) + ', z ' + Math.max(b.z0, Math.floor(b.z0 - oz / k)), 6, 5);
     g.textBaseline = 'bottom'; g.textAlign = 'right';
-    g.fillText('x ' + b.x1 + ', z ' + b.z1, W - 6, H - 5);
+    g.fillText('x ' + Math.min(b.x1, Math.ceil(b.x0 + (W - ox) / k)) + ', z ' +
+               Math.min(b.z1, Math.ceil(b.z0 + (H - oz) / k)), W - 6, H - 5);
+    var zb = $('.dx-zoom');
+    if (zb) {
+      $('[data-zoom="in"]', zb).disabled = mapView.z >= mapGeom.zmax;
+      $('[data-zoom="out"]', zb).disabled = $('[data-zoom="fit"]', zb).disabled = mapView.z <= 1;
+    }
 
     var info = $('#dx-mapinfo');
     if (info) info.innerHTML = (D.grid.cells.length
@@ -824,6 +871,87 @@
       : 'this run kept no grid; ') + plural(rows.length, 'episode position') +
       (D.regions.length > 1 ? '; area ' + (region + 1) + ' of ' + D.regions.length +
         ' (the agent moved between places far apart; the map shows the one it was in)' : '');
+  }
+
+  // scale (px a block) and offsets of the view, from mapView and the last drawn size
+  function viewAt() {
+    var gm = mapGeom, k = gm.k0 * mapView.z;
+    return { k: k, ox: gm.W / 2 - (mapView.cx - gm.b.x0) * k, oz: gm.H / 2 - (mapView.cz - gm.b.z0) * k };
+  }
+  // keep the zoom in range and the area filling the view
+  function fitView() {
+    var gm = mapGeom, b = gm.b, v = mapView;
+    v.z = Math.min(Math.max(v.z, 1), gm.zmax);
+    if (v.z < 1.001) v.z = 1;
+    var hw = gm.W / 2 / (gm.k0 * v.z), hh = gm.H / 2 / (gm.k0 * v.z);
+    v.cx = b.x1 - b.x0 <= 2 * hw ? (b.x0 + b.x1) / 2 : Math.min(Math.max(v.cx, b.x0 + hw), b.x1 - hw);
+    v.cz = b.z1 - b.z0 <= 2 * hh ? (b.z0 + b.z1) / 2 : Math.min(Math.max(v.cz, b.z0 + hh), b.z1 - hh);
+  }
+  var mapFrame = 0;
+  function redrawMap() {
+    if (!mapFrame) mapFrame = requestAnimationFrame(function () { mapFrame = 0; drawMap(); });
+  }
+  // zoom by f about (mx, my) in the canvas (its centre if left out), keeping the block there in place
+  function zoomMap(f, mx, my) {
+    var gm = mapGeom, v = mapView, z = Math.min(Math.max(v.z * f, 1), gm.zmax);
+    if (z === v.z) return false;
+    if (mx == null) { mx = gm.W / 2; my = gm.H / 2; }
+    var k = gm.k0 * v.z, wx = v.cx + (mx - gm.W / 2) / k, wz = v.cz + (my - gm.H / 2) / k;
+    v.z = z; k = gm.k0 * z;
+    v.cx = wx - (mx - gm.W / 2) / k; v.cz = wz - (my - gm.H / 2) / k;
+    fitView();
+    redrawMap();
+    return true;
+  }
+  function panMap(dx, dy) {
+    var k = mapGeom.k0 * mapView.z;
+    mapView.cx -= dx / k; mapView.cz -= dy / k;
+    fitView();
+    redrawMap();
+  }
+  function mapWheel(ev) {
+    if (!mapGeom) return;
+    var rect = ev.currentTarget.getBoundingClientRect();
+    var d = ev.deltaY * (ev.deltaMode === 1 ? 33 : ev.deltaMode === 2 ? 400 : 1);
+    // a trackpad pinch comes as a wheel with ctrl held and small deltas
+    var f = Math.min(2, Math.max(0.5, Math.exp(-d * (ev.ctrlKey ? 0.01 : 0.002))));
+    // past the zoom's ends the wheel scrolls the page, except a pinch, which would zoom the page
+    if (zoomMap(f, ev.clientX - rect.left, ev.clientY - rect.top) || ev.ctrlKey) ev.preventDefault();
+  }
+
+  // Dragging moves a zoomed map; two fingers pinch. A press that moved is not a click.
+  var mapPress = {}, mapDrag = null, mapDragged = false;
+  function mapDown(ev) {
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    if (!Object.keys(mapPress).length) { mapDrag = { x: ev.clientX, y: ev.clientY, moved: false }; mapDragged = false; }
+    mapPress[ev.pointerId] = { x: ev.clientX, y: ev.clientY };
+    ev.currentTarget.setPointerCapture(ev.pointerId);
+  }
+  function mapMove(ev) {
+    var p = mapPress[ev.pointerId];
+    if (!p || !mapGeom) return;
+    var ids = Object.keys(mapPress);
+    if (!mapDrag.moved && Math.hypot(ev.clientX - mapDrag.x, ev.clientY - mapDrag.y) <= 4) return;
+    mapDrag.moved = true;
+    $('#dx-tip').hidden = true;
+    if (ids.length === 2) {
+      var o = mapPress[ids[0] === String(ev.pointerId) ? ids[1] : ids[0]];
+      var rect = ev.currentTarget.getBoundingClientRect();
+      var before = Math.hypot(p.x - o.x, p.y - o.y), after = Math.hypot(ev.clientX - o.x, ev.clientY - o.y);
+      panMap((ev.clientX - p.x) / 2, (ev.clientY - p.y) / 2);
+      if (before > 0) zoomMap(after / before, (ev.clientX + o.x) / 2 - rect.left, (ev.clientY + o.y) / 2 - rect.top);
+    } else if (ids.length === 1 && mapView.z > 1) {
+      ev.currentTarget.classList.add('dragging');
+      panMap(ev.clientX - p.x, ev.clientY - p.y);
+    }
+    p.x = ev.clientX; p.y = ev.clientY;
+  }
+  function mapUp(ev) {
+    delete mapPress[ev.pointerId];
+    if (Object.keys(mapPress).length) return;
+    ev.currentTarget.classList.remove('dragging');
+    mapDragged = !!(mapDrag && mapDrag.moved && (mapView.z > 1 || ev.pointerType !== 'mouse'));
+    mapDrag = null;
   }
 
   function mapPoint(ev) {
@@ -837,13 +965,15 @@
              x: mapGeom.b.x0 + (mx - mapGeom.ox) / mapGeom.k, z: mapGeom.b.z0 + (my - mapGeom.oz) / mapGeom.k };
   }
   function mapClick(ev) {
+    if (mapDragged) { mapDragged = false; return; }
     var p = mapPoint(ev);
     if (p.ep) { select(p.ep.id); return; }
     addFlag('--near', [String(Math.round(p.x)), String(Math.round(p.z))]);
   }
   function mapHover(ev) {
-    var p = mapPoint(ev), tip = $('#dx-tip');
-    var text;
+    var tip = $('#dx-tip');
+    if (mapDrag && mapDrag.moved) { tip.hidden = true; return; }
+    var p = mapPoint(ev), text;
     if (p.ep) {
       var r = D.byId[p.ep.id];
       var n = mapGeom.pts.filter(function (q) { return Math.hypot(q.x - p.ep.x, q.y - p.ep.y) < 1; }).length;

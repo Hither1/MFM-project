@@ -223,7 +223,15 @@ table.dx-index { width: 100%; border-collapse: collapse; font-size: 0.78rem; fon
 
 /* map */
 .dx-mapwrap { position: relative; }
-.dx-mapwrap canvas { display: block; width: 100%; cursor: crosshair; background: var(--map-bg); }
+.dx-mapwrap canvas { display: block; width: 100%; cursor: crosshair; background: var(--map-bg);
+  touch-action: pan-x pan-y; }
+/* zoomed in, a drag moves the map rather than the page */
+.dx-mapwrap canvas.zoomed { cursor: grab; touch-action: none; }
+.dx-mapwrap canvas.dragging { cursor: grabbing; }
+.dx-zoom { display: inline-flex; gap: 4px; margin-left: auto; }
+.dx .dx-zoom button { min-width: 30px; padding: 0 7px; font-family: var(--pixel); font-size: 1.15rem;
+  font-weight: 400; line-height: 1.2; }
+.dx .dx-zoom button:disabled { opacity: 0.45; cursor: default; border-color: var(--edge); color: var(--ink); }
 .dx-maplegend { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 8px 12px; font-size: 0.78rem;
   color: var(--ink-soft); border-top: 1px solid var(--line); }
 .dx-sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; }
