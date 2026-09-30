@@ -8,7 +8,7 @@
   var S = {                // what the page shows
     run: null, step: 0, ep: null, left: 'index', right: 'episode',
     query: '', result: null, only: false, follow: true,
-    file: 'index.jsonl', logFilter: '', playing: null
+    file: 'index.jsonl', logFilter: '', playing: null, speed: 1
   };
 
   function $(sel, root) { return (root || document).querySelector(sel); }
@@ -48,15 +48,16 @@
     getJSON(BASE + 'runs.json').then(function (runs) {
       var sel = $('#dx-run');
       sel.innerHTML = runs.map(function (r) {
-        return '<option value="' + esc(r.name) + '">' + esc(r.title) + '</option>';
+        return '<option value="' + esc(r.name) + '">' + esc(r.title) + ' · ' +
+          num(r.episodes) + ' episodes</option>';
       }).join('');
-      sel.addEventListener('change', function () { load(sel.value, {}); });
+      sel.addEventListener('change', function () { S.ep = null; S.only = false; load(sel.value, {}); });
       var first = runs.some(function (r) { return r.name === want.run; }) ? want.run : runs[0].name;
       sel.value = first;
       return load(first, want);
     }).catch(function (e) {
       status('The run could not be loaded (' + e.message + '). The page reads its data with fetch, ' +
-             'so it has to be served over http: run "python -m http.server" in the site folder ' +
+             'so it has to be served over http: run "python scripts/serve.py" in the site folder ' +
              'and open http://localhost:8000/demo.html.', true);
     });
   }
@@ -65,7 +66,10 @@
     stop();
     status('Loading the run…');
     $('#dx-app').hidden = true;
-    return getJSON(BASE + name + '/data.json').then(function (data) {
+    var video = getJSON(BASE + name + '/video.json').catch(function () { return null; });
+    return Promise.all([getJSON(BASE + name + '/data.json'), video]).then(function (got) {
+      var data = got[0];
+      data.video = got[1];
       S.run = name;
       D = prepare(data);
       S.step = want.step != null ? Math.min(Math.max(0, want.step), D.max) : D.max;
@@ -75,6 +79,7 @@
       if (/^(episode|turn|asked)$/.test(want.right || '')) S.right = want.right;
       if (want.file) S.file = want.file;
       $('#dx-left-body').innerHTML = '';
+      $('#dx-right-body').dataset.state = '';
       S.result = null;
       $('#dx-q').value = S.query;
       fillHelpers();
@@ -82,12 +87,21 @@
       renderTrack();
       status('');
       $('#dx-app').hidden = false;
+      setupVideo();
       update();
       getJSON(BASE + name + '/check.json').then(function (c) {
         $('#dx-check').textContent = ' Of the ' + c.total + ' calls in this run, ' + c.exact +
           ' were reproduced line for line, ' + c.partial + ' for the lines a pipe kept, ' + c.errors +
-          ' had arguments the tool refused in the run and refuses here, and ' + c.bad + ' differed.';
+          ' had arguments the tool refused in the run and refuses here, ' +
+          (c.unchecked ? c.unchecked + ' could not be checked, ' : '') + 'and ' + c.bad + ' differed.';
       }).catch(function () { $('#dx-check').textContent = ''; });
+      var v = D.video;
+      $('#dx-vidnote').textContent = v
+        ? 'For this run it is ' + v.source + ', ' + v.width + '×' + v.height + ', steps ' + num(v.first_step) +
+          ' to ' + num(v.last_step) + '. That frame k is step k was checked: for ' + v.check.matched + ' of ' +
+          v.check.sampled + ' episodes sampled across the run, the frame the episode opened on matches the ' +
+          'video at the episode’s first step and not at the steps around it.'
+        : 'This run has no recording, so Play steps from one write to the next instead.';
     });
   }
 
@@ -104,12 +118,20 @@
       });
       data.files[r.id] = f;
     });
+    data.previous = data.previous || [];
     data.ctx = {
       files: function (id) { return data.files[id].texts; },
-      notes: function (id) { var o = data.files[id].outcome; return (o && o.notes) || []; }
+      notes: function (id) { var o = data.files[id].outcome; return (o && o.notes) || []; },
+      flags: data.run.tool_flags, previous: data.previous
     };
     data.max = data.run.last_step || 0;
     data.turns.forEach(function (t) { data.max = Math.max(data.max, t.step || 0); });
+    // the last step at which anything was written; the recording can go on after it
+    data.memEnd = data.max;
+    data.log.sections.forEach(function (s) { data.memEnd = Math.max(data.memEnd, s.step); });
+    data.grid.cells.forEach(function (c) { data.memEnd = Math.max(data.memEnd, c[4]); });
+    data.max = data.memEnd;
+    if (data.video) data.max = Math.max(data.max, data.video.last_step);
 
     // every query the agent made, with what it returned at the time
     data.calls = [];
@@ -123,7 +145,9 @@
                        n: res.rows.length, error: res.error || null,
                        text: call.argv.map(quote).join(' ') };
           data.calls.push(item);
-          res.rows.forEach(function (r) { (data.usedBy[r.id] = data.usedBy[r.id] || []).push(item); });
+          res.rows.forEach(function (r) {
+            if (own(r)) (data.usedBy[r.id] = data.usedBy[r.id] || []).push(item);
+          });
         });
       });
       t.viewed = [];
@@ -143,22 +167,44 @@
     data.turns.forEach(function (t) { keys[t.step] = 1; });
     data.keys = Object.keys(keys).map(Number).sort(function (a, b) { return a - b; });
 
-    // map extent over the whole run, so the scale holds still while the step moves
-    var b = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity };
-    function grow(x, z) {
-      b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x);
-      b.z0 = Math.min(b.z0, z); b.z1 = Math.max(b.z1, z);
+    // Map extent: fixed per region, so the scale holds still while the step moves. A run
+    // is one region unless the agent's position jumps (a portal, a respawn far away):
+    // places more than FAR blocks from everything seen before begin a region of their own.
+    var FAR = 160, pad = 3, regions = [];
+    function regionOf(x, z) {
+      for (var i = 0; i < regions.length; i++) {
+        var g = regions[i];
+        if (x >= g.x0 - FAR && x <= g.x1 + FAR && z >= g.z0 - FAR && z <= g.z1 + FAR) return g;
+      }
+      var made = { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity, n: regions.length };
+      regions.push(made);
+      return made;
     }
-    data.grid.cells.forEach(function (c) { grow(c[0], c[2]); grow(c[0] + 1, c[2] + 1); });
-    data.index.forEach(function (r) { if (r.x != null) grow(r.x, r.z); });
-    if (!isFinite(b.x0)) b = { x0: 0, x1: 1, z0: 0, z1: 1 };
-    var pad = 3;
-    data.bounds = { x0: Math.floor(b.x0) - pad, x1: Math.ceil(b.x1) + pad,
-                    z0: Math.floor(b.z0) - pad, z1: Math.ceil(b.z1) + pad };
+    function grow(x, z, w) {
+      var g = regionOf(x, z);
+      g.x0 = Math.min(g.x0, x); g.x1 = Math.max(g.x1, x + w);
+      g.z0 = Math.min(g.z0, z); g.z1 = Math.max(g.z1, z + w);
+      return g.n;
+    }
+    data.index.forEach(function (r) { r._region = r.x != null ? grow(Number(r.x), Number(r.z), 0) : null; });
+    data.grid.cells.forEach(function (c) { c[5] = grow(c[0], c[2], 1); });
+    if (!regions.length) regions.push({ x0: 0, x1: 1, z0: 0, z1: 1, n: 0 });
+    data.regions = regions.map(function (g) {
+      return { x0: Math.floor(g.x0) - pad, x1: Math.ceil(g.x1) + pad,
+               z0: Math.floor(g.z0) - pad, z1: Math.ceil(g.z1) + pad };
+    });
     return data;
   }
 
   // ------------------------------------------------------------------ the memory at a step
+  // a row of this life (a query can also return rows of the lives carried into it,
+  // whose ids repeat this life's)
+  function own(r) { return r.life == null && r._life == null; }
+  function hits() {
+    var hit = {};
+    if (S.result && !S.result.error) S.result.rows.forEach(function (r) { if (own(r)) hit[r.id] = 1; });
+    return hit;
+  }
   function closed() { return D.index.filter(function (r) { return r.last_step <= S.step; }); }
   function opened() {
     return D.index.filter(function (r) { return r.first_step <= S.step && r.last_step > S.step; });
@@ -187,6 +233,18 @@
     });
     return lines;
   }
+  // how much of an agent file exists at this step: its lines when the patches rebuild the
+  // file exactly, and otherwise only the number of turns that had patched it
+  function mineMeta(path) {
+    if (D.mine.replayable && D.mine.replayable[path]) {
+      var n = mineAt(path, S.step).filter(function (l) { return l.step <= S.step && l.text.trim(); }).length;
+      return n ? plural(n, 'line') : '';
+    }
+    var turns = {};
+    (D.mine.history[path] || []).forEach(function (h) { if (h.step <= S.step) turns[h.turn] = 1; });
+    n = Object.keys(turns).length;
+    return n ? 'patched in ' + plural(n, 'turn') : '';
+  }
   function prevTurnStep() {
     var t = turnAt(S.step);
     if (!t) return -1;
@@ -210,18 +268,37 @@
     $('#dx-q').value = S.query;
     if (run !== false) update();
   }
-  function update() {
+  // `live`: a render while the video plays, which leaves the address and the video alone
+  function update(live) {
     S.result = S.query ? Q.run(S.query, closed(), D.ctx) : null;
     if (S.ep == null) {         // show something: the newest episode returned, or the newest recorded
-      var pool = (S.result && S.result.rows.length) ? S.result.rows : closed();
+      var mine = S.result ? S.result.rows.filter(own) : [];
+      var pool = mine.length ? mine : closed();
       if (pool.length) S.ep = pool[pool.length - 1].id;
     }
+    S.sig = signature();
     renderTime();
     renderResult();
     renderTabs();
     renderLeft();
     renderRight();
-    writeHash();
+    if (!live) { writeHash(); seekVideo(); }
+  }
+
+  // what the memory holds at this step, as counts: while they stay the same, playing
+  // only has to move the clock
+  function signature() {
+    var s = S.step, t = turnAt(s);
+    function count(list, at) {
+      var n = 0;
+      for (var i = 0; i < list.length; i++) if (at(list[i]) <= s) n++;
+      return n;
+    }
+    return [count(D.index, function (r) { return r.last_step; }),
+            count(D.index, function (r) { return r.first_step; }),
+            count(D.grid.cells, function (c) { return c[4]; }),
+            count(D.log.sections, function (x) { return x.step; }),
+            t ? t.turn : 0, goalAt(s).done].join();
   }
 
   function readHash() {
@@ -266,17 +343,27 @@
       var cls = wrote[t.turn] ? 'w' : (asked ? 'q' : '');
       html += '<i class="dx-mark ' + cls + '" style="left:' + (100 * t.step / D.max) + '%"></i>';
     });
-    var m = D.run.milestones;
-    m.order.forEach(function (k) {
-      if (m.achieved[k] == null) return;
-      html += '<i class="dx-mark m" style="left:' + (100 * m.achieved[k] / D.max) + '%">' + esc(k) + '</i>';
+    var m = D.run.milestones, lastLabel = -100;
+    m.order.filter(function (k) { return m.achieved[k] != null; }).sort(function (a, b) {
+      return m.achieved[a] - m.achieved[b];
+    }).forEach(function (k) {
+      var at = 100 * m.achieved[k] / D.max, room = at - lastLabel >= 9;   // a label needs about 9% of the track
+      if (room) lastLabel = at;
+      html += '<i class="dx-mark m" title="' + esc(k) + ', step ' + num(m.achieved[k]) + '" style="left:' + at + '%">' +
+        (room ? esc(k) : '') + '</i>';
     });
+    if (D.memEnd < D.max) {                // the recording goes on after the memory stops
+      var from = 100 * D.memEnd / D.max;
+      html += '<i class="dx-hold" style="left:' + from + '%" title="Nothing was written to the memory after step ' +
+        num(D.memEnd) + '; the recording goes on to step ' + num(D.max) + '">' +
+        (100 - from >= 24 ? 'nothing written after step ' + num(D.memEnd) : '') + '</i>';
+    }
     $('#dx-track').innerHTML = html;
     var slider = $('#dx-step');
     slider.max = D.max;
   }
 
-  function renderTime() {
+  function renderClock() {
     $('#dx-step').value = S.step;
     var t = turnAt(S.step), g = goalAt(S.step);
     $('#dx-readout').innerHTML =
@@ -284,15 +371,29 @@
       (t ? ' · turn ' + t.turn + ' of ' + D.turns.length : '') + '<br>' +
       (g.next ? 'goal <code>' + esc(g.next) + '</code>, ' : 'all goals verified, ') +
       g.done + '/' + g.total + ' verified';
+    var cap = $('#dx-vidcap'), v = D.video;
+    if (v && !D.videoFailed) {
+      var bits = ['step ' + num(S.step)];
+      if (S.step < v.first_step) bits.push('the recording begins at step ' + num(v.first_step));
+      if (S.step > v.last_step) bits.push('the recording ends at step ' + num(v.last_step));
+      if (S.step > D.memEnd) bits.push('nothing written after step ' + num(D.memEnd));
+      if (S.playing === 'video' && S.speed !== 1) bits.push(S.speed + '×');
+      cap.textContent = bits.join(' · ');
+    }
+  }
 
+  function renderTime() {
+    renderClock();
     var rows = closed().length, open = opened().length;
     var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step; }).length;
     var secs = D.log.sections.filter(function (s) { return s.step <= S.step; });
     var lines = secs.reduce(function (n, s) { return n + s.text.split('\n').length + 1; }, 0);
-    var mine = Object.keys(D.mine.history).map(function (p) {
-      var n = mineAt(p, S.step).filter(function (l) { return l.step <= S.step && l.text.trim(); }).length;
-      return '<span><code>' + esc(p) + '</code> <b>' + (n ? plural(n, 'line') : 'not written yet') + '</b></span>';
-    }).join('');
+    var paths = Object.keys(D.mine.history), begun = paths.filter(mineMeta);
+    var few = paths.length <= 3;         // a short list is shown whole, a long one as it fills
+    var mine = (few ? paths : begun).map(function (p) {
+      return '<span><code>' + esc(p) + '</code> <b>' + (mineMeta(p) || 'not written yet') + '</b></span>';
+    }).join('') + (!few && begun.length < paths.length
+      ? '<span><code>mine/</code> <b>' + plural(paths.length - begun.length, 'more file') + ' not written yet</b></span>' : '');
     $('#dx-stats').innerHTML =
       '<span><code>index.jsonl</code> <b>' + plural(rows, 'row') + '</b></span>' +
       '<span><code>episodes/</code> <b>' + num(rows + open) + '</b>' + (open ? ' (' + open + ' open)' : '') + '</span>' +
@@ -302,10 +403,47 @@
       '<span class="dx-key w">turn that wrote to mine/</span><span class="dx-key m">goal verified</span></span>';
   }
 
+  // ------------------------------------------------------------------ playing
+  // With a recording, the video is the clock: each frame is one step, and the page reads
+  // the step from the frame on screen. Without one, Play steps from one write to the next.
+  function videoOK() { return !!(D && D.video && !D.videoFailed); }
+  function videoStep() {
+    var v = $('#dx-video');
+    return D.video.first_step + Math.floor(v.currentTime * D.video.fps + 1e-6);
+  }
+  // `force`: seek even though the video is playing (Play was pressed before it had loaded)
+  function seekVideo(force) {
+    var v = $('#dx-video');
+    if (!videoOK() || v.readyState < 1 || (S.playing === 'video' && !force)) return;
+    var k = Math.max(0, Math.min(S.step - D.video.first_step, D.video.frames - 1));
+    var t = (k + 0.5) / D.video.fps;       // the middle of frame k, so rounding cannot show k - 1
+    if (Math.abs(v.currentTime - t) > 0.25 / D.video.fps) v.currentTime = t;
+  }
+  function setupVideo() {
+    var v = $('#dx-video'), has = !!D.video;
+    D.videoFailed = false;
+    $('#dx-video-box').hidden = !has;
+    $('#dx-speed').hidden = !has;
+    $('.dx-cols').classList.toggle('has-video', has);
+    $('#dx-vidcap').classList.remove('bad');
+    if (!has) { v.removeAttribute('src'); v.load(); return; }
+    v.defaultPlaybackRate = v.playbackRate = S.speed;
+    v.src = BASE + S.run + '/' + D.video.src;
+  }
+
   function stop() {
-    if (S.playing) { clearInterval(S.playing); S.playing = null; }
+    var was = S.playing;
+    S.playing = null;
+    if (was === 'video') {
+      cancelAnimationFrame(S.raf);
+      var v = $('#dx-video');
+      if (!v.paused) v.pause();
+      // stay on the frame the video stopped at
+      if (D && D.video && v.readyState >= 1) S.step = Math.min(Math.max(0, videoStep()), D.max);
+    } else if (was) clearInterval(was);
     var b = $('#dx-play');
     if (b) { b.setAttribute('aria-pressed', 'false'); b.textContent = 'Play'; }
+    if (was === 'video' && D) update();     // the full render, and the step into the address
   }
   function play() {
     if (S.playing) { stop(); return; }
@@ -313,12 +451,55 @@
     $('#dx-play').setAttribute('aria-pressed', 'true');
     $('#dx-play').textContent = 'Pause';
     S.follow = true;
+    S.ep = null;
+    if (videoOK()) {
+      var v = $('#dx-video');
+      seekVideo();                         // to the step, before the video takes over the clock
+      S.playing = 'video';
+      update(true);
+      v.playbackRate = S.speed;
+      var started = v.play();
+      if (started && started.catch) started.catch(function () { if (S.playing === 'video') stop(); });
+      bringIntoView();
+      S.raf = requestAnimationFrame(tick);
+      return;
+    }
     S.playing = setInterval(function () {
       var next = D.keys.filter(function (k) { return k > S.step; })[0];
       if (next == null) { stop(); return; }
       S.ep = null;
       setStep(next);
     }, 650);
+  }
+  function tick() {
+    if (S.playing !== 'video') return;
+    var v = $('#dx-video');
+    if (!v.seeking && v.readyState >= 1) {
+      var step = Math.min(videoStep(), D.max);
+      if (step !== S.step) advance(step);
+      if (v.ended || step >= D.max) { stop(); return; }
+    }
+    S.raf = requestAnimationFrame(tick);
+  }
+  // A new step moves the clock. The panels are drawn again only when something was written,
+  // and never more often than their last drawing allows (a slow one waits longer).
+  var lastDraw = 0, drawCost = 0;
+  function advance(step) {
+    S.step = step;
+    var now = performance.now();
+    if (signature() !== S.sig && now - lastDraw >= Math.max(80, 4 * drawCost)) {
+      if (S.follow) S.ep = null;
+      update(true);
+      lastDraw = performance.now();
+      drawCost = lastDraw - now;
+    } else renderClock();
+  }
+  // Play from the top of the page should show the video and the memory, not the header
+  function bringIntoView() {
+    var box = $('#dx-video-box').getBoundingClientRect(), bar = $('.dx-time'), cs = getComputedStyle(bar);
+    var under = cs.position === 'sticky' ? (parseFloat(cs.top) || 0) + bar.offsetHeight : $('.topbar').offsetHeight;
+    if (box.top >= under && box.bottom <= window.innerHeight) return;
+    window.scrollTo({ top: window.scrollY + $('.dx-main').getBoundingClientRect().top - under, behavior: 'smooth' });
   }
 
   // ------------------------------------------------------------------ query result
@@ -336,13 +517,16 @@
         '<span class="st">' + esc(s.step) + ' <b>' + s.n + '</b></span>';
     }).join('');
     var sheet = '';
+    var ownRows = r.rows.filter(own), earlier = r.rows.length - ownRows.length;
     if (r.rows.length) {
-      var shown = r.rows.slice(0, 120);
+      var shown = ownRows.slice(0, 120);
       sheet = '<div class="dx-sheet">' +
         '<p class="dx-sheet-note">' + (r.options.sheet
           ? 'The contact sheet <code>--sheet</code> would write: the frame each matching episode opened on.'
           : 'The frames of the matching episodes (the tool tiles them into one image with <code>--sheet</code>).') +
-        (r.rows.length > shown.length ? ' First ' + shown.length + ' shown.' : '') + '</p>' +
+        (ownRows.length > shown.length ? ' First ' + shown.length + ' shown.' : '') +
+        (earlier ? ' ' + plural(earlier, 'row') + ' from an earlier life: the export has the index of those lives and not their frames.' : '') +
+        '</p>' +
         shown.map(function (x) {
           return '<button type="button" class="dx-thumb' + (x.id === S.ep ? ' sel' : '') + '" data-ep="' + x.id + '">' +
             '<img loading="lazy" src="' + frame(x.id) + '" alt="Frame of ' + x.id + '">' +
@@ -404,22 +588,30 @@
   }
   function renderRight() {
     var el = $('#dx-right-body'), top = el.scrollTop, was = el.dataset.key;
-    var key = S.right + ':' + (S.right === 'episode' ? S.ep : S.right === 'turn' ? (turnAt(S.step) || {}).turn : '');
+    var t = turnAt(S.step), r = S.ep && D.byId[S.ep];
+    var key = S.right + ':' + (S.right === 'episode' ? S.ep : S.right === 'turn' ? (t || {}).turn : '');
+    // the step changes what these tabs show only when the episode opens or closes, or the turn changes
+    var state = [S.run, key, r ? (r.first_step > S.step ? 'later' : r.last_step > S.step ? 'open' : 'closed') : '',
+                 t ? t.turn + (t.step === S.step ? '=' : '') : ''].join('|');
+    if (el.dataset.state === state) return;
     if (S.right === 'episode') renderEpisode(el);
     else if (S.right === 'turn') renderTurn(el);
     else renderAsked(el);
     el.dataset.key = key;
+    el.dataset.state = state;
     if (S.right !== 'asked') el.scrollTop = was === key ? top : 0;
   }
 
   // ------------------------------------------------------------------ index
+  // what was just written arrives with a short flash; at the higher speeds rows arrive
+  // faster than a flash can be seen, and the animations cost more than they show
+  function flash() { return S.speed <= 4 ? 'just' : ''; }
+
   function renderIndex(el) {
-    var rows = closed(), open = opened(), hit = {};
-    if (S.result && !S.result.error) S.result.rows.forEach(function (r) { hit[r.id] = 1; });
+    var rows = closed(), open = opened(), hit = hits();
     var since = prevTurnStep(), t = turnAt(S.step);
-    var list = (S.only && S.result) ? rows.filter(function (r) { return hit[r.id]; }) : rows;
-    var body = list.map(function (r) {
-      var cls = [];
+    function row(r, extra) {
+      var cls = extra ? [extra] : [];
       if (hit[r.id]) cls.push('match');
       if (r.id === S.ep) cls.push('sel');
       if (t && r.last_step > since && r.last_step <= S.step && since >= 0) cls.push('fresh');
@@ -430,35 +622,74 @@
         '<td class="num">' + (r.x != null ? Number(r.x).toFixed(1) + ', ' + Number(r.z).toFixed(1) : '') + '</td>' +
         '<td class="act">' + esc(r.action_kind || '-') + '</td>' +
         '<td class="sum">' + esc(r.summary || '') + '</td></tr>';
-    }).join('');
-    if (!S.only) {
-      body += open.map(function (r) {
+    }
+    function openRows() {
+      return open.map(function (r) {
         return '<tr class="open' + (r.id === S.ep ? ' sel' : '') + '" data-ep="' + r.id + '">' +
           '<td class="id">' + r.id + '</td><td class="num">' + r.first_step + '–</td>' +
           '<td colspan="4">open: frame, state and action are on disk; the outcome and the index row ' +
           'are written when the entry ends, at step ' + r.last_step + '</td></tr>';
       }).join('');
     }
-    el.innerHTML =
-      '<div class="dx-bar"><span><code>index.jsonl</code>, ' + plural(rows.length, 'row') +
-      ' of ' + D.index.length + '</span><span class="grow"></span>' +
-      (S.result && !S.result.error
-        ? '<label><input type="checkbox" id="dx-only"' + (S.only ? ' checked' : '') + '> only the ' +
-          S.result.rows.length + ' returned</label>' : '') +
-      '<label><input type="checkbox" id="dx-follow"' + (S.follow ? ' checked' : '') + '> keep the newest in view</label></div>' +
-      (list.length || open.length
-        ? '<table class="dx-index"><thead><tr><th>id</th><th>steps</th><th>tags</th><th>x, z</th>' +
-          '<th>action</th><th>summary</th></tr></thead><tbody>' + body + '</tbody></table>'
-        : '<p class="dx-empty">No row matches.</p>');
-    var only = $('#dx-only', el), follow = $('#dx-follow', el);
-    if (only) only.addEventListener('change', function () { S.only = only.checked; renderLeft(); });
-    follow.addEventListener('change', function () { S.follow = follow.checked; renderLeft(); });
+    function count() { return plural(rows.length, 'row') + ' of ' + D.index.length; }
+    // While the run plays and the table keeps the newest in view, only the newest rows are
+    // drawn: laying out a table of thousands of rows at every write slows the whole page.
+    var WINDOW = 200, live = S.playing === 'video' && S.follow && !S.result;
+    function more(n) {
+      return '<tr class="dx-more"><td colspan="6">' + plural(n, 'earlier row') +
+        ' not drawn while the run plays; pause to scroll through them</td></tr>';
+    }
+    // Moving forward with no query, the table only grows (the index is in step order), so
+    // the rows written since the last drawing are added to it instead of drawing it again.
+    var tbody = $('table.dx-index tbody', el), drawn = Number(el.dataset.rows);
+    var mode = S.run + (live ? ':live' : '');
+    if (tbody && !S.result && el.dataset.ikey === mode && rows.length >= drawn) {
+      $$('tr.open, tr.dx-more', tbody).forEach(function (tr) { tbody.removeChild(tr); });
+      $$('tr.sel, tr.fresh', tbody).forEach(function (tr) { tr.classList.remove('sel', 'fresh'); });
+      tbody.insertAdjacentHTML('beforeend', rows.slice(drawn).map(function (r) { return row(r, flash()); }).join(''));
+      if (live) {
+        while (tbody.rows.length > WINDOW) tbody.deleteRow(0);
+        if (rows.length > WINDOW) tbody.insertAdjacentHTML('afterbegin', more(rows.length - WINDOW));
+      }
+      tbody.insertAdjacentHTML('beforeend', openRows());
+      // "new": the rows written since the turn before this one, the last few of the table
+      for (var i = rows.length - 1; i >= 0 && t && since >= 0 && rows[i].last_step > since; i--) {
+        var tr = tbody.querySelector('tr[data-ep="' + rows[i].id + '"]');
+        if (tr) tr.classList.add('fresh');
+      }
+      var now = S.ep && tbody.querySelector('tr[data-ep="' + S.ep + '"]');
+      if (now) now.classList.add('sel');
+      $('#dx-icount', el).textContent = count();
+    } else {
+      var list = (S.only && S.result) ? rows.filter(function (r) { return hit[r.id]; }) : rows;
+      var cut = live && list.length > WINDOW ? list.length - WINDOW : 0;
+      renderIndexWhole(el, (cut ? more(cut) : '') + list.slice(cut).map(function (r) { return row(r); }).join('') +
+                       (S.only ? '' : openRows()), list.length || open.length, count(), hit);
+    }
+    el.dataset.ikey = S.result ? '' : mode;
+    el.dataset.rows = rows.length;
     var target = (S.ep && $('tr.sel', el)) || null;
     if (S.follow && !S.query) el.scrollTop = el.scrollHeight;
     else if (target) {
       var top = target.offsetTop, h = el.clientHeight;
       if (top < el.scrollTop + 70 || top > el.scrollTop + h - 40) el.scrollTop = Math.max(0, top - h / 2);
     }
+  }
+  function renderIndexWhole(el, body, any, count, hit) {
+    el.innerHTML =
+      '<div class="dx-bar"><span><code>index.jsonl</code>, <span id="dx-icount">' + count +
+      '</span></span><span class="grow"></span>' +
+      (S.result && !S.result.error
+        ? '<label><input type="checkbox" id="dx-only"' + (S.only ? ' checked' : '') + '> only the ' +
+          Object.keys(hit).length + ' returned from this life</label>' : '') +
+      '<label><input type="checkbox" id="dx-follow"' + (S.follow ? ' checked' : '') + '> keep the newest in view</label></div>' +
+      (any
+        ? '<table class="dx-index"><thead><tr><th>id</th><th>steps</th><th>tags</th><th>x, z</th>' +
+          '<th>action</th><th>summary</th></tr></thead><tbody>' + body + '</tbody></table>'
+        : '<p class="dx-empty">No row matches.</p>');
+    var only = $('#dx-only', el), follow = $('#dx-follow', el);
+    if (only) only.addEventListener('change', function () { S.only = only.checked; el.dataset.ikey = ''; renderLeft(); });
+    follow.addEventListener('change', function () { S.follow = follow.checked; renderLeft(); });
   }
 
   // ------------------------------------------------------------------ map
@@ -496,7 +727,13 @@
   function drawMap() {
     var cv = $('#dx-map');
     if (!cv) return;
-    var b = D.bounds, W = cv.parentNode.clientWidth, dpr = window.devicePixelRatio || 1;
+    // the region of the selected episode, or of where the agent was at this step
+    var here = (S.ep && D.byId[S.ep] && D.byId[S.ep].first_step <= S.step) ? D.byId[S.ep] : null;
+    if (!here || here._region == null) {
+      closed().concat(opened()).forEach(function (r) { if (r._region != null) here = r; });
+    }
+    var region = here && here._region != null ? here._region : 0;
+    var b = D.regions[region], W = cv.parentNode.clientWidth, dpr = window.devicePixelRatio || 1;
     var spanX = b.x1 - b.x0, spanZ = b.z1 - b.z0;
     var H = Math.max(260, Math.min(520, Math.round(W * spanZ / spanX)));
     var k = Math.min(W / spanX, H / spanZ);
@@ -516,7 +753,7 @@
     g.stroke();
 
     var order = ['walked', 'floor', 'water', 'blocked', 'placed', 'opened', 'lava', 'hazard'];
-    var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step; });
+    var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step && c[5] === region; });
     order.forEach(function (kind) {
       var ki = D.grid.kinds.indexOf(kind);
       if (ki < 0) return;
@@ -526,15 +763,14 @@
       });
     });
 
-    var rows = closed().concat(opened()).filter(function (r) { return r.x != null; });
+    var rows = closed().concat(opened()).filter(function (r) { return r.x != null && r._region === region; });
     g.strokeStyle = cssVar('--map-path', 'rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
     rows.forEach(function (r, i) { if (i) g.lineTo(px(r.x), pz(r.z)); else g.moveTo(px(r.x), pz(r.z)); });
     g.stroke();
 
     var match = cssVar('--match', '#f2b01e'), dotFill = cssVar('--map-dot', '#15181d'),
         dotRing = cssVar('--map-dot-ring', '#fff');
-    var o = S.result && !S.result.error ? S.result.options : null, hit = {};
-    if (o) S.result.rows.forEach(function (r) { hit[r.id] = 1; });
+    var o = S.result && !S.result.error ? S.result.options : null, hit = hits();
     if (o && o.near) {
       g.beginPath();
       g.arc(px(o.near[0]), pz(o.near[1]), o.radius * k, 0, 2 * Math.PI);
@@ -562,7 +798,9 @@
     var info = $('#dx-mapinfo');
     if (info) info.innerHTML = (D.grid.cells.length
       ? '<code>grid.jsonl</code>, ' + plural(cells.length, 'row') + ' of ' + D.grid.cells.length + '; '
-      : 'this run kept no grid; ') + plural(rows.length, 'episode position');
+      : 'this run kept no grid; ') + plural(rows.length, 'episode position') +
+      (D.regions.length > 1 ? '; area ' + (region + 1) + ' of ' + D.regions.length +
+        ' (the agent moved between places far apart; the map shows the one it was in)' : '');
   }
 
   function mapPoint(ev) {
@@ -626,12 +864,17 @@
     mine.forEach(function (p) {
       var hist = D.mine.history[p];
       if (hist) {
-        var n = mineAt(p, S.step).filter(function (l) { return l.step <= S.step && l.text.trim(); }).length;
-        file(p, n ? plural(n, 'line') : 'not written yet', n ? '' : 'absent');
+        var meta = mineMeta(p);
+        file(p, meta || 'not written yet', meta ? '' : 'absent');
       } else {
-        file(p, 'a template the agent may edit; unchanged');
+        file(p, 'no patch in the record wrote it');
       }
     });
+    (D.mine.images || []).forEach(function (f) { file(f.path, 'an image the agent made, ' + kib(f.bytes)); });
+    if (D.previous.length) {
+      dir('carried from earlier lives');
+      file('previous/index.jsonl', plural(D.previous.length, 'row'));
+    }
     dir('given, read on demand');
     D.listing.forEach(function (f) { file(f.path, kib(f.bytes)); });
 
@@ -649,18 +892,38 @@
       var n = readsOf(re);
       return 'The agent ' + what + ' in ' + plural(n, 'turn') + ' up to this step.';
     }
+    // while the run plays, a long file shows its newest lines (all of them once paused)
+    function tail(lines) {
+      var cut = S.playing === 'video' && lines.length > 200 ? lines.length - 200 : 0;
+      return (cut ? '<span class="dx-cut">' + plural(cut, 'earlier line') + ' not drawn while the run plays</span>\n' : '') +
+        (lines.slice(cut).join('\n') || '(empty)');
+    }
     if (p === 'index.jsonl') {
       var rows = closed();
       html = head('Appended by the harness, one row each time an episode ends. The agent cannot edit it.',
                   readNote(/tools\/episodes\.py/, 'queried it') ) +
-        '<pre class="term-like">' + (rows.map(function (r) { return esc(r._raw); }).join('\n') || '(empty)') + '</pre>';
+        '<pre class="term-like">' + tail(rows.map(function (r) { return esc(r._raw); })) + '</pre>';
+    } else if (p === 'previous/index.jsonl') {
+      var lives = {};
+      D.previous.forEach(function (r) { lives[r.life] = (lives[r.life] || 0) + 1; });
+      html = head('The merged index of the lives carried into this one, in place from the first step. ' +
+                  'The agent reads it with <code>--previous</code>.',
+                  readNote(/--previous|previous\/life_/, 'read from the earlier lives')) +
+        '<p class="who">' + Object.keys(lives).map(function (k) {
+          return 'life ' + esc(k) + ': ' + plural(lives[k], 'row');
+        }).join(', ') + '. The export has these rows and not the episode files or frames of those lives, ' +
+        'so a query over them shows no harness note and <code>--grep</code> reads the row only.</p>' +
+        '<p><button type="button" class="dx-link" data-query="--previous --last 20">Run --previous --last 20</button></p>';
+    } else if ((D.mine.images || []).some(function (f) { return f.path === p; })) {
+      html = head('An image the agent wrote into <code>mine/</code> (a contact sheet or a comparison it made).') +
+        '<p class="who">Images the agent made are listed and not included.</p>';
     } else if (p === 'grid.jsonl') {
       var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step; });
       html = head('Appended by the harness as the agent moves: one row per cell, with the step it was learned.',
                   'It is the source of the [MAP] block in each prompt; see the Map tab.') +
-        '<pre class="term-like">' + (cells.map(function (c) {
+        '<pre class="term-like">' + tail(cells.map(function (c) {
           return '{"cell": [' + c[0] + ', ' + c[1] + ', ' + c[2] + '], "kind": "' + D.grid.kinds[c[3]] + '", "step": ' + c[4] + '}';
-        }).join('\n') || '(empty)') + '</pre>';
+        })) + '</pre>';
     } else if (p === 'logs.txt') {
       html = head('Appended by the harness after every plan entry.', readNote(/logs\.txt/, 'read or searched it')) +
         '<p><button type="button" class="dx-link" data-goto="log">Open it in the Log tab</button></p>';
@@ -675,8 +938,12 @@
       html = head('Written by the agent with <code>apply_patch</code> inside its turns.',
                   readNote(new RegExp(p.replace(/[.\/]/g, '\\$&')), 'read it back'));
       if (!ok) {
-        html += '<p class="who">The patches in the record do not rebuild this file exactly, so its final text is shown.</p>' +
-          '<pre>' + esc(D.mine.files[p]) + '</pre>';
+        var by = {};
+        D.mine.history[p].forEach(function (h) { by[h.turn] = h.step; });
+        html += '<p class="who">The patches in the record do not rebuild this file exactly, so its text is shown as it ' +
+          'stood when the run ended. ' + (mineMeta(p) ? 'Up to this step it had been ' + mineMeta(p) + ' of the ' +
+          Object.keys(by).length + ' that changed it.' : 'At this step the agent had not written it yet.') + '</p>' +
+          '<pre>' + esc(D.mine.files[p] != null ? D.mine.files[p] : '(the file was gone when the run ended)') + '</pre>';
       } else if (!lines.length) {
         html += '<p class="dx-empty">The file does not exist.</p>';
       } else {
@@ -689,7 +956,8 @@
         }).join('');
       }
     } else if (D.mine.files[p] != null) {
-      html = head('A template placed in <code>mine/</code> at the start of the life. The agent may rewrite it; in this run it did not.') +
+      html = head('As it stood when the run ended. No <code>apply_patch</code> call in the record wrote it: ' +
+                  'it is a template placed at the start of the life, or a file written from the shell or by the harness.') +
         '<pre>' + esc(D.mine.files[p]) + '</pre>';
     } else {
       var re = new RegExp(p.replace(/[.\/]/g, '\\$&'));
@@ -719,14 +987,37 @@
     var secs = D.log.sections.filter(function (s) { return s.step <= S.step; });
     var needle = S.logFilter.toLowerCase();
     var list = needle ? secs.filter(function (s) { return s.text.toLowerCase().indexOf(needle) >= 0; }) : secs;
+    function sec(s, cls) { return '<div class="dx-log-sec' + (cls || '') + '">' + markup(s.text, S.logFilter) + '</div>'; }
+    function count() { return plural(secs.length, 'section') + ' of ' + D.log.sections.length; }
+    // as with the index: while the run plays, only the newest sections are drawn
+    var WINDOW = 200, live = S.playing === 'video' && S.follow && !needle;
+    function more(n) {
+      return n > 0 ? plural(n, 'earlier section') + ' not drawn while the run plays; pause to scroll through them' : '';
+    }
+    var box = $('#dx-logsecs', el), drawn = Number(el.dataset.secs), mode = S.run + (live ? ':live' : '');
+    if (box && !needle && el.dataset.lkey === mode && secs.length >= drawn) {
+      // the log only grows, so what was written since is added
+      box.insertAdjacentHTML('beforeend', secs.slice(drawn).map(function (s) { return sec(s, ' ' + flash()); }).join(''));
+      if (live) {
+        while (box.children.length > WINDOW) box.removeChild(box.firstChild);
+        $('#dx-logmore', el).textContent = more(secs.length - WINDOW);
+      }
+      $('#dx-lcount', el).textContent = count();
+      el.dataset.secs = secs.length;
+      if (S.follow) el.scrollTop = el.scrollHeight;
+      return;
+    }
+    if (live) list = list.slice(-WINDOW);
     el.innerHTML =
-      '<div class="dx-bar"><span><code>logs.txt</code>, ' + plural(secs.length, 'section') + ' of ' +
-      D.log.sections.length + '</span><span class="grow"></span>' +
+      '<div class="dx-bar"><span><code>logs.txt</code>, <span id="dx-lcount">' + count() +
+      '</span></span><span class="grow"></span>' +
       '<label>grep -i <input type="text" id="dx-logq" spellcheck="false" value="' + esc(S.logFilter) + '" placeholder="water"></label>' +
       (needle ? '<span>' + plural(list.length, 'section') + ' match</span>' : '') + '</div>' +
-      (list.length ? list.map(function (s) {
-        return '<div class="dx-log-sec">' + markup(s.text, S.logFilter) + '</div>';
-      }).join('') : '<p class="dx-empty">Nothing in the log matches.</p>');
+      (list.length ? '<p class="dx-cut dx-logmore" id="dx-logmore">' + (live ? more(secs.length - WINDOW) : '') + '</p>' +
+                     '<div id="dx-logsecs">' + list.map(function (s) { return sec(s); }).join('') + '</div>'
+                   : '<p class="dx-empty">Nothing in the log matches.</p>');
+    el.dataset.lkey = needle || !list.length ? '' : mode;
+    el.dataset.secs = secs.length;
     var q = $('#dx-logq', el);
     q.addEventListener('input', function () { S.logFilter = q.value; renderLog(el); });
     if (focus) { q.focus(); q.setSelectionRange(caret, caret); }
@@ -897,8 +1188,38 @@
 
   // ------------------------------------------------------------------ events
   function wire() {
-    $('#dx-step').addEventListener('input', function (e) { stop(); setStep(Number(e.target.value)); });
+    $('#dx-step').addEventListener('input', function (e) {
+      var to = Number(e.target.value);       // read first: stopping redraws the slider at the video's step
+      stop();
+      setStep(to);
+    });
     $('#dx-play').addEventListener('click', play);
+    var video = $('#dx-video');
+    video.addEventListener('click', function () { if (D) play(); });
+    video.addEventListener('loadedmetadata', function () { video.playbackRate = S.speed; seekVideo(true); });
+    video.addEventListener('pause', function () { if (S.playing === 'video') stop(); });
+    video.addEventListener('ended', function () { if (S.playing === 'video') stop(); });
+    video.addEventListener('error', function () {
+      if (!D || !D.video || !video.getAttribute('src')) return;
+      if (S.playing === 'video') stop();
+      D.videoFailed = true;
+      $('#dx-speed').hidden = true;
+      var cap = $('#dx-vidcap');
+      cap.classList.add('bad');
+      cap.textContent = 'The recording could not be loaded, so Play steps from one write to the next.';
+    });
+    $('#dx-speed').addEventListener('change', function (e) {
+      S.speed = Number(e.target.value) || 1;
+      video.defaultPlaybackRate = video.playbackRate = S.speed;
+      if (D) renderClock();
+    });
+    // space plays and pauses, as on a video, unless a field has the keyboard
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== ' ' || !D || $('#dx-app').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
+      if (/^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+      e.preventDefault();
+      play();
+    });
     $('#dx-prev').addEventListener('click', function () {
       stop();
       var prev = D.turns.filter(function (t) { return t.step < S.step; }).pop();
@@ -938,8 +1259,9 @@
     });
     // one listener for everything that points at an episode, a step, a file or a call
     document.addEventListener('click', function (e) {
-      var t = e.target.closest('[data-call],[data-ep],[data-step],[data-file],[data-goto]');
+      var t = e.target.closest('[data-call],[data-ep],[data-step],[data-file],[data-goto],[data-query]');
       if (!t || !D || t.closest('.dx-tabs')) return;
+      if (t.dataset.query) { S.ep = null; setQuery(t.dataset.query); return; }
       if (t.dataset.call != null) { replay(Number(t.dataset.call)); return; }
       if (t.dataset.ep) { S.follow = false; select(t.dataset.ep); return; }
       if (t.dataset.step != null) {

@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=3">
-  <link rel="stylesheet" href="assets/css/demo.css?v=3">
+  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <link rel="stylesheet" href="assets/css/demo.css?v=4">
 </head>
 <body class="dx">
 
@@ -32,10 +32,11 @@
     <p class="eyebrow">Interactive</p>
     <h1>Memory explorer</h1>
     <p class="dx-lede">
-      A recorded run, replayed. Move the step and the memory is shown as it stood at that
-      moment: the rows of <code>index.jsonl</code>, the episodes and their frames, the map, the
-      log, and the notes the agent had written by then. Type a query and it runs over that
-      memory with the rules of the agent's own tool.
+      A recorded run, replayed. Choose a run and press Play: the run's video plays on the
+      right, and the memory on the left grows with it, step by step, as the harness and the
+      agent wrote it: the rows of <code>index.jsonl</code>, the map, the log, and the notes
+      in <code>mine/</code>. Pause or move the step to look at any moment. Type a query and
+      it runs over the memory as it stood then, with the rules of the agent's own tool.
     </p>
     <div class="dx-runbar">
       <label for="dx-run">Run</label>
@@ -60,6 +61,13 @@
         <button type="button" id="dx-prev" title="Previous turn" aria-label="Previous turn">&#9664;</button>
         <button type="button" id="dx-play" class="dx-playbtn" aria-pressed="false">Play</button>
         <button type="button" id="dx-next" title="Next turn" aria-label="Next turn">&#9654;</button>
+        <select id="dx-speed" aria-label="Playback speed" title="Playback speed. At 1&times; the video plays at the 20 frames a second it was recorded at, one frame per step." hidden>
+          <option value="1">1&times;</option>
+          <option value="2">2&times;</option>
+          <option value="4">4&times;</option>
+          <option value="8">8&times;</option>
+          <option value="16">16&times;</option>
+        </select>
       </div>
       <div class="dx-scrub">
         <div class="dx-track" id="dx-track" aria-hidden="true"></div>
@@ -106,6 +114,10 @@
       <div class="dx-body" id="dx-left-body" role="tabpanel"></div>
     </div>
     <div class="dx-panel" id="dx-right">
+      <div class="dx-video" id="dx-video-box" hidden>
+        <video id="dx-video" muted playsinline preload="metadata" aria-label="The run's recording"></video>
+        <div class="dx-vidcap" id="dx-vidcap" aria-hidden="true"></div>
+      </div>
       <div class="dx-tabs" role="tablist" aria-label="Detail">
         <button role="tab" data-tab="episode" aria-selected="true">Episode</button>
         <button role="tab" data-tab="turn">Agent turn</button>
@@ -150,12 +162,25 @@
         those patches gives back the final file exactly.
       </li>
       <li>
-        <strong>Frames are reduced.</strong> The stored frames are 640&times;360 PNG; the page
-        shows 320&times;180 JPEG copies. Recorded command output is cut at 6,000 characters.
-        Reference and skill files are listed and not included.
+        <strong>The video is the run's own recording, one frame per step.</strong> The page
+        takes its step from the frame on screen, so the memory on the left is always the
+        memory at the moment the video shows. <span id="dx-vidnote"></span>
       </li>
       <li>
-        <strong>One run.</strong> This is a single recorded life. It shows how the memory is
+        <strong>Frames are reduced.</strong> The stored frames are PNG; the page shows JPEG
+        copies no larger than 320&times;180. Recorded command output is cut at 6,000
+        characters. Reference and skill files, and images the agent made, are listed and not
+        included.
+      </li>
+      <li>
+        <strong>The tool differs between runs.</strong> Each run carries its own copy of
+        <code>tools/episodes.py</code>, and the query box accepts the flags of the copy the
+        chosen run had. Where a run carried the memory of earlier lives, the export has the
+        index of those lives and not their episode files, so <code>--previous</code> returns
+        their rows without the harness notes.
+      </li>
+      <li>
+        <strong>One run.</strong> Each entry in the list is a single recorded life. It shows how the memory is
         built and read, and says nothing about how often the agent succeeds.
       </li>
     </ul>
@@ -174,7 +199,7 @@
 
 <div class="dx-tip" id="dx-tip" hidden></div>
 
-<script src="assets/js/mfm-query.js?v=3"></script>
-<script src="assets/js/demo.js?v=3"></script>
+<script src="assets/js/mfm-query.js?v=4"></script>
+<script src="assets/js/demo.js?v=4"></script>
 </body>
 </html>

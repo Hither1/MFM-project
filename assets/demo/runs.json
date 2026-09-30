@@ -1,9 +1,18 @@
 [
  {
   "name": "abaw3_mfmskills",
-  "title": "Water, log, water (3/3 goals)",
+  "title": "Water, log, water, GPT-5.6-Sol (3/3 goals)",
   "task": "aba_water_log_water",
+  "model": "gpt-5.6-sol",
   "episodes": 78,
   "steps": 11999
+ },
+ {
+  "name": "of3m_mfm",
+  "title": "Ender Dragon, GPT-6-Astra (16/24 milestones)",
+  "task": "ender_dragon",
+  "model": "openai/gpt-6-astra",
+  "episodes": 3083,
+  "steps": 49400
  }
 ]

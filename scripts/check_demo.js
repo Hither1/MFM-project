@@ -8,7 +8,9 @@
 // line for line and in order, in the output the run recorded for that command. With the
 // run directory given the full recorded output is read; without it, the exported output,
 // which is cut at 6000 characters. A call whose output was piped through head or tail is
-// checked for the lines that survived.
+// checked for the lines that survived. A `--previous` call reads the index of earlier
+// lives; when their episode files are not in the export the harness notes cannot be
+// known, so those lines are compared with the note left out of both.
 'use strict';
 const fs = require('fs');
 const path = require('path');
@@ -23,7 +25,10 @@ for (const [id, e] of Object.entries(data.episodes)) {
   parsed[id] = { texts: [e.action, e.outcome, e.state].filter(Boolean),
                  outcome: e.outcome ? JSON.parse(e.outcome) : {} };
 }
-const ctx = { files: id => parsed[id].texts, notes: id => parsed[id].outcome.notes || [] };
+const ctx = { files: id => parsed[id].texts, notes: id => parsed[id].outcome.notes || [],
+              flags: data.run.tool_flags, previous: data.previous || [] };
+const noPreviousFiles = !data.run.previous_files;
+const noNote = line => line.replace(/  note: .*(?=  -> )/, '');
 
 function fullOutputs(turn) {
   if (!runDir) return null;
@@ -47,18 +52,30 @@ for (const t of data.turns) {
   const full = fullOutputs(t.turn);
   t.commands.forEach((c, ci) => {
     const whole = full && full[ci] !== undefined;
-    const recorded = whole ? full[ci] : c.output;
-    const cut = !whole && c.output_chars > c.output.length;
-    const recLines = recorded.split('\n');
+    let recorded = whole ? full[ci] : c.output;
+    // the tool prints `Q: ...` on stderr, which the record interleaves with its stdout,
+    // sometimes in the middle of a line: take those out before comparing
     for (const call of c.calls) {
+      const q = Q.parse(call.argv, data.run.tool_flags);
+      if (q.options && q.options.q != null) {
+        recorded = recorded.split((q.options.sheet ? 'sheet: ' + q.options.sheet + '  ' : '') +
+                                  'Q: ' + q.options.q + '\n').join('');
+      }
+    }
+    const cut = !whole && c.output_chars > c.output.length;
+    const asRecorded = recorded.split('\n');
+    for (const call of c.calls) {
+      const loose = noPreviousFiles && call.argv.some((a, i) => /^--p/.test(a) || /^previous\/life_\d+/.test(a));
+      const recLines = loose ? asRecorded.map(noNote) : asRecorded;
       total++;
       const label = `turn ${t.turn} step ${t.step}: ${call.argv.join(' ')} ${call.piped}`;
       const res = Q.run(call.argv, rows, ctx);
       if (res.error) {
-        if (/usage: episodes\.py|error:/.test(recorded)) errors++;
+        if (/usage: episodes\.py|error:|no frame for/.test(recorded)) errors++;
         else { bad++; console.log('MISMATCH (refused here, not in the run)', label, res.error); }
         continue;
       }
+      if (loose && res.options.grep != null) { unchecked++; continue; }   // it read files that are not here
       const ours = res.stdout ? res.stdout.split('\n') : [];
       if (!ours.length) {
         if (/\(no matching episodes\)/.test(recorded) || cut || call.piped) exact++;

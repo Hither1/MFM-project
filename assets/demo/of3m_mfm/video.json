@@ -1,0 +1,17 @@
+{
+ "src": "run.mp4",
+ "fps": 20.0,
+ "first_step": 1,
+ "last_step": 49570,
+ "frames": 49570,
+ "width": 640,
+ "height": 360,
+ "bytes": 56689486,
+ "source": "the harness's per-step frame record, encoded to H.264 with red and blue swapped back (the record stores them in the other order)",
+ "check": {
+  "sampled": 40,
+  "matched": 40,
+  "mean_error": 15.2,
+  "mismatched": []
+ }
+}

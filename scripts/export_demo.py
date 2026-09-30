@@ -66,9 +66,12 @@ def jsonl(path):
 class Scrub:
     """Rewrite the run's absolute paths to workspace-relative ones."""
 
-    def __init__(self, workspace: Path, run_dir: Path):
+    def __init__(self, workspace: Path, run_dir: Path, recorded: str | None = None):
         ws = str(workspace)
         self.pairs = [(ws + "/", "./"), (ws, "."), (str(run_dir) + "/", "<run>/"), (str(run_dir), "<run>")]
+        if recorded:     # a staged run: its paths were already rewritten to a placeholder root
+            rws = recorded + "/episode_001/memory"
+            self.pairs = [(rws + "/", "./"), (rws, "."), (recorded + "/", "<run>/"), (recorded, "<run>")] + self.pairs
         self.home = re.compile(r"/(?:n|home|Users)/[^\s\"'`:]*")
         # `ls -l` output names the account and its groups
         names = {}
@@ -125,6 +128,8 @@ def log_sections(path: Path):
 # ---------------------------------------------------------------- agent commands
 TOOL = re.compile(r"(?:\./)?tools/episodes\.py")
 OPS = {"|", "||", "&&", ";", "&", ">", ">>", "<", "2>", "2>&1", "|&"}
+STARTS = {"|", "||", "&&", ";", "&", "|&", "(", "{", "!"}
+PYTHON = re.compile(r"(?:\S*/)?python[\d.]*$")
 
 
 def inner_script(command: str) -> str:
@@ -140,7 +145,9 @@ def inner_script(command: str) -> str:
 
 def tool_calls(script: str):
     """Every `./tools/episodes.py ...` invocation in a shell script: its argument list,
-    and whatever it was piped into (the recorded output reflects the pipe)."""
+    and whatever it was piped into (the recorded output reflects the pipe). The tool
+    has to be the command of its pipeline stage (or the script python is given): a
+    script that prints the tool's source, or a note that mentions it, is not a call."""
     calls = []
     for line in script.splitlines():
         if not TOOL.search(line):
@@ -153,7 +160,10 @@ def tool_calls(script: str):
             continue
         i = 0
         while i < len(tokens):
-            if TOOL.fullmatch(tokens[i]):
+            before = tokens[i - 1] if i else None
+            if before is not None and PYTHON.match(before):
+                before = tokens[i - 2] if i > 1 else None
+            if TOOL.fullmatch(tokens[i]) and (before is None or before in STARTS):
                 j = i + 1
                 while j < len(tokens) and tokens[j] not in OPS:
                     j += 1
@@ -221,6 +231,8 @@ def main():
     ap.add_argument("--name")
     ap.add_argument("--title")
     ap.add_argument("--quality", type=int, default=72)
+    ap.add_argument("--recorded-root", help="the run directory as the record names it, when the run was "
+                    "staged elsewhere with its paths rewritten (e.g. '<MCU>/output/of3m_mfm')")
     args = ap.parse_args()
 
     run_dir = Path(args.run).resolve()
@@ -229,7 +241,8 @@ def main():
     name = args.name or run_dir.name
     out_dir = SITE / "assets" / "demo" / name
     (out_dir / "frames").mkdir(parents=True, exist_ok=True)
-    scrub = Scrub(ws, run_dir)
+    scrub = Scrub(ws, run_dir, args.recorded_root)
+    recorded_ws = (args.recorded_root + "/episode_001/memory/") if args.recorded_root else None
 
     report = jload(ep_dir / "worldmodel_report.json", {}) or {}
     index = jsonl(ws / "index.jsonl")
@@ -293,11 +306,20 @@ def main():
                 script = inner_script(it.get("command") or "")
                 output = it.get("aggregated_output") or ""
                 t["commands"].append({
-                    "script": script, "kinds": classify(script), "calls": tool_calls(script),
+                    "script": script, "full_script": script,
+                    "kinds": classify(script), "calls": tool_calls(script),
                     "exit": it.get("exit_code"),
                     "output": output[:OUTPUT_LIMIT], "output_chars": len(output),
                 })
         turns[n] = t
+
+    # patches applied from the shell (`apply_patch <<'EOF' ...`) are in the commands
+    shell_patches = []
+    for n in sorted(turns):
+        for c in turns[n]["commands"]:
+            if "*** Begin Patch" in c["full_script"] and not c["exit"]:
+                shell_patches.append((turns[n], c["full_script"][c["full_script"].index("*** Begin Patch"):]))
+            del c["full_script"]
 
     # steps for turns whose prompt did not state one: the first episode of the turn
     first_of_turn = {}
@@ -310,17 +332,47 @@ def main():
             t["step"] = first_of_turn.get(n, 0)
 
     # --- rollouts: patches to mine/ and frames opened with view_image
-    by_thread = {t["thread"]: t for t in turns.values() if t["thread"]}
+    # (a thread can hold one turn or, when the run kept one compacted thread, all of
+    # them: the n-th task started in a thread is the n-th turn that names the thread)
+    by_thread = {}
+    for n in sorted(turns):
+        if turns[n]["thread"]:
+            by_thread.setdefault(turns[n]["thread"], []).append(turns[n])
     mine_history = {}
     model = None
+
+    def record(t, body):
+        for ch in patch_changes(body):
+            rel = ch["path"].replace(str(ws) + "/", "")
+            if recorded_ws:
+                rel = rel.replace(recorded_ws, "")
+            if rel.startswith("/"):
+                continue
+            t["changes"].append({"path": rel, "kind": ch["kind"],
+                                 "added": len(ch["added"]), "removed": len(ch["removed"])})
+            if rel.startswith("mine/"):
+                mine_history.setdefault(rel, []).append({
+                    "turn": t["turn"], "step": t["step"], "kind": ch["kind"],
+                    "added": ch["added"], "removed": ch["removed"]})
+
+    for t, body in shell_patches:
+        record(t, body)
     for f in sorted(glob.glob(str(run_dir / "codex_sessions" / "**" / "*.jsonl"), recursive=True)):
         rows = jsonl(f)
         sid = next((r["payload"].get("id") for r in rows if r.get("type") == "session_meta"), None)
-        t = by_thread.get(sid)
-        if t is None:
+        of_thread = by_thread.get(sid)
+        if not of_thread:
             continue
+        started = sum(1 for r in rows if (r.get("payload") or {}).get("type") == "task_started")
+        if started not in (0, len(of_thread)):
+            print(f"WARNING thread {sid}: {started} tasks started, {len(of_thread)} turns recorded",
+                  file=sys.stderr)
+        t, k = of_thread[0], 0
         for r in rows:
             p = r.get("payload") or {}
+            if p.get("type") == "task_started":
+                t = of_thread[min(k, len(of_thread) - 1)]
+                k += 1
             if r.get("type") == "turn_context" and p.get("model"):
                 model = p["model"]
             if p.get("type") != "custom_tool_call":
@@ -331,25 +383,18 @@ def main():
             for m in re.finditer(r"view_image\(\s*\"([^\"]+)\"", src):
                 t["views"].append(m.group(1))
             body = patch_body(src)
-            if not body:
-                continue
-            for ch in patch_changes(body):
-                rel = ch["path"].replace(str(ws) + "/", "")
-                if rel.startswith("/"):
-                    continue
-                t["changes"].append({"path": rel, "kind": ch["kind"],
-                                     "added": len(ch["added"]), "removed": len(ch["removed"])})
-                if rel.startswith("mine/"):
-                    mine_history.setdefault(rel, []).append({
-                        "turn": t["turn"], "step": t["step"], "kind": ch["kind"],
-                        "added": ch["added"], "removed": ch["removed"]})
+            if body:
+                record(t, body)
 
     # --- mine/ files as they ended
-    mine_files = {}
+    mine_files, mine_images = {}, []
     for p in sorted((ws / "mine").rglob("*")) if (ws / "mine").is_dir() else []:
         if p.is_file() and p.stat().st_size < 200_000:
             rel = str(p.relative_to(ws))
-            mine_files[rel] = p.read_text(encoding="utf-8", errors="replace")
+            try:
+                mine_files[rel] = p.read_bytes().decode("utf-8")
+            except UnicodeDecodeError:      # an image the agent made: listed, not shown
+                mine_images.append({"path": rel, "bytes": p.stat().st_size})
     # can the final file be rebuilt by replaying the patches in order? (the page shows
     # a file growing only when it can; otherwise it shows the final text and says so)
     replayable = {}
@@ -376,6 +421,16 @@ def main():
                 if q.is_file():
                     listing.append({"path": str(q.relative_to(ws)), "bytes": q.stat().st_size})
 
+    # the flags of the run's own copy of the tool: the page's port accepts these and no others
+    tool_src = read_text(ws / "tools" / "episodes.py") or ""
+    tool_flags = re.findall(r'add_argument\("(--[a-z-]+)"', tool_src)
+    # the merged index of the lives carried into this one (`--previous`); their episode
+    # files are not part of a staged run, so only the rows are exported
+    previous = jsonl(ws / "previous" / "index.jsonl")
+    for row in previous:
+        row["_raw"] = json.dumps(row)
+        row["_files"] = (ws / row.get("path", "") / "outcome.json").is_file()
+
     ms = report.get("milestones") or {}
     data = {
         "run": {
@@ -389,14 +444,18 @@ def main():
             "retrieval_block": bool((report.get("mfm") or {}).get("retrieval")),
             "own": report.get("own"),
             "model": model,
+            "tool_flags": tool_flags,
+            "previous_files": bool(previous) and all(r["_files"] for r in previous),
             "last_step": max((r.get("last_step") or 0) for r in index) if index else 0,
         },
         "index": index,
+        "previous": previous,
         "episodes": episodes,
         "grid": {"kinds": kinds, "cells": grid},
         "log": {"sections": sections, "lines": log_lines},
         "turns": [turns[k] for k in sorted(turns)],
-        "mine": {"files": mine_files, "history": mine_history, "replayable": replayable},
+        "mine": {"files": mine_files, "images": mine_images, "history": mine_history,
+                 "replayable": replayable},
         "listing": listing,
     }
     data = scrub(data)
@@ -404,9 +463,14 @@ def main():
     (out_dir / "data.json").write_text(blob, encoding="utf-8")
 
     runs_path = SITE / "assets" / "demo" / "runs.json"
-    runs = [r for r in (jload(runs_path, []) or []) if r.get("name") != name]
-    runs.append({"name": name, "title": data["run"]["title"], "task": data["run"]["task"],
-                 "episodes": len(index), "steps": data["run"]["steps"]})
+    runs = jload(runs_path, []) or []
+    entry = {"name": name, "title": data["run"]["title"], "task": data["run"]["task"],
+             "model": model, "episodes": len(index), "steps": data["run"]["steps"]}
+    at = [i for i, r in enumerate(runs) if r.get("name") == name]
+    if at:                      # a run exported again keeps its place in the list
+        runs[at[0]] = entry
+    else:
+        runs.append(entry)
     runs_path.write_text(json.dumps(runs, indent=1) + "\n", encoding="utf-8")
 
     n_calls = sum(len(c["calls"]) for t in data["turns"] for c in t["commands"])
