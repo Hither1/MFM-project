@@ -736,7 +736,7 @@
         '<span>click a dot to open the episode, click the ground to query <code>--near</code> it</span></div>' +
         '<div class="dx-mapwrap"><canvas id="dx-map"></canvas></div>' +
         '<div class="dx-maplegend">' + kinds +
-        '<span><i class="dx-sw dot" style="background:var(--map-dot)"></i>where an episode began</span>' +
+        '<span><i class="dx-sw dot" style="background:var(--map-dot)"></i>where a turn began</span>' +
         '<span><i class="dx-sw dot" style="background:var(--match)"></i>returned by the query</span>' +
         '<span><i class="dx-sw dot" style="background:var(--map-sel)"></i>selected</span></div>';
       var cv = $('#dx-map', el);
