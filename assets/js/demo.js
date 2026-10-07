@@ -1,12 +1,14 @@
-// Memory explorer: replays one exported MFM run (see scripts/export_demo.py).
+// Memory explorer, the #explorer part of index.html: replays one exported MFM run (see scripts/export_demo.py).
 (function () {
   'use strict';
 
   var Q = window.MFMQuery;
+  var ROOT = document.getElementById('explorer');   // the explorer's part of the page
+  var linked = false;      // the address carries the explorer's state: a link to it was opened, or it has been used
   var BASE = 'assets/demo/';
   var D = null;            // the run
   var S = {                // what the page shows
-    run: null, step: 0, ep: null, left: 'index', right: 'episode',
+    run: null, step: 0, ep: null, left: 'map', right: 'episode',
     query: '', result: null, only: false, follow: true,
     file: 'index.jsonl', logFilter: '', playing: null, speed: 1
   };
@@ -45,6 +47,7 @@
 
   function boot() {
     var want = readHash();
+    linked = !!want.run;
     getJSON(BASE + 'runs.json').then(function (runs) {
       var sel = $('#dx-run');
       sel.innerHTML = runs.map(function (r) {
@@ -55,10 +58,13 @@
       var first = runs.some(function (r) { return r.name === want.run; }) ? want.run : runs[0].name;
       sel.value = first;
       return load(first, want);
+    }).then(function () {
+      // a link to a moment in a run opens on the explorer, now that it has its full height
+      if (linked) ROOT.scrollIntoView({ behavior: 'instant' });
     }).catch(function (e) {
       status('The run could not be loaded (' + e.message + '). The page reads its data with fetch, ' +
              'so it has to be served over http: run "python scripts/serve.py" in the site folder ' +
-             'and open http://localhost:8000/demo.html.', true);
+             'and open http://localhost:8000/.', true);
     });
   }
 
@@ -73,7 +79,7 @@
       S.run = name;
       D = prepare(data);
       S.step = want.step != null ? Math.min(Math.max(0, want.step), D.max) : D.max;
-      S.query = want.q || '';
+      S.query = noTool() ? '' : want.q || '';
       S.ep = want.ep && D.byId[want.ep] ? want.ep : null;
       if (/^(index|map|files|log)$/.test(want.left || '')) S.left = want.left;
       if (/^(episode|turn|asked)$/.test(want.right || '')) S.right = want.right;
@@ -83,6 +89,10 @@
       S.result = null;
       $('#dx-q').value = S.query;
       fillHelpers();
+      $$('#dx-form input, #dx-form button, .dx-helpers button, .dx-helpers select').forEach(function (x) {
+        x.disabled = noTool();
+      });
+      $('#dx-notool').hidden = !noTool();
       renderRunMeta();
       renderTrack();
       status('');
@@ -90,7 +100,8 @@
       fitTrack();
       setupVideo();
       update();
-      getJSON(BASE + name + '/check.json').then(function (c) {
+      if (noTool()) $('#dx-check').textContent = ' This run had no episodes.py, so it has no call to check.';
+      else getJSON(BASE + name + '/check.json').then(function (c) {
         $('#dx-check').textContent = ' Of the ' + c.total + ' calls in this run, ' + c.exact +
           ' were reproduced line for line, ' + c.partial + ' for the lines a pipe kept, ' + c.errors +
           ' had arguments the tool refused in the run and refuses here, ' +
@@ -264,8 +275,10 @@
     if (!opts || opts.show !== false) S.right = 'episode';
     update();
   }
+  // a run whose harness gave the agent no tools/episodes.py (the flat-retrieval ablation)
+  function noTool() { return D.run.has_tool === false; }
   function setQuery(text, run) {
-    S.query = text.trim();
+    S.query = noTool() ? '' : text.trim();
     $('#dx-q').value = S.query;
     if (run !== false) update();
   }
@@ -313,11 +326,13 @@
     });
     return out;
   }
+  // The page's own anchors (#video) share the address, so it is left alone until the explorer is used.
   function writeHash() {
+    if (!linked) return;
     var parts = ['run=' + encodeURIComponent(S.run), 'step=' + S.step];
     if (S.ep) parts.push('ep=' + S.ep);
     if (S.query) parts.push('q=' + encodeURIComponent(S.query));
-    if (S.left !== 'index') parts.push('left=' + S.left);
+    if (S.left !== 'map') parts.push('left=' + S.left);
     if (S.right !== 'episode') parts.push('right=' + S.right);
     if (S.left === 'files') parts.push('file=' + encodeURIComponent(S.file));
     try { history.replaceState(null, '', '#' + parts.join('&')); } catch (_) { /* file:// */ }
@@ -328,6 +343,7 @@
     var r = D.run, bits = [];
     if (r.task) bits.push('task <b>' + esc(r.task) + '</b>');
     if (r.model) bits.push('model <b>' + esc(r.model) + '</b>');
+    if ((r.ablations || []).length) bits.push('ablation <b>' + esc(r.ablations.join(', ')) + '</b>');
     bits.push('<b>' + num(D.index.length) + '</b> episodes over <b>' + num(D.max) + '</b> steps');
     bits.push('<b>' + D.turns.length + '</b> model turns');
     bits.push('<b>' + Object.keys(r.milestones.achieved).length + '/' + (r.milestones.total || 0) + '</b> goals');
@@ -718,7 +734,7 @@
   // ------------------------------------------------------------------ map
   // Colours come from the stylesheet (demo.css, the --map-* and cell-kind variables).
   function cssVar(name, fallback) {
-    var v = getComputedStyle(document.body).getPropertyValue(name).trim();
+    var v = getComputedStyle(ROOT).getPropertyValue(name).trim();
     return v || fallback;
   }
   var KIND_VAR = { walked: '--walked', water: '--water', blocked: '--blocked', hazard: '--hazard',
@@ -736,7 +752,7 @@
       }).join('');
       el.innerHTML =
         '<div class="dx-bar"><span id="dx-mapinfo"></span><span class="grow"></span>' +
-        '<span>click a dot to open the episode, click the ground to query <code>--near</code> it; ' +
+        '<span>click a dot to open the episode' + (noTool() ? '' : ', click the ground to query <code>--near</code> it') + '; ' +
         'scroll or pinch to zoom, drag to move</span>' +
         '<span class="dx-zoom"><button type="button" data-zoom="in" title="Zoom in" aria-label="Zoom in">+</button>' +
         '<button type="button" data-zoom="out" title="Zoom out" aria-label="Zoom out">&minus;</button>' +
@@ -774,9 +790,21 @@
       closed().concat(opened()).forEach(function (r) { if (r._region != null) here = r; });
     }
     var region = here && here._region != null ? here._region : 0;
+    var rows = closed().concat(opened()).filter(function (r) { return r.x != null && r._region === region; });
+    var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step && c[5] === region; });
+    var info = $('#dx-mapinfo');
+    if (info) info.innerHTML = (D.grid.cells.length
+      ? '<code>grid.jsonl</code>, ' + plural(cells.length, 'row') + ' of ' + D.grid.cells.length + '; '
+      : 'this run kept no grid; ') + plural(rows.length, 'episode position') +
+      (D.regions.length > 1 ? '; area ' + (region + 1) + ' of ' + D.regions.length +
+        ' (the agent moved between places far apart; the map shows the one it was in)' : '');
+
+    // The map fills the panel under its bar (it zooms, so it need not take the area's shape)
     var b = D.regions[region], W = cv.parentNode.clientWidth, dpr = window.devicePixelRatio || 1;
+    var body = cv.closest('.dx-body'), bar = $('.dx-bar', body), legend = $('.dx-maplegend', body);
+    var H = Math.max(300, Math.floor(body.clientHeight - bar.getBoundingClientRect().height -
+                                     legend.getBoundingClientRect().height));
     var spanX = b.x1 - b.x0, spanZ = b.z1 - b.z0;
-    var H = Math.max(260, Math.min(520, Math.round(W * spanZ / spanX)));
     var k0 = Math.min(W / spanX, H / spanZ);
     var key = S.run + ':' + region;
     if (!mapView || mapView.key !== key) {
@@ -784,7 +812,6 @@
     }
     mapGeom = { k0: k0, zmax: Math.max(1, MAP_MAX_PX / k0), W: W, H: H, b: b, pts: [] };
     fitView();
-    var rows = closed().concat(opened()).filter(function (r) { return r.x != null && r._region === region; });
     // a newly selected episode off the edge of a zoomed map: centre on it
     var sel = S.ep !== mapView.ep && D.byId[S.ep];
     mapView.ep = S.ep;
@@ -817,7 +844,6 @@
     g.globalAlpha = 1;
 
     var order = ['walked', 'floor', 'water', 'blocked', 'placed', 'opened', 'lava', 'hazard'];
-    var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step && c[5] === region; });
     order.forEach(function (kind) {
       var ki = D.grid.kinds.indexOf(kind);
       if (ki < 0) return;
@@ -827,7 +853,7 @@
       });
     });
 
-    g.strokeStyle = cssVar('--map-path','rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
+    g.strokeStyle = cssVar('--map-path', 'rgba(21,24,29,0.28)'); g.lineWidth = 1; g.beginPath();
     rows.forEach(function (r, i) { if (i) g.lineTo(px(r.x), pz(r.z)); else g.moveTo(px(r.x), pz(r.z)); });
     g.stroke();
 
@@ -864,13 +890,6 @@
       $('[data-zoom="in"]', zb).disabled = mapView.z >= mapGeom.zmax;
       $('[data-zoom="out"]', zb).disabled = $('[data-zoom="fit"]', zb).disabled = mapView.z <= 1;
     }
-
-    var info = $('#dx-mapinfo');
-    if (info) info.innerHTML = (D.grid.cells.length
-      ? '<code>grid.jsonl</code>, ' + plural(cells.length, 'row') + ' of ' + D.grid.cells.length + '; '
-      : 'this run kept no grid; ') + plural(rows.length, 'episode position') +
-      (D.regions.length > 1 ? '; area ' + (region + 1) + ' of ' + D.regions.length +
-        ' (the agent moved between places far apart; the map shows the one it was in)' : '');
   }
 
   // scale (px a block) and offsets of the view, from mapView and the last drawn size
@@ -1093,8 +1112,11 @@
       if (!ok) {
         var by = {};
         D.mine.history[p].forEach(function (h) { by[h.turn] = h.step; });
-        html += '<p class="who">The patches in the record do not rebuild this file exactly, so its text is shown as it ' +
-          'stood when the run ended. ' + (mineMeta(p) ? 'Up to this step it had been ' + mineMeta(p) + ' of the ' +
+        html += '<p class="who">' + (D.run.rollouts === false
+          ? 'The record names the turns that changed this file, not the changes (the session rollouts that hold ' +
+            'the patches were not released)'
+          : 'The patches in the record do not rebuild this file exactly') +
+          ', so its text is shown as it stood when the run ended. ' + (mineMeta(p) ? 'Up to this step it had been ' + mineMeta(p) + ' of the ' +
           Object.keys(by).length + ' that changed it.' : 'At this step the agent had not written it yet.') + '</p>' +
           '<pre>' + esc(D.mine.files[p] != null ? D.mine.files[p] : '(the file was gone when the run ended)') + '</pre>';
       } else if (!lines.length) {
@@ -1233,8 +1255,12 @@
     var used = D.usedBy[r.id] || [], seen = D.openedBy[r.id] || [];
     html += '<p class="dx-h">How the agent used it</p>';
     if (!used.length && !seen.length) {
-      html += '<p class="who" style="font-size:.84rem;color:var(--ink-soft)">No query of the agent returned this episode, ' +
-        'and it never opened the frame.</p>';
+      html += '<p class="who" style="font-size:.84rem;color:var(--ink-soft)">' +
+        (noTool() ? 'This run had no query tool, ' : 'No query of the agent returned this episode, ') +
+        (D.run.rollouts === false
+          ? 'and which frames the agent opened is not in the published record (the harness counted ' +
+            num(D.run.view_image_calls || 0) + ' image views over the run).</p>'
+          : 'and it never opened the frame.</p>');
     } else {
       html += '<ul class="dx-usedby">' + seen.map(function (t) {
         return '<li><span>turn ' + t.turn + '</span><code>opened the frame (view_image)</code>' +
@@ -1269,7 +1295,8 @@
 
     var reads = t.commands;
     html += '<p class="dx-h">What it read (' + reads.length + ' command' + (reads.length === 1 ? '' : 's') + ')</p>';
-    if (!reads.length) html += '<p class="who" style="font-size:.84rem;color:var(--ink-soft)">It ran no command in this turn.</p>';
+    if (!reads.length) html += '<p class="who" style="font-size:.84rem;color:var(--ink-soft)">' + (D.run.rollouts === false
+      ? 'The turn’s events record no shell command.' : 'It ran no command in this turn.') + '</p>';
     reads.forEach(function (c) {
       var calls = c.calls.map(function (call) {
         var i = D.calls.findIndex(function (x) { return x.turn === t.turn && x.argv === call.argv; });
@@ -1286,7 +1313,11 @@
         (esc(c.output) || '(no output)') + '</pre></details></div>';
     });
 
-    if (t.views && t.views.length) {
+    if (D.run.rollouts === false) {
+      html += '<p class="dx-h">Images it opened</p><p class="who" style="font-size:.84rem;color:var(--ink-soft)">' +
+        'Not in the published record: the session rollouts that list them were not released. The harness ' +
+        'counted ' + num(D.run.view_image_calls || 0) + ' image views over the run.</p>';
+    } else if (t.views && t.views.length) {
       html += '<p class="dx-h">Images it opened</p><ul class="dx-usedby">' + t.views.map(function (v) {
         var m = /episodes\/(ep_\d{6})\//.exec(v);
         return '<li><code>' + esc(v) + '</code>' + (m
@@ -1298,8 +1329,8 @@
     var wrote = (t.changes || []).filter(function (c) { return c.path !== 'actions.json'; });
     html += '<p class="dx-h">What it wrote</p><ul class="dx-usedby">' +
       wrote.map(function (c) {
-        return '<li><code>' + esc(c.path) + '</code><span>' + esc(c.kind) + ', +' + c.added +
-          (c.removed ? ' −' + c.removed : '') + ' lines</span>' +
+        return '<li><code>' + esc(c.path) + '</code><span>' + esc(c.kind) + (c.added == null ? '' : ', +' + c.added +
+          (c.removed ? ' −' + c.removed : '') + ' lines') + '</span>' +
           (D.mine.history[c.path] ? '<button type="button" class="dx-link" data-file="' + esc(c.path) + '">open</button>' : '') + '</li>';
       }).join('') +
       '<li><code>actions.json</code><span>the plan for the next steps</span></li></ul>';
@@ -1315,7 +1346,13 @@
 
   // ------------------------------------------------------------------ the agent's queries
   function renderAsked(el) {
-    if (!D.calls.length) { el.innerHTML = '<p class="dx-empty">The agent never queried the index in this run.</p>'; return; }
+    if (!D.calls.length) {
+      el.innerHTML = '<p class="dx-empty">' + (noTool()
+        ? 'This run had no <code>episodes.py</code> to query with. The agent read <code>index.jsonl</code> and the ' +
+          'log with its own shell commands, which are in the Turn tab.'
+        : 'The agent never queried the index in this run.') + '</p>';
+      return;
+    }
     var t = turnAt(S.step);
     el.innerHTML =
       '<div class="dx-bar"><span>Every <code>episodes.py</code> call in the run. Choose one to go to its turn and ' +
@@ -1336,7 +1373,7 @@
     stop();
     S.step = c.step; S.ep = null; S.only = false;
     setQuery(c.text);
-    window.scrollTo({ top: $('.dx-query').offsetTop - 140, behavior: 'smooth' });
+    window.scrollTo({ top: window.scrollY + $('.dx-query').getBoundingClientRect().top - 140, behavior: 'smooth' });
   }
 
   // ------------------------------------------------------------------ events
@@ -1366,10 +1403,17 @@
       video.defaultPlaybackRate = video.playbackRate = S.speed;
       if (D) renderClock();
     });
-    // space plays and pauses, as on a video, unless a field has the keyboard
+    ['pointerdown', 'keydown', 'change'].forEach(function (type) {
+      ROOT.addEventListener(type, function () { linked = true; }, true);
+    });
+    // space plays and pauses, as on a video, unless a field has the keyboard or the panels are
+    // not what the reader is looking at (elsewhere on the page, space scrolls as usual)
     document.addEventListener('keydown', function (e) {
       if (e.key !== ' ' || !D || $('#dx-app').hidden || e.ctrlKey || e.metaKey || e.altKey) return;
       if (/^(INPUT|TEXTAREA|SELECT|BUTTON|SUMMARY)$/.test(e.target.tagName) || e.target.isContentEditable) return;
+      var box = $('.dx-main').getBoundingClientRect();
+      if (box.bottom < window.innerHeight * 0.25 || box.top > window.innerHeight * 0.75) return;
+      linked = true;
       e.preventDefault();
       play();
     });
@@ -1446,5 +1490,14 @@
   }
 
   wire();
-  boot();
+  // The run is fetched when the reader gets near the explorer, or at once for a link into it.
+  if (readHash().run || !('IntersectionObserver' in window)) boot();
+  else {
+    var near = new IntersectionObserver(function (entries) {
+      if (!entries.some(function (x) { return x.isIntersecting; })) return;
+      near.disconnect();
+      boot();
+    }, { rootMargin: '800px 0px' });
+    near.observe(ROOT);
+  }
 })();

@@ -18,28 +18,28 @@ On GitHub: Settings -> Pages -> Deploy from a branch -> `main`, folder `/ (root)
 The site is then served at https://hither1.github.io/MFM-project/.
 
 After changing a stylesheet or script, bump the `?v=` number on its `<link>`/`<script>`
-in `index.html` and `demo.html`; GitHub Pages lets browsers cache these files for 10 minutes.
+in `index.html`; GitHub Pages lets browsers cache these files for 10 minutes.
 
 ## Layout
 
 | Path | Contents |
 | --- | --- |
 | `index.html` | the page; the author block is marked with an `AUTHORS` comment |
-| `assets/css/style.css` | styles; the theme (colours, pixel font, bevels) is the `:root` block at the top |
-| `assets/img/sift_*.png` | the pixel-art block strips, drawn by `scripts/make_sift_tiles.py` |
+| `assets/css/style.css` | styles; the theme (colours, fonts, column widths) is the `:root` block at the top |
+| `assets/img/sift_*.png` | pixel-art block strips from the earlier Minecraft theme, drawn by `scripts/make_sift_tiles.py`; not used by the page now |
 | `assets/js/main.js` | mobile navigation, section highlight, figure lightbox |
 | `assets/img/` | figures, copied from `figures/` of the MFM repository |
 | `assets/video/` | the run reconstruction, re-encoded to H.264 for browsers |
 
-| `demo.html` | the memory explorer: a recorded run replayed step by step |
-| `assets/js/demo.js`, `assets/css/demo.css` | the explorer |
+| `demo.html` | a redirect to `index.html#explorer`, where the memory explorer now is; it keeps old links working |
+| `assets/js/demo.js`, `assets/css/demo.css` | the memory explorer, the `#explorer` part of `index.html`: a recorded run replayed step by step |
 | `assets/js/mfm-query.js` | a port of `mfm/memory/tools/episodes.py`, used by the query box |
 | `assets/demo/<run>/` | one exported run: `data.json`, `frames/*.jpg`, `check.json`, and `run.mp4` + `video.json` when it has a recording |
 | `scripts/` | `export_demo.py` writes a run into `assets/demo/`; `check_demo.js` tests the port; `make_demo_video.py` adds a run's recording; `serve.py` previews the site |
 
 ## Memory explorer
 
-`demo.html` reads `assets/demo/runs.json` and the run it names. To add or refresh a run
+The explorer reads `assets/demo/runs.json` and the run it names. To add or refresh a run
 (PIL is needed for the frames):
 
 ```bash

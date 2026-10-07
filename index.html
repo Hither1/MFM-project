@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#140f24">
+  <meta name="theme-color" content="#f6f4ef">
   <title>MFM: Multimodal Filesystem Memory</title>
   <meta name="description" content="Multimodal Filesystem Memory (MFM): an agent memory made of ordinary files. Episodic records with their frames, a searchable index of cues, and the agent's own knowledge, procedures and working plan, each citing the episodes that support it.">
   <meta property="og:title" content="MFM: Multimodal Filesystem Memory">
@@ -13,12 +13,13 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=3">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+  <link rel="stylesheet" href="assets/css/style.css?v=6">
+  <link rel="stylesheet" href="assets/css/demo.css?v=10">
 </head>
 <body>
 
-<header class="topbar" id="top">
+<header class="topbar topbar-overlay">
   <nav class="wrap topbar-inner" aria-label="Sections">
     <a class="brand" href="#top">MFM</a>
     <button class="nav-toggle" hidden aria-expanded="false" aria-controls="nav-links" aria-label="Toggle navigation">
@@ -40,16 +41,20 @@
 <main>
 
 <!-- ============================ HERO ============================ -->
-<section class="hero">
+<!-- The page opens on a full-screen video with the title over it. HERO VIDEO: to change it,
+     replace the <source> and the poster (a still shown until the video loads, and instead of
+     it when the visitor asks for reduced motion). Browsers need H.264; no sound is played. -->
+<section class="hero hero-video">
+  <div class="hero-scene" aria-hidden="true">
+    <video id="hero-video" muted loop playsinline preload="metadata" tabindex="-1"
+           poster="assets/img/video_poster.jpg">
+      <source src="assets/video/og9_mfm_reconstruction_h264.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="hero-overlay">
   <div class="wrap">
     <p class="eyebrow">Long-horizon agent memory</p>
     <h1>Multimodal Filesystem Memory for Long-Horizon Embodied Agents</h1>
-    <p class="lede">
-      A memory for long-horizon agents that is nothing but files. Episodic records keep each
-      observation, state, action and outcome; a harness-written index of cues makes them
-      searchable by when, where and what; and the agent keeps its own knowledge, procedures
-      and working plan beside them, each citing the episodes that support it.
-    </p>
 
     <!-- AUTHORS: edit this block. Add co-authors and affiliations as <span class="author"> items. -->
     <p class="authors">
@@ -68,14 +73,25 @@
         <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
         Code
       </a>
-      <a class="btn" href="demo.html">Memory explorer</a>
+      <a class="btn" href="#explorer">Memory explorer</a>
       <a class="btn" href="#results" hidden>Results</a>
       <a class="btn" href="#video">Video</a>
     </p>
+    <a class="hero-jump" href="#intro">Read on <span aria-hidden="true">&darr;</span></a>
   </div>
+  </div>
+  <button class="hero-pause" type="button" hidden aria-pressed="false">Pause</button>
 </section>
 
-<section class="teaser">
+<section class="teaser" id="intro">
+  <div class="wrap">
+    <p class="lede">
+      A memory for long-horizon agents that is nothing but files. Episodic records keep each
+      observation, state, action and outcome; a harness-written index of cues makes them
+      searchable by when, where and what; and the agent keeps its own knowledge, procedures
+      and working plan beside them, each citing the episodes that support it.
+    </p>
+  </div>
   <div class="wrap wide">
     <figure class="fig">
       <img src="assets/img/dragon_mfm_callouts.png" width="2256" height="1488"
@@ -89,9 +105,6 @@
         an iron entrance recorded in an earlier life (d), and identifying a sheep as food (e).
       </figcaption>
     </figure>
-  </div>
-  <div class="sift-ground" aria-hidden="true">
-    <img class="blub" src="assets/img/blub.png" width="316" height="320" alt="">
   </div>
 </section>
 
@@ -137,20 +150,176 @@
 </section>
 
 <!-- ============================ EXPLORER ============================ -->
-<section class="section alt" id="explorer">
-  <div class="wrap">
+<!-- The memory explorer (assets/js/demo.js, assets/css/demo.css). Its styles are scoped to .dx. -->
+<div class="dx" id="explorer">
+
+<section class="dx-head">
+  <div class="wrap wide">
     <h2>Explore the memory</h2>
-    <p>
-      The <a href="demo.html">memory explorer</a> replays a recorded run in the browser. Move
-      the step to see the index, the episodes and their frames, the map, the log and the
-      agent's notes as they stood at that moment, and run a query over them with the rules of
-      the agent's own tool. It also lists every query the agent made and what each returned.
+    <p class="dx-lede">
+      A recorded run, replayed. Choose a run and press Play: the run's video plays on the
+      right, and the memory on the left grows with it, step by step, as the harness and the
+      agent wrote it: the rows of <code>index.jsonl</code>, the map, the log, and the notes
+      in <code>mine/</code>. Pause or move the step to look at any moment. Type a query and
+      it runs over the memory as it stood then, with the rules of the agent's own tool.
     </p>
-    <p class="actions" style="justify-content:flex-start">
-      <a class="btn btn-primary" href="demo.html">Open the memory explorer</a>
-    </p>
+    <div class="dx-runbar">
+      <label for="dx-run">Run</label>
+      <select id="dx-run"></select>
+      <span class="dx-runmeta" id="dx-runmeta"></span>
+    </div>
   </div>
 </section>
+
+<div class="dx-status wrap wide" id="dx-status" role="status">Loading the run&hellip;</div>
+
+<div id="dx-app" hidden>
+
+<!-- ============================ TIME ============================ -->
+<section class="dx-time" aria-label="Step">
+  <div class="wrap wide">
+    <div class="dx-time-row">
+      <div class="dx-transport">
+        <button type="button" id="dx-prev" title="Previous turn" aria-label="Previous turn">&#9664;</button>
+        <button type="button" id="dx-play" class="dx-playbtn" aria-pressed="false">Play</button>
+        <button type="button" id="dx-next" title="Next turn" aria-label="Next turn">&#9654;</button>
+        <select id="dx-speed" aria-label="Playback speed" title="Playback speed. At 1&times; the video plays at the 20 frames a second it was recorded at, one frame per step." hidden>
+          <option value="1">1&times;</option>
+          <option value="2">2&times;</option>
+          <option value="4">4&times;</option>
+          <option value="8">8&times;</option>
+          <option value="16">16&times;</option>
+        </select>
+      </div>
+      <div class="dx-scrub">
+        <div class="dx-track" id="dx-track" aria-hidden="true"></div>
+        <input type="range" id="dx-step" min="0" max="1" step="1" value="0" aria-label="Step">
+      </div>
+      <div class="dx-readout" id="dx-readout"></div>
+    </div>
+    <div class="dx-stats" id="dx-stats"></div>
+  </div>
+</section>
+
+<!-- ============================ QUERY ============================ -->
+<section class="dx-query" aria-label="Query">
+  <div class="wrap wide">
+    <form class="dx-cmd" id="dx-form" autocomplete="off">
+      <label class="dx-cmd-prompt" for="dx-q"><span class="prompt">$</span> ./tools/episodes.py</label>
+      <input type="text" id="dx-q" spellcheck="false" placeholder="--near 3168 1414 --radius 8      (empty: no query)">
+      <button type="submit" class="dx-run-btn">Run</button>
+      <button type="button" id="dx-clear">Clear</button>
+    </form>
+    <div class="dx-helpers">
+      <span class="dx-helpers-label">Add a filter</span>
+      <button type="button" data-add="--last 5">--last 5</button>
+      <button type="button" data-add="--steps">--steps A B</button>
+      <select id="dx-add-tag" aria-label="Add a tag filter"><option value="">--tag &hellip;</option></select>
+      <select id="dx-add-action" aria-label="Add an action filter"><option value="">--action &hellip;</option></select>
+      <button type="button" data-add="--grep">--grep TEXT</button>
+      <span class="dx-hint">or click the map for <code>--near</code></span>
+    </div>
+    <p class="dx-notool" id="dx-notool" hidden>
+      This run had no query tool, so the box is off. It is the <em>flat-retrieval</em> ablation:
+      the harness took away <code>tools/episodes.py</code> and the recall block of the prompt, and
+      the agent searched <code>index.jsonl</code> and the log with its own shell commands
+      (<code>sed</code>, <code>rg</code>, <code>tail</code>), which are in the Turn tab.
+    </p>
+    <div class="dx-result" id="dx-result" hidden></div>
+  </div>
+</section>
+
+<!-- ============================ PANELS ============================ -->
+<section class="dx-main">
+  <div class="wrap wide dx-cols">
+    <div class="dx-panel" id="dx-left">
+      <div class="dx-tabs" role="tablist" aria-label="Memory">
+        <button role="tab" data-tab="map" aria-selected="true">Map</button>
+        <button role="tab" data-tab="index">Index</button>
+        <button role="tab" data-tab="files">Files</button>
+        <button role="tab" data-tab="log">Log</button>
+      </div>
+      <div class="dx-body" id="dx-left-body" role="tabpanel"></div>
+    </div>
+    <div class="dx-panel" id="dx-right">
+      <div class="dx-video" id="dx-video-box" hidden>
+        <video id="dx-video" muted playsinline preload="metadata" aria-label="The run's recording"></video>
+        <div class="dx-vidcap" id="dx-vidcap" aria-hidden="true"></div>
+      </div>
+      <div class="dx-tabs" role="tablist" aria-label="Detail">
+        <button role="tab" data-tab="episode" aria-selected="true">Episode</button>
+        <button role="tab" data-tab="turn">Agent turn</button>
+        <button role="tab" data-tab="asked">Queries it ran</button>
+      </div>
+      <div class="dx-body" id="dx-right-body" role="tabpanel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ NOTES ============================ -->
+<section class="section dx-about">
+  <div class="wrap">
+    <h3>What you are looking at</h3>
+    <p>
+      Everything in the explorer is the record of one run, exported by
+      <code>scripts/export_demo.py</code>. Nothing is simulated and no model is called.
+    </p>
+    <ul class="limits">
+      <li>
+        <strong>The index is a file, and the query is a filter.</strong> MFM computes no
+        embeddings and ranks nothing. <code>index.jsonl</code> has one row per closed episode,
+        and <code>tools/episodes.py</code> selects rows by step range, by distance from a
+        point, by tag, by action, or by text found in the episode's files. Filters combine with
+        AND, and results come back in the order they were recorded.
+      </li>
+      <li>
+        <strong>The query box runs a port of that tool.</strong> It was checked against this
+        run: each <code>episodes.py</code> call the agent made was re-run over the index as it
+        stood at that turn and compared, line for line, with the output the run recorded.
+        <span id="dx-check"></span>
+      </li>
+      <li>
+        <strong>Replaying the harness's files is exact.</strong> The index, the grid and the
+        log are append-only and every row carries its step, so the memory at step
+        <em>s</em> is the rows written by step <em>s</em>.
+      </li>
+      <li>
+        <strong>The agent's own files are rebuilt from its patches.</strong> The run keeps
+        only the final <code>mine/</code> files. Their history here comes from the
+        <code>apply_patch</code> calls in the session record, and is shown only when replaying
+        those patches gives back the final file exactly.
+      </li>
+      <li>
+        <strong>The video is the run's own recording, one frame per step.</strong> The page
+        takes its step from the frame on screen, so the memory on the left is always the
+        memory at the moment the video shows. <span id="dx-vidnote"></span>
+      </li>
+      <li>
+        <strong>Frames are reduced.</strong> The stored frames are PNG; the page shows JPEG
+        copies no larger than 320&times;180. Recorded command output is cut at 6,000
+        characters. Reference and skill files, and images the agent made, are listed and not
+        included.
+      </li>
+      <li>
+        <strong>The tool differs between runs.</strong> Each run carries its own copy of
+        <code>tools/episodes.py</code>, and the query box accepts the flags of the copy the
+        chosen run had. Where a run carried the memory of earlier lives, the export has the
+        index of those lives and not their episode files, so <code>--previous</code> returns
+        their rows without the harness notes.
+      </li>
+      <li>
+        <strong>One run.</strong> Each entry in the list is a single recorded life. It shows how the memory is
+        built and read, and says nothing about how often the agent succeeds.
+      </li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<div class="dx-tip" id="dx-tip" hidden></div>
+
+</div>
 
 <!-- ============================ MEMORY ============================ -->
 <section class="section alt" id="memory" hidden>
@@ -630,6 +799,8 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
   <img alt="">
 </div>
 
-<script src="assets/js/main.js?v=3"></script>
+<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/mfm-query.js?v=4"></script>
+<script src="assets/js/demo.js?v=9"></script>
 </body>
 </html>

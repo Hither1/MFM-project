@@ -1,5 +1,5 @@
 // A port of the MFM query tool (mfm/memory/tools/episodes.py) to the browser.
-// Same flags, same filter order, same output lines. Loaded by demo.html and by
+// Same flags, same filter order, same output lines. Loaded by index.html and by
 // scripts/check_demo.js, which compares it with the output the run recorded.
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();

@@ -36,6 +36,39 @@
     });
   }
 
+  // Opening video: plays muted on a loop while on screen, with a button to stop it.
+  // Visitors who ask for reduced motion get the poster until they press Play.
+  var hero = document.querySelector('.hero-video');
+  var heroVideo = document.getElementById('hero-video');
+  var pauseBtn = document.querySelector('.hero-pause');
+  var topbar = document.querySelector('.topbar-overlay');
+  if (hero && heroVideo && pauseBtn) {
+    var stopped = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var onScreen = true;
+    var sync = function () {
+      pauseBtn.textContent = stopped ? 'Play' : 'Pause';
+      pauseBtn.setAttribute('aria-pressed', String(stopped));
+      pauseBtn.setAttribute('aria-label', (stopped ? 'Play' : 'Pause') + ' the background video');
+      if (stopped || !onScreen) { heroVideo.pause(); return; }
+      var playing = heroVideo.play();
+      if (playing && playing.catch) playing.catch(function () {});
+    };
+    pauseBtn.hidden = false;
+    pauseBtn.addEventListener('click', function () { stopped = !stopped; sync(); });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        onScreen = entries[0].isIntersecting;
+        sync();
+      }).observe(hero);
+    }
+    sync();
+  }
+  if (hero && topbar && 'IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      topbar.classList.toggle('at-top', entries[0].isIntersecting);
+    }, { rootMargin: '-' + topbar.offsetHeight + 'px 0px 0px 0px' }).observe(hero);
+  }
+
   // Figure lightbox
   var box = document.getElementById('lightbox');
   if (!box) return;
