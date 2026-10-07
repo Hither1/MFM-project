@@ -26,7 +26,14 @@
 }
 
 .dx-head { padding: 56px 0 22px; border-top: 1px solid var(--line); }
-.dx-lede { max-width: 820px; color: var(--ink-soft); margin: 0 0 20px; }
+.dx-lede { max-width: 820px; color: var(--ink-soft); margin: 0 0 10px; }
+/* what is put away until asked for: the notes on the replay, the query box */
+.dx-fold > summary { cursor: pointer; width: fit-content; font-size: 0.92rem; font-weight: 600; color: var(--ink-soft); }
+.dx-fold > summary:hover, .dx-fold[open] > summary { color: var(--ink); }
+.dx-fold > summary .hint { font-weight: 400; color: var(--ink-faint); margin-left: 6px; }
+.dx-fold[open] > summary { margin-bottom: 12px; }
+.dx-about { max-width: 820px; margin: 0 0 18px; }
+.dx-about p, .dx-about .limits li { font-size: 0.94rem; color: var(--ink-soft); }
 .dx-runbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 0.92rem; }
 .dx-runbar label { font-weight: 600; }
 .dx-runbar select { max-width: 100%; }
@@ -79,6 +86,9 @@
   overflow: hidden; }
 .dx-hold-note .dx-lab { top: 0; left: 6px; font-size: 0.66rem; color: var(--ink-faint); }
 
+.dx-time-end { display: flex; gap: 14px; align-items: center; }
+.dx .dx-time-end button { color: var(--ink-soft); }
+.dx .dx-time-end button[aria-expanded="true"] { background: var(--panel-2); border-color: var(--ink-faint); color: var(--ink); }
 .dx-readout { font-size: 0.88rem; color: var(--ink-soft); text-align: right; min-width: 250px;
   font-variant-numeric: tabular-nums; line-height: 1.35; }
 .dx-readout b { color: var(--ink); font-size: 1.15rem; font-weight: 600; }
@@ -95,7 +105,7 @@
 .dx-key.m::before { background: var(--good); }
 
 /* ---------- query ---------- */
-.dx-query { padding: 20px 0 6px; }
+.dx-query { padding: 14px 0 0; }
 .dx-cmd { display: flex; gap: 8px; align-items: stretch; background: var(--panel);
   border: 1px solid var(--line); border-radius: 10px;
   padding: 7px 7px 7px 14px; }
@@ -136,7 +146,7 @@
 .dx-sheet-note { grid-column: 1 / -1; font-size: 0.8rem; color: var(--ink-soft); margin: 0; }
 
 /* ---------- panels ---------- */
-.dx-main { padding: 18px 0 56px; }
+.dx-main { padding: 14px 0 56px; }
 .dx-cols { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
 /* with a recording, the right column is the video over the detail tabs, as tall as the left */
 .dx-cols.has-video { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: stretch; }
@@ -221,8 +231,11 @@ table.dx-index { width: 100%; border-collapse: collapse; font-size: 0.78rem; fon
 .dx-zoom { display: inline-flex; gap: 4px; margin-left: auto; }
 .dx .dx-zoom button { min-width: 30px; padding: 0 7px; font-size: 0.95rem; line-height: 1.5; }
 .dx .dx-zoom button:disabled { opacity: 0.45; cursor: default; border-color: var(--line); background: var(--panel); }
-.dx-maplegend { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 8px 12px; font-size: 0.78rem;
-  color: var(--ink-soft); border-top: 1px solid var(--line); }
+.dx-body details.dx-maplegend { margin: 0; border: 0; border-top: 1px solid var(--line); border-radius: 0;
+  background: none; font-size: 0.78rem; color: var(--ink-soft); }
+.dx-body details.dx-maplegend > summary { padding: 7px 12px; font-size: 0.78rem; font-weight: 500; }
+.dx-maplegend .dx-keys { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.dx-maplegend p { margin-top: 6px; margin-bottom: 8px; }
 .dx-sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; border-radius: 2px; }
 .dx-sw.dot { border-radius: 50%; }
 
@@ -311,16 +324,14 @@ table.dx-index { width: 100%; border-collapse: collapse; font-size: 0.78rem; fon
   border-radius: var(--radius-sm); box-shadow: 0 6px 18px -6px rgba(20, 18, 14, 0.5);
   font-size: 0.74rem; line-height: 1.4; padding: 5px 8px; max-width: 320px; }
 
-.dx-about { padding-top: 8px; }
-.dx-about h3 { font-size: 1.3rem; margin-top: 0; }
-.dx-about .limits li { font-size: 0.94rem; }
 
 @media (max-width: 1000px) {
   .dx-cols, .dx-cols.has-video { grid-template-columns: 1fr; }
   .dx-body, .dx-cols.has-video #dx-right .dx-body { height: 540px; flex: none; }
   .dx-cols.has-video #dx-right { order: -1; }
   .dx-time-row { grid-template-columns: auto 1fr; }
-  .dx-readout { grid-column: 1 / -1; text-align: left; min-width: 0; }
+  .dx-time-end { grid-column: 1 / -1; justify-content: space-between; }
+  .dx-readout { text-align: left; min-width: 0; }
   .dx-stats .dx-legend { margin-left: 0; }
 }
 @media (max-width: 640px) {

@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="stylesheet" href="assets/css/style.css?v=6">
-  <link rel="stylesheet" href="assets/css/demo.css?v=10">
+  <link rel="stylesheet" href="assets/css/demo.css?v=11">
 </head>
 <body>
 
@@ -35,6 +35,10 @@
       <li><a href="#kicad">KiCad</a></li>
       <li><a href="#limits">Limits</a></li>
     </ul>
+    <a class="btn topbar-code" href="https://github.com/Hither1/MFM">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      Code
+    </a>
   </nav>
 </header>
 
@@ -75,6 +79,7 @@
       </a>
       <a class="btn" href="#explorer">Memory explorer</a>
       <a class="btn" href="#results" hidden>Results</a>
+      <a class="btn" href="#skills">Skill learning</a>
       <a class="btn" href="#video">Video</a>
     </p>
     <a class="hero-jump" href="#intro">Read on <span aria-hidden="true">&darr;</span></a>
@@ -158,12 +163,67 @@
   <div class="wrap wide">
     <h2>Explore the memory</h2>
     <p class="dx-lede">
-      A recorded run, replayed. Choose a run and press Play: the run's video plays on the
-      right, and the memory on the left grows with it, step by step, as the harness and the
-      agent wrote it: the rows of <code>index.jsonl</code>, the map, the log, and the notes
-      in <code>mine/</code>. Pause or move the step to look at any moment. Type a query and
-      it runs over the memory as it stood then, with the rules of the agent's own tool.
+      A recorded run, replayed. Press Play: the run's video plays on the right, and the memory
+      on the left grows with it, step by step.
     </p>
+    <details class="dx-fold dx-about">
+      <summary>About this replay</summary>
+      <p>
+        The memory is shown as the harness and the agent wrote it: the rows of
+        <code>index.jsonl</code>, the map, the log, and the notes in <code>mine/</code>. Pause or
+        move the step to look at any moment. A query runs over the memory as it stood then, with
+        the rules of the agent's own tool. Everything here is the record of one run, exported by
+        <code>scripts/export_demo.py</code>. Nothing is simulated and no model is called.
+      </p>
+  <ul class="limits">
+        <li>
+          <strong>The index is a file, and the query is a filter.</strong> MFM computes no
+          embeddings and ranks nothing. <code>index.jsonl</code> has one row per closed episode,
+          and <code>tools/episodes.py</code> selects rows by step range, by distance from a
+          point, by tag, by action, or by text found in the episode's files. Filters combine with
+          AND, and results come back in the order they were recorded.
+        </li>
+        <li>
+          <strong>The query box runs a port of that tool.</strong> It was checked against this
+          run: each <code>episodes.py</code> call the agent made was re-run over the index as it
+          stood at that turn and compared, line for line, with the output the run recorded.
+          <span id="dx-check"></span>
+        </li>
+        <li>
+          <strong>Replaying the harness's files is exact.</strong> The index, the grid and the
+          log are append-only and every row carries its step, so the memory at step
+          <em>s</em> is the rows written by step <em>s</em>.
+        </li>
+        <li>
+          <strong>The agent's own files are rebuilt from its patches.</strong> The run keeps
+          only the final <code>mine/</code> files. Their history here comes from the
+          <code>apply_patch</code> calls in the session record, and is shown only when replaying
+          those patches gives back the final file exactly.
+        </li>
+        <li>
+          <strong>The video is the run's own recording, one frame per step.</strong> The page
+          takes its step from the frame on screen, so the memory on the left is always the
+          memory at the moment the video shows. <span id="dx-vidnote"></span>
+        </li>
+        <li>
+          <strong>Frames are reduced.</strong> The stored frames are PNG; the page shows JPEG
+          copies no larger than 320&times;180. Recorded command output is cut at 6,000
+          characters. Reference and skill files, and images the agent made, are listed and not
+          included.
+        </li>
+        <li>
+          <strong>The tool differs between runs.</strong> Each run carries its own copy of
+          <code>tools/episodes.py</code>, and the query box accepts the flags of the copy the
+          chosen run had. Where a run carried the memory of earlier lives, the export has the
+          index of those lives and not their episode files, so <code>--previous</code> returns
+          their rows without the harness notes.
+        </li>
+        <li>
+          <strong>One run.</strong> Each entry in the list is a single recorded life. It shows how the memory is
+          built and read, and says nothing about how often the agent succeeds.
+        </li>
+      </ul>
+    </details>
     <div class="dx-runbar">
       <label for="dx-run">Run</label>
       <select id="dx-run"></select>
@@ -196,15 +256,21 @@
         <div class="dx-track" id="dx-track" aria-hidden="true"></div>
         <input type="range" id="dx-step" min="0" max="1" step="1" value="0" aria-label="Step">
       </div>
-      <div class="dx-readout" id="dx-readout"></div>
+      <div class="dx-time-end">
+        <div class="dx-readout" id="dx-readout"></div>
+        <button type="button" id="dx-stats-toggle" aria-expanded="false" aria-controls="dx-stats"
+                title="Show the size of each memory file at this step, and what the marks on the timeline mean">Details</button>
+      </div>
     </div>
-    <div class="dx-stats" id="dx-stats"></div>
+    <div class="dx-stats" id="dx-stats" hidden></div>
   </div>
 </section>
 
 <!-- ============================ QUERY ============================ -->
 <section class="dx-query" aria-label="Query">
   <div class="wrap wide">
+    <details class="dx-fold" id="dx-qfold">
+    <summary>Query the memory <span class="hint">run the agent's own search tool over the memory at this step</span></summary>
     <form class="dx-cmd" id="dx-form" autocomplete="off">
       <label class="dx-cmd-prompt" for="dx-q"><span class="prompt">$</span> ./tools/episodes.py</label>
       <input type="text" id="dx-q" spellcheck="false" placeholder="--near 3168 1414 --radius 8      (empty: no query)">
@@ -227,6 +293,7 @@
       (<code>sed</code>, <code>rg</code>, <code>tail</code>), which are in the Turn tab.
     </p>
     <div class="dx-result" id="dx-result" hidden></div>
+    </details>
   </div>
 </section>
 
@@ -257,64 +324,6 @@
   </div>
 </section>
 
-<!-- ============================ NOTES ============================ -->
-<section class="section dx-about">
-  <div class="wrap">
-    <h3>What you are looking at</h3>
-    <p>
-      Everything in the explorer is the record of one run, exported by
-      <code>scripts/export_demo.py</code>. Nothing is simulated and no model is called.
-    </p>
-    <ul class="limits">
-      <li>
-        <strong>The index is a file, and the query is a filter.</strong> MFM computes no
-        embeddings and ranks nothing. <code>index.jsonl</code> has one row per closed episode,
-        and <code>tools/episodes.py</code> selects rows by step range, by distance from a
-        point, by tag, by action, or by text found in the episode's files. Filters combine with
-        AND, and results come back in the order they were recorded.
-      </li>
-      <li>
-        <strong>The query box runs a port of that tool.</strong> It was checked against this
-        run: each <code>episodes.py</code> call the agent made was re-run over the index as it
-        stood at that turn and compared, line for line, with the output the run recorded.
-        <span id="dx-check"></span>
-      </li>
-      <li>
-        <strong>Replaying the harness's files is exact.</strong> The index, the grid and the
-        log are append-only and every row carries its step, so the memory at step
-        <em>s</em> is the rows written by step <em>s</em>.
-      </li>
-      <li>
-        <strong>The agent's own files are rebuilt from its patches.</strong> The run keeps
-        only the final <code>mine/</code> files. Their history here comes from the
-        <code>apply_patch</code> calls in the session record, and is shown only when replaying
-        those patches gives back the final file exactly.
-      </li>
-      <li>
-        <strong>The video is the run's own recording, one frame per step.</strong> The page
-        takes its step from the frame on screen, so the memory on the left is always the
-        memory at the moment the video shows. <span id="dx-vidnote"></span>
-      </li>
-      <li>
-        <strong>Frames are reduced.</strong> The stored frames are PNG; the page shows JPEG
-        copies no larger than 320&times;180. Recorded command output is cut at 6,000
-        characters. Reference and skill files, and images the agent made, are listed and not
-        included.
-      </li>
-      <li>
-        <strong>The tool differs between runs.</strong> Each run carries its own copy of
-        <code>tools/episodes.py</code>, and the query box accepts the flags of the copy the
-        chosen run had. Where a run carried the memory of earlier lives, the export has the
-        index of those lives and not their episode files, so <code>--previous</code> returns
-        their rows without the harness notes.
-      </li>
-      <li>
-        <strong>One run.</strong> Each entry in the list is a single recorded life. It shows how the memory is
-        built and read, and says nothing about how often the agent succeeds.
-      </li>
-    </ul>
-  </div>
-</section>
 
 </div>
 
@@ -605,13 +614,15 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 </section>
 
 <!-- ============================ SKILLS ============================ -->
-<section class="section alt" id="skills" hidden>
+<section class="section alt" id="skills">
   <div class="wrap">
-    <h2>Does the memory accumulate skills?</h2>
+    <h2>Learning skills and improving on itself</h2>
     <p>
-      Milestone scores say whether an agent finished. They do not say whether it learned anything
-      on the way. Because everything the agent knows beyond its weights is a file it wrote, the
-      question can be answered by reading the files and the turns that wrote them.
+      The same files let the agent get better at a task. When a sequence of actions has worked
+      several times, it saves the sequence as a procedure under <code>mine/procedures/</code> and
+      calls it from then on. A later life inherits those procedures, repairs them, and adds its
+      own. Because everything the agent knows beyond its weights is a file it wrote, what it
+      learned can be checked by reading the files and the turns that wrote them.
     </p>
 
     <figure class="fig">
@@ -669,6 +680,12 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
         </table>
       </div>
     </details>
+    <p class="note">
+      Small n: one carried chain of three lives and two fresh lives in Minecraft, and four
+      carried against four fresh runs in KiCad. Every Minecraft life starts in the same world at
+      the same spawn, so the gain across lives mixes memory of the map with the procedures;
+      panel B, within a life, does not depend on that.
+    </p>
   </div>
 </section>
 
@@ -760,32 +777,6 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
   </div>
 </section>
 
-<!-- ============================ CODE ============================ -->
-<section class="section" id="code">
-  <div class="wrap">
-    <h2>Code</h2>
-    <p>
-      The <code>mfm</code> package holds the episode store, retrieval, carry and consolidation,
-      and the agent base shared by both benchmarks. It has no dependencies.
-    </p>
-<pre class="term" tabindex="0"><code><span class="prompt">$</span> git clone https://github.com/Hither1/MFM.git
-<span class="prompt">$</span> cd MFM &amp;&amp; pip install -e .
-
-<span class="c"># Minecraft: one harness, the arm is a flag</span>
-<span class="prompt">$</span> python MCU/worldmodel_purple_agent.py --memory {direct,logbook,mfm,vista,arc}
-
-<span class="c"># KiCad</span>
-<span class="prompt">$</span> python gym_codex/run_eval.py --agent {direct,prolong-logonly,mfm-carry,vista}</code></pre>
-    <p>
-      Options, launch recipes and read-out scripts are documented in
-      <a href="https://github.com/Hither1/MFM/blob/publication/MCU/README-mfm-arms.md"><code>MCU/README-mfm-arms.md</code></a>.
-      The figures on this page and the scripts that draw them are under
-      <a href="https://github.com/Hither1/MFM/tree/publication/figures"><code>figures/</code></a> and
-      <a href="https://github.com/Hither1/MFM/tree/publication/scripts"><code>scripts/</code></a>.
-    </p>
-  </div>
-</section>
-
 </main>
 
 <footer class="footer">
@@ -802,6 +793,6 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 
 <script src="assets/js/main.js?v=4"></script>
 <script src="assets/js/mfm-query.js?v=4"></script>
-<script src="assets/js/demo.js?v=9"></script>
+<script src="assets/js/demo.js?v=10"></script>
 </body>
 </html>

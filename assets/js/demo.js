@@ -546,6 +546,8 @@
     var el = $('#dx-result'), r = S.result;
     if (!r) { el.hidden = true; el.innerHTML = ''; return; }
     el.hidden = false;
+    var fold = $('#dx-qfold');          // a query set from the map or the address opens its box
+    if (fold) fold.open = true;
     if (r.error) {
       el.innerHTML = '<div class="dx-trace err"><span><b>The tool refuses these arguments.</b></span></div>' +
         '<pre class="dx-out"><span class="e">' + esc(r.stderr) + '</span></pre>';
@@ -752,17 +754,18 @@
       }).join('');
       el.innerHTML =
         '<div class="dx-bar"><span id="dx-mapinfo"></span><span class="grow"></span>' +
-        '<span>click a dot to open the episode' + (noTool() ? '' : ', click the ground to query <code>--near</code> it') + '; ' +
-        'scroll or pinch to zoom, drag to move</span>' +
         '<span class="dx-zoom"><button type="button" data-zoom="in" title="Zoom in" aria-label="Zoom in">+</button>' +
         '<button type="button" data-zoom="out" title="Zoom out" aria-label="Zoom out">&minus;</button>' +
         '<button type="button" data-zoom="fit" title="Show the whole area">fit</button></span></div>' +
         '<div class="dx-mapwrap"><canvas id="dx-map"></canvas></div>' +
-        '<div class="dx-maplegend">' + kinds +
+        '<details class="dx-maplegend"><summary>Legend and controls</summary><div class="dx-keys">' + kinds +
         '<span><i class="dx-sw dot" style="background:var(--map-dot)"></i>where a turn began</span>' +
         '<span><i class="dx-sw dot" style="background:var(--match)"></i>returned by the query</span>' +
-        '<span><i class="dx-sw dot" style="background:var(--map-sel)"></i>selected</span></div>';
+        '<span><i class="dx-sw dot" style="background:var(--map-sel)"></i>selected</span></div>' +
+        '<p>Click a dot to open the episode' + (noTool() ? '' : ', click the ground to query <code>--near</code> it') + '. ' +
+        'Scroll or pinch to zoom, drag to move.</p></details>';
       var cv = $('#dx-map', el);
+      $('.dx-maplegend', el).addEventListener('toggle', drawMap);    // the map takes the room the legend leaves
       cv.addEventListener('click', mapClick);
       cv.addEventListener('mousemove', mapHover);
       cv.addEventListener('mouseleave', function () { $('#dx-tip').hidden = true; });
@@ -1426,6 +1429,12 @@
       stop();
       var next = D.turns.filter(function (t) { return t.step > S.step; })[0];
       setStep(next ? next.step : D.max);
+    });
+    var more = $('#dx-stats-toggle');
+    if (more) more.addEventListener('click', function () {
+      var stats = $('#dx-stats');
+      stats.hidden = !stats.hidden;
+      more.setAttribute('aria-expanded', String(!stats.hidden));
     });
     $('#dx-form').addEventListener('submit', function (e) {
       e.preventDefault(); S.ep = null; setQuery($('#dx-q').value);

@@ -94,6 +94,8 @@ code {
 .nav-links a { color: var(--ink-soft); text-decoration: none; font-size: 0.9rem; font-weight: 500; }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a.active { color: var(--accent); }
+.nav-links { margin-left: auto; }
+.topbar-code { margin-left: 24px; padding: 6px 14px; font-size: 0.85rem; }
 .nav-toggle { display: none; background: none; border: 0; padding: 8px; cursor: pointer; }
 .nav-toggle span { display: block; width: 20px; height: 2px; background: var(--ink); margin: 4px 0; }
 
@@ -180,6 +182,8 @@ h1 {
 }
 .topbar-overlay.at-top .brand, .topbar-overlay.at-top .nav-links a { color: var(--on-video); }
 .topbar-overlay.at-top .nav-toggle span { background: var(--on-video); }
+.topbar-overlay.at-top .topbar-code { border-color: currentColor; color: #fff; }
+.topbar-overlay.at-top .topbar-code:hover { background: #fff; color: var(--ink); }
 
 .teaser { padding: 4px 0 20px; }
 .teaser .lede { margin: 56px auto 40px; text-align: center; font-size: 1.12rem; }
@@ -320,7 +324,8 @@ details.ledger summary { cursor: pointer; font-weight: 600; color: var(--accent-
 
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
-  .nav-toggle { display: block; }
+  .nav-toggle { display: block; order: 3; margin-left: 8px; }
+  .topbar-code { margin-left: auto; }
   .nav-links {
     display: none; position: absolute; left: 0; right: 0; top: 100%;
     flex-direction: column; gap: 0;
