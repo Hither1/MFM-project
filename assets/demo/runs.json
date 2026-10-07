@@ -14,5 +14,13 @@
   "model": "openai/gpt-6-astra",
   "episodes": 3083,
   "steps": 49400
+ },
+ {
+  "name": "g4_mfm_sol_diamond_flat",
+  "title": "Diamond, GPT-5.6-Sol, no query tool (10/10 milestones)",
+  "task": "mine_diamond_from_scratch",
+  "model": "gpt-5.6-sol",
+  "episodes": 611,
+  "steps": 11999
  }
 ]

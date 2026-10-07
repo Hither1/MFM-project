@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export one recorded MFM run as static data for the memory explorer (demo.html).
+"""Export one recorded MFM run as static data for the memory explorer (index.html#explorer).
 
     python scripts/export_demo.py /path/to/MFM/MCU/output/<run> [--name <run>] [--title "..."]
 
@@ -72,7 +72,7 @@ class Scrub:
         if recorded:     # a staged run: its paths were already rewritten to a placeholder root
             rws = recorded + "/episode_001/memory"
             self.pairs = [(rws + "/", "./"), (rws, "."), (recorded + "/", "<run>/"), (recorded, "<run>")] + self.pairs
-        self.home = re.compile(r"/(?:n|home|Users)/[^\s\"'`:]*")
+        self.home = re.compile(r"/(?:n|home|Users|datapool)/[^\s\"'`:]*")
         # `ls -l` output names the account and its groups
         names = {}
         try:
@@ -233,6 +233,8 @@ def main():
     ap.add_argument("--quality", type=int, default=72)
     ap.add_argument("--recorded-root", help="the run directory as the record names it, when the run was "
                     "staged elsewhere with its paths rewritten (e.g. '<MCU>/output/of3m_mfm')")
+    ap.add_argument("--model", help="the model, for a run staged without its session rollouts "
+                    "(codex_sessions/), which is where the export otherwise reads it")
     args = ap.parse_args()
 
     run_dir = Path(args.run).resolve()
@@ -302,6 +304,8 @@ def main():
                 continue
             if it.get("type") == "agent_message":
                 t["messages"].append(it.get("text") or "")
+            elif it.get("type") == "file_change":       # which files a patch touched, not its lines
+                t["file_changes"] = t.get("file_changes", []) + (it.get("changes") or [])
             elif it.get("type") == "command_execution":
                 script = inner_script(it.get("command") or "")
                 output = it.get("aggregated_output") or ""
@@ -357,7 +361,8 @@ def main():
 
     for t, body in shell_patches:
         record(t, body)
-    for f in sorted(glob.glob(str(run_dir / "codex_sessions" / "**" / "*.jsonl"), recursive=True)):
+    rollouts = sorted(glob.glob(str(run_dir / "codex_sessions" / "**" / "*.jsonl"), recursive=True))
+    for f in rollouts:
         rows = jsonl(f)
         sid = next((r["payload"].get("id") for r in rows if r.get("type") == "session_meta"), None)
         of_thread = by_thread.get(sid)
@@ -385,6 +390,21 @@ def main():
             body = patch_body(src)
             if body:
                 record(t, body)
+    # without the rollouts the patches' text is gone; the turn's events still name the files
+    # each one touched, so those are kept, with no line counts
+    for n in sorted(turns):
+        t = turns[n]
+        for ch in t.pop("file_changes", []) if not rollouts else []:
+            rel = (ch.get("path") or "").replace(str(ws) + "/", "")
+            if recorded_ws:
+                rel = rel.replace(recorded_ws, "")
+            if not rel or rel.startswith("/"):
+                continue
+            t["changes"].append({"path": rel, "kind": ch.get("kind"), "added": None, "removed": None})
+            if rel.startswith("mine/"):
+                mine_history.setdefault(rel, []).append({
+                    "turn": t["turn"], "step": t["step"], "kind": ch.get("kind"), "added": [], "removed": []})
+        t.pop("file_changes", None)
 
     # --- mine/ files as they ended
     mine_files, mine_images = {}, []
@@ -432,6 +452,7 @@ def main():
         row["_files"] = (ws / row.get("path", "") / "outcome.json").is_file()
 
     ms = report.get("milestones") or {}
+    model = model or args.model
     data = {
         "run": {
             "name": name,
@@ -445,6 +466,12 @@ def main():
             "own": report.get("own"),
             "model": model,
             "tool_flags": tool_flags,
+            "has_tool": bool(tool_src),
+            "ablations": (report.get("mfm_options") or {}).get("ablations") or [],
+            # the session rollouts hold the patches' text and the frames the agent opened;
+            # without them the page has the files each turn touched and the count of views
+            "rollouts": bool(rollouts),
+            "view_image_calls": (report.get("codex") or {}).get("view_image_calls"),
             "previous_files": bool(previous) and all(r["_files"] for r in previous),
             "last_step": max((r.get("last_step") or 0) for r in index) if index else 0,
         },
@@ -478,7 +505,7 @@ def main():
           f"{len(turns)} turns, {n_calls} episodes.py calls, "
           f"{sum(len(h) for h in mine_history.values())} mine/ patches")
     print(f"data.json {len(blob) / 1024:.0f} KiB -> {out_dir}")
-    leaks = sorted(set(re.findall(r"/(?:n|home)/[\w./-]+", blob)))
+    leaks = sorted(set(re.findall(r"/(?:n|home|datapool)/[\w./-]+", blob)))
     if leaks:
         print("WARNING absolute paths left:", leaks[:10], file=sys.stderr)
     return 0

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add a run's recording to the memory explorer (demo.html).
+"""Add a run's recording to the memory explorer (index.html#explorer).
 
     python scripts/make_demo_video.py <run> <source> --workspace <run_dir>/episode_001/memory [--bgr]
 
