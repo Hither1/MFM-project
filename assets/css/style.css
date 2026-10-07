@@ -95,7 +95,6 @@ code {
 .nav-links a:hover { color: var(--ink); }
 .nav-links a.active { color: var(--accent); }
 .nav-links { margin-left: auto; }
-.topbar-code { margin-left: 24px; padding: 6px 14px; font-size: 0.85rem; }
 .nav-toggle { display: none; background: none; border: 0; padding: 8px; cursor: pointer; }
 .nav-toggle span { display: block; width: 20px; height: 2px; background: var(--ink); margin: 4px 0; }
 
@@ -118,6 +117,8 @@ h1 {
   margin: 0 auto; max-width: 760px; font-weight: 600;
 }
 .author { white-space: nowrap; }
+.author a { color: inherit; text-decoration: none; }
+.author a:hover { color: inherit; text-decoration: underline; }
 .author sup, .affil sup { color: var(--ink-faint); font-weight: 400; }
 .affil { margin: 10px 0 30px; color: var(--ink-soft); font-size: 0.95rem; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 0; }
@@ -182,8 +183,6 @@ h1 {
 }
 .topbar-overlay.at-top .brand, .topbar-overlay.at-top .nav-links a { color: var(--on-video); }
 .topbar-overlay.at-top .nav-toggle span { background: var(--on-video); }
-.topbar-overlay.at-top .topbar-code { border-color: currentColor; color: #fff; }
-.topbar-overlay.at-top .topbar-code:hover { background: #fff; color: var(--ink); }
 
 .teaser { padding: 4px 0 20px; }
 .teaser .lede { margin: 56px auto 40px; text-align: center; font-size: 1.12rem; }
@@ -224,6 +223,11 @@ figcaption strong { color: var(--ink); }
 .split { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start; }
 .split h3:first-child { margin-top: 0; }
 .split .fig { margin: 0; }
+
+/* short clips, two to a row */
+.clips { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 20px; margin: 20px 0 32px; align-items: start; }
+.clips .fig { margin: 0; }
+.clips figcaption { margin-top: 10px; }
 
 /* ---------- cards ---------- */
 .cards { display: grid; gap: 16px; margin: 32px 0 0; }
@@ -325,7 +329,6 @@ details.ledger summary { cursor: pointer; font-weight: 600; color: var(--accent-
 /* ---------- responsive ---------- */
 @media (max-width: 860px) {
   .nav-toggle { display: block; order: 3; margin-left: 8px; }
-  .topbar-code { margin-left: auto; }
   .nav-links {
     display: none; position: absolute; left: 0; right: 0; top: 100%;
     flex-direction: column; gap: 0;
@@ -334,7 +337,7 @@ details.ledger summary { cursor: pointer; font-weight: 600; color: var(--accent-
   .nav-links.open { display: flex; }
   .nav-links a { display: block; padding: 9px 0; font-size: 1rem; }
   .topbar-overlay.at-top .nav-links a { color: var(--ink-soft); }
-  .pair, .split, .ops, .cards.three { grid-template-columns: 1fr; }
+  .pair, .split, .ops, .cards.three, .clips { grid-template-columns: 1fr; }
   .pair { gap: 0; }
   .split .fig { margin-top: 8px; }
 }
