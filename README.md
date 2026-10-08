@@ -29,7 +29,7 @@ in `index.html`; GitHub Pages lets browsers cache these files for 10 minutes.
 | `assets/img/sift_*.png` | pixel-art block strips from the earlier Minecraft theme, drawn by `scripts/make_sift_tiles.py`; not used by the page now |
 | `assets/js/main.js` | mobile navigation, section highlight, figure lightbox |
 | `assets/img/` | figures, copied from `figures/` of the MFM repository |
-| `assets/video/` | the run reconstruction, re-encoded to H.264 for browsers |
+| `assets/video/` | the opening video (`dragon_chain_21of24_32x.mp4`: the 64-minute Ender Dragon recording sped up 32 times, no sound) and the run reconstruction, both H.264 for browsers |
 
 | `demo.html` | a redirect to `index.html#explorer`, where the memory explorer now is; it keeps old links working |
 | `assets/js/demo.js`, `assets/css/demo.css` | the memory explorer, the `#explorer` part of `index.html`: a recorded run replayed step by step |
