@@ -62,34 +62,35 @@
       }).observe(hero);
     }
     sync();
-
-    // Milestone buttons: each jumps the video to just before its milestone; the ones the video
-    // has passed are marked, and the line under them names the latest.
-    var rail = document.querySelector('.hero-ms');
-    var marks = rail ? Array.prototype.slice.call(rail.querySelectorAll('button[data-t]')) : [];
-    if (marks.length) {
-      var nowLine = rail.querySelector('.hero-ms-now');
-      var mark = function () {
-        var t = heroVideo.currentTime, last = -1;
-        marks.forEach(function (b, i) {
-          var done = Number(b.dataset.t) <= t;
-          if (done) last = i;
-          b.classList.toggle('done', done);
-        });
-        marks.forEach(function (b, i) { b.classList.toggle('now', i === last); });
-        nowLine.textContent = last < 0 ? '' : (last + 1) + '/' + marks.length + ' \u00b7 ' + marks[last].dataset.label;
-      };
-      marks.forEach(function (b) {
-        b.addEventListener('click', function () {
-          heroVideo.currentTime = Math.max(0, Number(b.dataset.t) - 0.4);
-          mark();
-        });
-      });
-      heroVideo.addEventListener('timeupdate', mark);
-      heroVideo.addEventListener('seeked', mark);
-      rail.hidden = false;
-    }
   }
+  // Milestone buttons beside a video (.ms, naming the video in data-video): each jumps the video
+  // to just before its milestone and plays; the ones the video has passed are marked.
+  Array.prototype.forEach.call(document.querySelectorAll('.ms[data-video]'), function (rail) {
+    var video = document.getElementById(rail.dataset.video);
+    var marks = Array.prototype.slice.call(rail.querySelectorAll('button[data-t]'));
+    var nowLine = rail.querySelector('.ms-now');
+    if (!video || !marks.length) return;
+    var mark = function () {
+      var t = video.currentTime, last = -1;
+      marks.forEach(function (b, i) {
+        var done = Number(b.dataset.t) <= t;
+        if (done) last = i;
+        b.classList.toggle('done', done);
+      });
+      marks.forEach(function (b, i) { b.classList.toggle('now', i === last); });
+      if (nowLine) nowLine.textContent = last < 0 ? '' : (last + 1) + ' of ' + marks.length + ' reached';
+    };
+    marks.forEach(function (b) {
+      b.addEventListener('click', function () {
+        video.currentTime = Math.max(0, Number(b.dataset.t) - 0.4);
+        var playing = video.play();
+        if (playing && playing.catch) playing.catch(function () {});
+      });
+    });
+    video.addEventListener('timeupdate', mark);
+    video.addEventListener('seeked', mark);
+  });
+
   if (hero && topbar && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       topbar.classList.toggle('at-top', entries[0].isIntersecting);

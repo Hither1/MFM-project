@@ -174,39 +174,6 @@ h1 {
   font: inherit; font-size: 0.78rem; font-weight: 500; cursor: pointer;
 }
 .hero-pause:hover { background: rgba(20, 14, 6, 0.85); border-color: #fff; }
-/* Milestone buttons down the right edge of the opening video: each jumps the video to that milestone. */
-.hero-ms { position: absolute; right: 14px; top: 72px; z-index: 2; text-align: right; }
-.hero-ms-title, .hero-ms-now {
-  margin: 0; font-size: 0.72rem; font-weight: 600; color: var(--on-video);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-}
-.hero-ms-title { letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
-.hero-ms-now { min-height: 1.5em; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.hero-ms ol {
-  list-style: none; margin: 6px 0 0; padding: 0;
-  display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(11, auto); gap: 5px;
-}
-.hero-ms button {
-  position: relative; display: block; width: 26px; height: 26px; padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.45); border-radius: 50%;
-  background: rgba(20, 14, 6, 0.55); color: var(--on-video);
-  font: inherit; font-size: 0.7rem; font-weight: 600; line-height: 1; cursor: pointer;
-  font-variant-numeric: tabular-nums;
-}
-.hero-ms button:hover { background: rgba(20, 14, 6, 0.85); border-color: #fff; }
-.hero-ms button.done { background: rgba(253, 246, 230, 0.3); }
-.hero-ms button.now { background: #fff; border-color: #fff; color: var(--ink); }
-.hero-ms button:hover::after, .hero-ms button:focus-visible::after {
-  content: attr(data-label); position: absolute; right: calc(100% + 8px); top: 50%; transform: translateY(-50%);
-  padding: 3px 8px; border-radius: var(--radius-sm); white-space: nowrap; pointer-events: none;
-  background: rgba(20, 14, 6, 0.9); color: var(--on-video); font-size: 0.74rem; font-weight: 500;
-}
-/* no room beside the title: the buttons run along the top instead, and the line under them names the milestone */
-@media (max-width: 1100px) {
-  .hero-ms { left: 12px; right: 12px; top: 60px; text-align: center; }
-  .hero-ms ol { display: flex; flex-wrap: wrap; justify-content: center; }
-  .hero-ms button:hover::after, .hero-ms button:focus-visible::after { content: none; }
-}
 
 /* Over the opening video the top bar is see-through; main.js drops .at-top once it is passed. */
 .topbar-overlay { position: fixed; left: 0; right: 0; transition: background-color 0.2s; }
@@ -245,6 +212,36 @@ p { margin: 0 0 16px; }
 .fig > img { cursor: zoom-in; }
 figcaption { margin: 14px auto 0; max-width: var(--col); color: var(--ink-soft); font-size: 0.88rem; line-height: 1.55; }
 figcaption strong { color: var(--ink); }
+/* A video with its milestone buttons beside it: each button jumps the video to that milestone. */
+.ms-fig { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 22px; align-items: start; }
+.ms-fig > video { height: auto; }
+.ms-fig > figcaption { grid-column: 1 / -1; margin-top: 0; }
+.ms-title { margin: 0 0 8px; font-size: 0.8rem; font-weight: 600; color: var(--ink-soft); }
+.ms-now { margin-left: 6px; font-weight: 500; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+.ms ol {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-auto-flow: column; grid-template-rows: repeat(11, auto); gap: 5px 6px;
+}
+.ms button {
+  display: block; width: 100%; padding: 3px 10px 3px 5px; text-align: left; white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--ink-soft);
+  font: inherit; font-size: 0.76rem; line-height: 1.5; cursor: pointer;
+}
+.ms button b {
+  display: inline-block; min-width: 1.7em; margin-right: 3px; text-align: center;
+  font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink-faint);
+}
+.ms button:hover { border-color: var(--accent); color: var(--accent-ink); }
+.ms button.done { background: var(--accent-soft); border-color: var(--accent-soft); color: var(--accent-ink); }
+.ms button.done b { color: var(--accent-ink); }
+.ms button.now { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ms button.now b { color: #fff; }
+/* no room beside the video: the buttons wrap under it */
+@media (max-width: 900px) {
+  .ms-fig { grid-template-columns: minmax(0, 1fr); }
+  .ms ol { display: flex; flex-wrap: wrap; }
+  .ms button { width: auto; }
+}
 
 .duo { display: grid; grid-template-columns: 1.9fr 1fr; gap: 6px; padding: 6px; align-items: stretch; overflow: hidden; }
 .duo img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; border-radius: var(--radius-sm); }
