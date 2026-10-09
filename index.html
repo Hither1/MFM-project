@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=6">
+  <link rel="stylesheet" href="assets/css/style.css?v=7">
   <link rel="stylesheet" href="assets/css/demo.css?v=11">
 </head>
 <body>
@@ -82,6 +82,36 @@
     <a class="hero-jump" href="#intro">Read on <span aria-hidden="true">&darr;</span></a>
   </div>
   </div>
+  <!-- MILESTONES: one button per milestone the run reached, in the order it reached them. data-t is
+       the second of the opening video at which the evaluator credited it: the video is the full
+       recording at 32x (20 frames a second, one frame per step), so data-t = frame / 640. -->
+  <nav class="hero-ms" aria-label="Jump to a milestone in the video" hidden>
+    <p class="hero-ms-title">Milestones</p>
+    <ol>
+    <li><button type="button" data-t="11.42" data-label="Log" aria-label="Milestone 1: Log">1</button></li>
+    <li><button type="button" data-t="11.49" data-label="Crafting table" aria-label="Milestone 2: Crafting table">2</button></li>
+    <li><button type="button" data-t="11.74" data-label="Wooden pickaxe" aria-label="Milestone 3: Wooden pickaxe">3</button></li>
+    <li><button type="button" data-t="11.83" data-label="Stone pickaxe" aria-label="Milestone 4: Stone pickaxe">4</button></li>
+    <li><button type="button" data-t="11.93" data-label="Furnace" aria-label="Milestone 5: Furnace">5</button></li>
+    <li><button type="button" data-t="12.26" data-label="Cobblestone" aria-label="Milestone 6: Cobblestone">6</button></li>
+    <li><button type="button" data-t="12.39" data-label="Diamond" aria-label="Milestone 7: Diamond">7</button></li>
+    <li><button type="button" data-t="12.47" data-label="Iron ingot" aria-label="Milestone 8: Iron ingot">8</button></li>
+    <li><button type="button" data-t="12.57" data-label="Diamond sword" aria-label="Milestone 9: Diamond sword">9</button></li>
+    <li><button type="button" data-t="12.64" data-label="Flint and steel" aria-label="Milestone 10: Flint and steel">10</button></li>
+    <li><button type="button" data-t="13.13" data-label="Obsidian" aria-label="Milestone 11: Obsidian">11</button></li>
+    <li><button type="button" data-t="15.39" data-label="Iron ore" aria-label="Milestone 12: Iron ore">12</button></li>
+    <li><button type="button" data-t="16.78" data-label="Iron pickaxe" aria-label="Milestone 13: Iron pickaxe">13</button></li>
+    <li><button type="button" data-t="17.94" data-label="Diamond ore" aria-label="Milestone 14: Diamond ore">14</button></li>
+    <li><button type="button" data-t="18.81" data-label="Diamond pickaxe" aria-label="Milestone 15: Diamond pickaxe">15</button></li>
+    <li><button type="button" data-t="32.73" data-label="Netherrack" aria-label="Milestone 16: Netherrack">16</button></li>
+    <li><button type="button" data-t="78.54" data-label="Blaze killed" aria-label="Milestone 17: Blaze killed">17</button></li>
+    <li><button type="button" data-t="86.24" data-label="Enderman killed" aria-label="Milestone 18: Enderman killed">18</button></li>
+    <li><button type="button" data-t="92.29" data-label="Ender pearl" aria-label="Milestone 19: Ender pearl">19</button></li>
+    <li><button type="button" data-t="96.97" data-label="Blaze rod" aria-label="Milestone 20: Blaze rod">20</button></li>
+    <li><button type="button" data-t="97.02" data-label="Blaze powder" aria-label="Milestone 21: Blaze powder">21</button></li>
+    </ol>
+    <p class="hero-ms-now" aria-live="polite"></p>
+  </nav>
   <button class="hero-pause" type="button" hidden aria-pressed="false">Pause</button>
 </section>
 
@@ -860,7 +890,7 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
   <img alt="">
 </div>
 
-<script src="assets/js/main.js?v=4"></script>
+<script src="assets/js/main.js?v=5"></script>
 <script src="assets/js/mfm-query.js?v=4"></script>
 <script src="assets/js/demo.js?v=10"></script>
 </body>

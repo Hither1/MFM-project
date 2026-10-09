@@ -62,6 +62,33 @@
       }).observe(hero);
     }
     sync();
+
+    // Milestone buttons: each jumps the video to just before its milestone; the ones the video
+    // has passed are marked, and the line under them names the latest.
+    var rail = document.querySelector('.hero-ms');
+    var marks = rail ? Array.prototype.slice.call(rail.querySelectorAll('button[data-t]')) : [];
+    if (marks.length) {
+      var nowLine = rail.querySelector('.hero-ms-now');
+      var mark = function () {
+        var t = heroVideo.currentTime, last = -1;
+        marks.forEach(function (b, i) {
+          var done = Number(b.dataset.t) <= t;
+          if (done) last = i;
+          b.classList.toggle('done', done);
+        });
+        marks.forEach(function (b, i) { b.classList.toggle('now', i === last); });
+        nowLine.textContent = last < 0 ? '' : (last + 1) + '/' + marks.length + ' \u00b7 ' + marks[last].dataset.label;
+      };
+      marks.forEach(function (b) {
+        b.addEventListener('click', function () {
+          heroVideo.currentTime = Math.max(0, Number(b.dataset.t) - 0.4);
+          mark();
+        });
+      });
+      heroVideo.addEventListener('timeupdate', mark);
+      heroVideo.addEventListener('seeked', mark);
+      rail.hidden = false;
+    }
   }
   if (hero && topbar && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
