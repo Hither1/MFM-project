@@ -23,6 +23,12 @@
   --map-dot-ring: #ffffff;
   --map-sel: #0f766e;
   --map-label: #7b7a72;
+  /* the kinds of memory, in the colours of the method figure */
+  --episodic: #1b6fa3;   --episodic-soft: #e7f2f9;
+  --spatial: #0f766e;    --spatial-soft: #dff1ee;
+  --semantic: #6941b8;   --semantic-soft: #f0ebfa;
+  --procedural: #b4477f; --procedural-soft: #faeaf2;
+  --working: #9a5a08;    --working-soft: #fbf0dd;
 }
 
 .dx-head { padding: 56px 0 22px; border-top: 1px solid var(--line); }
@@ -169,6 +175,49 @@
 @media (prefers-reduced-motion: reduce) { .dx-index tr.just td, .dx-log-sec.just { animation: none; } }
 .dx-panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); overflow: hidden;
   box-shadow: var(--shadow); }
+/* the memory as the method figure draws it: a box for each kind, which opens that kind below */
+.dx-mem { padding: 10px 12px 12px; border-bottom: 1px solid var(--line); }
+.dx-mem-top { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; justify-content: space-between; }
+.dx-mem-title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+.dx-mem-title code { text-transform: none; letter-spacing: 0; background: none; padding: 0; }
+.dx-mem-also { font-size: 0.78rem; color: var(--ink-faint); }
+.dx .dx-mem-also button { font-family: var(--mono); font-size: 0.74rem; padding: 1px 8px; margin-left: 4px; color: var(--ink-soft); }
+.dx .dx-mem-also button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.dx-mem-cap { margin: 8px 0 5px; font-size: 0.72rem; line-height: 1.4; color: var(--ink-faint); }
+.dx-mem-cap b { font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-right: 6px; }
+.dx-mem-row { display: flex; gap: 8px; }
+.dx .dx-box { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-start;
+  text-align: left; padding: 7px 10px 8px; line-height: 1.35;
+  background: var(--kind-soft); border-color: transparent; border-radius: var(--radius-sm); }
+.dx .dx-box.episodic { flex-grow: 1.5; }
+.dx .dx-box:hover { background: var(--kind-soft); border-color: var(--kind); }
+.dx .dx-box[aria-selected="true"] { border-color: var(--kind); box-shadow: inset 0 0 0 1px var(--kind); }
+.dx-box.episodic { --kind: var(--episodic); --kind-soft: var(--episodic-soft); }
+.dx-box.spatial { --kind: var(--spatial); --kind-soft: var(--spatial-soft); }
+.dx-box.semantic { --kind: var(--semantic); --kind-soft: var(--semantic-soft); }
+.dx-box.procedural { --kind: var(--procedural); --kind-soft: var(--procedural-soft); }
+.dx-box.working { --kind: var(--working); --kind-soft: var(--working-soft); }
+.dx-box .t { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--kind);
+  margin-right: 7px; }
+.dx-box .d { font-size: 0.74rem; font-style: italic; color: var(--ink-soft); }
+.dx-box .v { display: block; margin-top: 3px; font-size: 0.74rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.dx-box .v span { display: block; overflow-wrap: anywhere; }
+.dx-box .v code { font-size: 0.72rem; background: none; padding: 0; color: var(--ink); }
+.dx-box.none .v { color: var(--ink-faint); font-style: italic; }
+@keyframes dx-wrote { from { box-shadow: inset 0 0 0 2px var(--kind); } to { box-shadow: inset 0 0 0 2px transparent; } }
+.dx .dx-box.just:not([aria-selected="true"]) { animation: dx-wrote 1.2s ease-out; }
+@media (prefers-reduced-motion: reduce) { .dx .dx-box.just { animation: none; } }
+.dx-mem + .dx-body { height: 560px; }
+.dx-kindnote { font-size: 0.82rem; line-height: 1.5; color: var(--ink-soft); margin: 0 0 12px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-soft); }
+.dx-files.one { grid-template-columns: 1fr; }
+.dx-patch span.add, .dx-patch span.del { display: block; font-size: 0.8rem; overflow-wrap: anywhere; padding-left: 1.1em;
+  text-indent: -1.1em; }
+.dx-patch span.del { color: var(--ink-faint); text-decoration: line-through; }
+.dx-body .dx-patch details { margin: 6px 0 0; background: none; border: 0; }
+.dx-body .dx-patch details > summary { padding: 0; font-size: 0.74rem; font-weight: 500; color: var(--ink-faint); }
+.dx-body .dx-patch details > *:not(summary) { margin-left: 0; margin-right: 0; }
+
 .dx-tabs { display: flex; gap: 2px; padding: 0 8px; background: var(--panel); border-bottom: 1px solid var(--line);
   overflow-x: auto; }
 .dx .dx-tabs button { border: 0; border-radius: 0; background: none;
@@ -335,6 +384,9 @@ table.dx-index { width: 100%; border-collapse: collapse; font-size: 0.78rem; fon
   .dx-stats .dx-legend { margin-left: 0; }
 }
 @media (max-width: 640px) {
+  .dx-mem-row { flex-wrap: wrap; }
+  .dx .dx-box, .dx .dx-box.episodic { flex: 1 1 40%; }
+  .dx-box .d { display: none; }
   .dx-time { position: static; }
   .dx-cmd { flex-wrap: wrap; }
   .dx-cmd-prompt { width: 100%; }

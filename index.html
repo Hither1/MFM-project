@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="stylesheet" href="assets/css/style.css?v=8">
-  <link rel="stylesheet" href="assets/css/demo.css?v=11">
+  <link rel="stylesheet" href="assets/css/demo.css?v=12">
 </head>
 <body>
 
@@ -208,7 +208,8 @@
     <h2>Explore the memory</h2>
     <p class="dx-lede">
       A recorded run, replayed. Press Play: the run's video plays on the right, and the memory
-      on the left grows with it, step by step.
+      on the left grows with it, step by step. Choose a box to read that part of the memory as
+      it stood at the step on screen.
     </p>
     <details class="dx-fold dx-about">
       <summary>About this replay</summary>
@@ -345,11 +346,41 @@
 <section class="dx-main">
   <div class="wrap wide dx-cols">
     <div class="dx-panel" id="dx-left">
-      <div class="dx-tabs" role="tablist" aria-label="Memory">
-        <button role="tab" data-tab="map" aria-selected="true">Map</button>
-        <button role="tab" data-tab="index">Index</button>
-        <button role="tab" data-tab="files">Files</button>
-        <button role="tab" data-tab="log">Log</button>
+      <!-- the boxes of the method figure: each opens that part of the memory as it stood at the step -->
+      <div class="dx-mem" role="tablist" aria-label="Memory">
+        <div class="dx-mem-top">
+          <span class="dx-mem-title">Memory filesystem <code>./</code></span>
+          <span class="dx-mem-also">also
+            <button role="tab" data-tab="log">logs.txt</button>
+            <button role="tab" data-tab="files">all files</button>
+          </span>
+        </div>
+        <p class="dx-mem-cap"><b>Harness-written records</b> written every step, never edited</p>
+        <div class="dx-mem-row">
+          <button role="tab" data-tab="index" class="dx-box episodic">
+            <span class="h"><span class="t">Episodic</span><span class="d">what happened</span></span>
+            <span class="v" data-box="index"></span>
+          </button>
+          <button role="tab" data-tab="map" class="dx-box spatial" aria-selected="true">
+            <span class="h"><span class="t">Spatial</span><span class="d">where it happened</span></span>
+            <span class="v" data-box="map"></span>
+          </button>
+        </div>
+        <p class="dx-mem-cap"><b>Agent-written memory</b> read every turn, revised by the agent</p>
+        <div class="dx-mem-row">
+          <button role="tab" data-tab="semantic" class="dx-box semantic">
+            <span class="h"><span class="t">Semantic</span><span class="d">facts and relations</span></span>
+            <span class="v" data-box="semantic"></span>
+          </button>
+          <button role="tab" data-tab="procedural" class="dx-box procedural">
+            <span class="h"><span class="t">Procedural</span><span class="d">reusable ways of acting</span></span>
+            <span class="v" data-box="procedural"></span>
+          </button>
+          <button role="tab" data-tab="working" class="dx-box working">
+            <span class="h"><span class="t">Working</span><span class="d">the ongoing task</span></span>
+            <span class="v" data-box="working"></span>
+          </button>
+        </div>
       </div>
       <div class="dx-body" id="dx-left-body" role="tabpanel"></div>
     </div>
@@ -891,6 +922,6 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 
 <script src="assets/js/main.js?v=6"></script>
 <script src="assets/js/mfm-query.js?v=4"></script>
-<script src="assets/js/demo.js?v=10"></script>
+<script src="assets/js/demo.js?v=11"></script>
 </body>
 </html>

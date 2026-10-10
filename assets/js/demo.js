@@ -81,7 +81,7 @@
       S.step = want.step != null ? Math.min(Math.max(0, want.step), D.max) : D.max;
       S.query = noTool() ? '' : want.q || '';
       S.ep = want.ep && D.byId[want.ep] ? want.ep : null;
-      if (/^(index|map|files|log)$/.test(want.left || '')) S.left = want.left;
+      if (/^(index|map|files|log|semantic|procedural|working)$/.test(want.left || '')) S.left = want.left;
       if (/^(episode|turn|asked)$/.test(want.right || '')) S.right = want.right;
       if (want.file) S.file = want.file;
       $('#dx-left-body').innerHTML = '';
@@ -257,6 +257,40 @@
     n = Object.keys(turns).length;
     return n ? 'patched in ' + plural(n, 'turn') : '';
   }
+  // The agent's files by the kind of memory they hold, as in the method figure: procedures and
+  // reflexes are procedural, working.md is working, and the rest of mine/ is semantic.
+  var KINDS = {
+    semantic: 'Semantic memory: the facts and relations the agent wrote down, such as findings, landmarks and where resources are.',
+    procedural: 'Procedural memory: reusable ways of acting, kept as scripts the agent wrote. A procedure is called as an action; a reflex runs while a plan executes.',
+    working: 'Working memory: the current plan, its subgoals and open questions, which is what the agent needs to resume after a context reset.'
+  };
+  function minePaths() {
+    var all = Object.keys(D.mine.files);
+    Object.keys(D.mine.history).forEach(function (p) { if (all.indexOf(p) < 0) all.push(p); });
+    return all;
+  }
+  function kindOf(path) {
+    if (minePaths().indexOf(path) < 0) return null;
+    if (/^mine\/(procedures|reflexes)\//.test(path)) return 'procedural';
+    return path === 'mine/working.md' ? 'working' : 'semantic';
+  }
+  function mineOf(kind) { return minePaths().filter(function (p) { return kindOf(p) === kind; }); }
+  // the last patch to a file at or before this step
+  function lastPatch(path) {
+    var last = null;
+    (D.mine.history[path] || []).forEach(function (h) { if (h.step <= S.step) last = h; });
+    return last;
+  }
+  // the file of a kind to show: the one chosen, or else the one changed most recently
+  function fileOf(kind) {
+    var paths = mineOf(kind), best = paths[0], at = -1;
+    if (paths.indexOf(S.file) >= 0) return S.file;
+    paths.forEach(function (p) {
+      var h = lastPatch(p);
+      if (h && h.step > at) { at = h.step; best = p; }
+    });
+    return best;
+  }
   function prevTurnStep() {
     var t = turnAt(S.step);
     if (!t) return -1;
@@ -294,6 +328,7 @@
     renderTime();
     renderResult();
     renderTabs();
+    renderBoxes();
     renderLeft();
     renderRight();
     if (!live) { writeHash(); seekVideo(); }
@@ -334,7 +369,7 @@
     if (S.query) parts.push('q=' + encodeURIComponent(S.query));
     if (S.left !== 'map') parts.push('left=' + S.left);
     if (S.right !== 'episode') parts.push('right=' + S.right);
-    if (S.left === 'files') parts.push('file=' + encodeURIComponent(S.file));
+    if (S.left === 'files' || kindOf(S.file) === S.left) parts.push('file=' + encodeURIComponent(S.file));
     try { history.replaceState(null, '', '#' + parts.join('&')); } catch (_) { /* file:// */ }
   }
 
@@ -612,7 +647,7 @@
 
   // ------------------------------------------------------------------ tabs
   function renderTabs() {
-    $$('#dx-left .dx-tabs button').forEach(function (b) {
+    $$('#dx-left [data-tab]').forEach(function (b) {
       b.setAttribute('aria-selected', String(b.dataset.tab === S.left));
     });
     $$('#dx-right .dx-tabs button').forEach(function (b) {
@@ -620,11 +655,51 @@
       if (b.dataset.tab === 'asked') b.innerHTML = 'Queries it ran<span class="n">' + D.calls.length + '</span>';
     });
   }
+  // What each box of the memory holds at this step. A box whose contents changed while the
+  // run plays is marked for a moment.
+  function renderBoxes() {
+    var rows = closed().length, open = opened().length;
+    var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step; }).length;
+    function line(name, value) { return '<span><code>' + esc(name) + '</code> ' + value + '</span>'; }
+    function brief(p) { return D.mine.history[p] ? (mineMeta(p) || 'not written yet') : 'no patch recorded'; }
+    function files(kind) {
+      var paths = mineOf(kind), cur = fileOf(kind);
+      if (!paths.length) return '';
+      var shown = [cur].concat(paths.filter(function (p) { return p !== cur && lastPatch(p); })).slice(0, 2);
+      return shown.map(function (p) { return line(p.replace(/^mine\//, ''), brief(p)); }).join('') +
+        (paths.length > shown.length ? '<span>' + plural(paths.length - shown.length, 'more file') + '</span>' : '');
+    }
+    function dirs() {
+      return ['procedures', 'reflexes'].map(function (d) {
+        var paths = mineOf('procedural').filter(function (p) { return p.indexOf('mine/' + d + '/') === 0; });
+        var done = paths.filter(lastPatch).length;
+        return paths.length ? line(d + '/', plural(paths.length, 'file') + ', ' + done + ' patched') : '';
+      }).join('');
+    }
+    var html = {
+      index: line('episodes/', num(rows + open) + (open ? ' (' + open + ' open)' : '')) +
+             line('index.jsonl', plural(rows, 'row')),
+      map: (D.grid.cells.length ? line('grid.jsonl', plural(cells, 'cell')) : '<span>no grid kept in this run</span>') +
+           '<span>' + plural(closed().concat(opened()).filter(function (r) { return r.x != null; }).length,
+                             'episode position') + '</span>',
+      semantic: files('semantic'), procedural: dirs(), working: files('working')
+    };
+    $$('#dx-left [data-box]').forEach(function (v) {
+      var text = html[v.dataset.box] || '<span>none in this run</span>', box = v.parentNode;
+      if (v.innerHTML === text) return;
+      var grew = v.innerHTML && S.playing && flash();
+      v.innerHTML = text;
+      box.classList.toggle('none', !html[v.dataset.box]);
+      box.classList.remove('just');
+      if (grew) { void box.offsetWidth; box.classList.add('just'); }
+    });
+  }
   function renderLeft() {
     var el = $('#dx-left-body');
     if (S.left === 'index') renderIndex(el);
     else if (S.left === 'map') renderMap(el);
     else if (S.left === 'files') renderFiles(el);
+    else if (KINDS[S.left]) renderFiles(el, S.left);
     else renderLog(el);
   }
   function renderRight() {
@@ -1018,23 +1093,34 @@
     return turns;
   }
 
-  function renderFiles(el) {
+  // `kind`: only the agent's files of that kind of memory (a box); left out, every file
+  function renderFiles(el, kind) {
+    var cur = kind ? fileOf(kind) : S.file;
+    var was = $('#dx-view', el), keep = was && was.dataset.file === cur ? was.scrollTop : 0;
+    var tree = $('.dx-tree', el), treeTop = tree ? tree.scrollTop : 0;
     var rows = closed().length, open = opened().length;
     var cells = D.grid.cells.filter(function (c) { return c[4] <= S.step; }).length;
     var secs = D.log.sections.filter(function (s) { return s.step <= S.step; }).length;
     var items = [];
     function dir(name) { items.push('<div class="dir">' + esc(name) + '</div>'); }
     function file(path, meta, cls) {
-      items.push('<button type="button" data-file="' + esc(path) + '" class="' + (S.file === path ? 'sel ' : '') +
-        (cls || '') + '">' + esc(path) + '<span class="meta">' + meta + '</span></button>');
+      items.push('<button type="button" data-file="' + esc(path) + '" class="' + (cur === path ? 'sel ' : '') +
+        (cls || '') + '">' + esc(kind ? path.replace(/^mine\//, '') : path) + '<span class="meta">' + meta + '</span></button>');
     }
-    dir('written by the harness');
-    file('index.jsonl', plural(rows, 'row'));
-    file('episodes/', plural(rows + open, 'directory', 'directories') + (open ? ', ' + open + ' open' : ''));
-    if (D.grid.cells.length) file('grid.jsonl', plural(cells, 'row'));
-    file('logs.txt', plural(secs, 'section'));
-    dir('written by the agent');
-    var mine = Object.keys(D.mine.files);
+    if (kind && !mineOf(kind).length) {
+      el.innerHTML = '<p class="dx-kindnote dx-pad">' + KINDS[kind] + '</p>' +
+        '<p class="dx-empty">The agent kept no file of this kind in this run.</p>';
+      return;
+    }
+    if (!kind) {
+      dir('written by the harness');
+      file('index.jsonl', plural(rows, 'row'));
+      file('episodes/', plural(rows + open, 'directory', 'directories') + (open ? ', ' + open + ' open' : ''));
+      if (D.grid.cells.length) file('grid.jsonl', plural(cells, 'row'));
+      file('logs.txt', plural(secs, 'section'));
+      dir('written by the agent');
+    }
+    var mine = kind ? mineOf(kind) : Object.keys(D.mine.files);
     if (!mine.length) items.push('<div class="dir absent">nothing in mine/</div>');
     mine.forEach(function (p) {
       var hist = D.mine.history[p];
@@ -1045,21 +1131,30 @@
         file(p, 'no patch in the record wrote it');
       }
     });
-    (D.mine.images || []).forEach(function (f) { file(f.path, 'an image the agent made, ' + kib(f.bytes)); });
-    if (D.previous.length) {
-      dir('carried from earlier lives');
-      file('previous/index.jsonl', plural(D.previous.length, 'row'));
+    if (!kind) {
+      (D.mine.images || []).forEach(function (f) { file(f.path, 'an image the agent made, ' + kib(f.bytes)); });
+      if (D.previous.length) {
+        dir('carried from earlier lives');
+        file('previous/index.jsonl', plural(D.previous.length, 'row'));
+      }
+      dir('given, read on demand');
+      D.listing.forEach(function (f) { file(f.path, kib(f.bytes)); });
     }
-    dir('given, read on demand');
-    D.listing.forEach(function (f) { file(f.path, kib(f.bytes)); });
 
-    el.innerHTML = '<div class="dx-files"><div class="dx-tree">' + items.join('') + '</div>' +
+    // a kind with one file needs no list to choose from
+    var one = kind && mine.length === 1;
+    el.innerHTML = '<div class="dx-files' + (one ? ' one' : '') + '">' +
+      (one ? '' : '<div class="dx-tree">' + items.join('') + '</div>') +
       '<div class="dx-view dx-pad" id="dx-view"></div></div>';
-    renderFileView($('#dx-view', el));
+    var view = $('#dx-view', el);
+    renderFileView(view, cur, kind ? '<p class="dx-kindnote">' + KINDS[kind] + '</p>' : '');
+    view.dataset.file = cur;
+    view.scrollTop = keep;
+    if (!one) $('.dx-tree', el).scrollTop = treeTop;
   }
 
-  function renderFileView(el) {
-    var p = S.file, html = '';
+  function renderFileView(el, p, note) {
+    var html = '';
     function head(who, more) {
       return '<h4>' + esc(p) + '</h4><p class="who">' + who + (more ? ' ' + more : '') + '</p>';
     }
@@ -1120,8 +1215,27 @@
             'the patches were not released)'
           : 'The patches in the record do not rebuild this file exactly') +
           ', so its text is shown as it stood when the run ended. ' + (mineMeta(p) ? 'Up to this step it had been ' + mineMeta(p) + ' of the ' +
-          Object.keys(by).length + ' that changed it.' : 'At this step the agent had not written it yet.') + '</p>' +
-          '<pre>' + esc(D.mine.files[p] != null ? D.mine.files[p] : '(the file was gone when the run ended)') + '</pre>';
+          Object.keys(by).length + ' that changed it.' : 'At this step the agent had not written it yet.') + '</p>';
+        // what the record does hold of the file at this step: the lines its latest patches put in and took out
+        var texts = D.mine.history[p].filter(function (h) { return h.added.length || h.removed.length; });
+        var past = texts.filter(function (h) { return h.step <= S.step; });
+        function patchLines(list, cls, sign) {
+          return list.slice(0, 30).map(function (t) {
+            return '<span class="' + cls + '">' + sign + ' ' + esc(t) + '</span>';
+          }).join('') + (list.length > 30 ? '<span class="dx-cut">' + plural(list.length - 30, 'more line') + '</span>' : '');
+        }
+        if (past.length) {
+          html += '<p class="dx-h">Its latest changes at this step</p>' + past.slice(-3).reverse().map(function (h) {
+            return '<div class="dx-note-line dx-patch' + (h.step > since ? ' fresh' : '') + '"><span class="when">turn ' +
+              h.turn + ', step ' + num(h.step) + ' <button type="button" class="dx-link" data-step="' + h.step +
+              '" data-right="turn">go to the turn</button></span>' +
+              patchLines(h.added, 'add', '+') + (h.removed.length ? '<details><summary>' +
+                plural(h.removed.length, 'line') + ' taken out</summary>' + patchLines(h.removed, 'del', '−') + '</details>' : '') +
+              '</div>';
+          }).join('');
+        }
+        html += '<details' + (texts.length ? '' : ' open') + '><summary>the file when the run ended</summary><pre>' +
+          esc(D.mine.files[p] != null ? D.mine.files[p] : '(the file was gone when the run ended)') + '</pre></details>';
       } else if (!lines.length) {
         html += '<p class="dx-empty">The file does not exist.</p>';
       } else {
@@ -1143,7 +1257,7 @@
                   p === 'AGENTS.md' ? 'It is the brief, loaded at the start of each turn.' : readNote(re, 'opened it')) +
         '<p class="who">Its text is not part of this export.</p>';
     }
-    el.innerHTML = html;
+    el.innerHTML = (note || '') + html;
   }
 
   // ------------------------------------------------------------------ log
@@ -1456,7 +1570,7 @@
         e.target.value = '';
       });
     });
-    $$('.dx-tabs button').forEach(function (b) {
+    $$('.dx-tabs button, .dx-mem [data-tab]').forEach(function (b) {
       b.addEventListener('click', function () {
         if (b.closest('#dx-left')) { S.left = b.dataset.tab; $('#dx-left-body').innerHTML = ''; }
         else S.right = b.dataset.tab;
@@ -1477,9 +1591,12 @@
         return;
       }
       if (t.dataset.file) {
-        S.file = t.dataset.file; S.left = 'files';
-        $('#dx-left-body').innerHTML = '';
-        renderTabs(); renderLeft();
+        // a file of the agent's opens in its box, unless every file is listed
+        var from = S.left;
+        S.file = t.dataset.file;
+        if (S.left !== 'files' || !t.closest('.dx-tree')) S.left = kindOf(S.file) || 'files';
+        if (S.left !== from) $('#dx-left-body').innerHTML = '';
+        renderTabs(); renderBoxes(); renderLeft(); writeHash();
         return;
       }
       if (t.dataset.goto) {
