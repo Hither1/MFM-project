@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=8">
+  <link rel="stylesheet" href="assets/css/style.css?v=9">
   <link rel="stylesheet" href="assets/css/demo.css?v=12">
 </head>
 <body>
@@ -31,6 +31,7 @@
       <li><a href="#lookback">Looking back</a></li>
       <li><a href="#benchmarks">Benchmarks</a></li>
       <li><a href="#results">Results</a></li>
+      <li><a href="#retrieval">Retrieval</a></li>
       <li><a href="#skills">Skills</a></li>
       <li><a href="#kicad">KiCad</a></li>
       <li><a href="#limits">Limits</a></li>
@@ -129,26 +130,6 @@
       is a file it can open, and what it learns is a file it wrote, which makes both inspectable
       after the run.
     </p>
-
-    <div class="cards three">
-      <div class="card">
-        <h3>Episodes with frames</h3>
-        <p>One <code>episodes/ep_NNNNNN/</code> per plan entry: the frame it started from,
-        <code>state.json</code>, <code>action.json</code>, <code>outcome.json</code>, and a row
-        in <code>index.jsonl</code>.</p>
-      </div>
-      <div class="card">
-        <h3>The agent's own files</h3>
-        <p><code>mine/</code> holds what the model writes for itself: <code>notes.md</code> and
-        <code>GUIDE.md</code> (semantic), <code>procedures/</code> (procedural), and
-        <code>working.md</code>, the plan shown every turn (working).</p>
-      </div>
-      <div class="card">
-        <h3>Carry across lives</h3>
-        <p>Earlier lives are linked under <code>previous/life_i/</code>. The contract says where
-        they are. Reading them is the model's act.</p>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -685,6 +666,53 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
       <sup>e</sup> The MFM cell adds design-turn and conventions prompt levers that the ProLong
       cell does not carry. The differences between memory arms are one or two tasks out of 24.
     </p>
+  </div>
+</section>
+
+<!-- ============================ RETRIEVAL ============================ -->
+<section class="section" id="retrieval">
+  <div class="wrap">
+    <h2>Evidence of multimodal retrieval</h2>
+    <p>
+      The agent does not only read what it wrote about the past; it opens the frames it saw.
+      <code>episodes.py --then-now</code> writes a stored frame beside the live view, from this
+      life or from an earlier one, and the plan that follows can be compared with the one before
+      the look. Both examples below are from the Ender Dragon task.
+    </p>
+
+    <div class="pair">
+      <figure class="fig">
+        <img src="assets/img/then_now_quarry_rim.png" width="1288" height="378" loading="lazy"
+             alt="Then-now sheet: on the left a dug hole recorded at step 866, on the right the live view of the same hole from its southern rim.">
+        <figcaption>
+          <strong>Within a life.</strong> A move west had not taken the agent down into the hole
+          it dug. The stored frame beside the live one showed it standing on the southern rim. It
+          shifted north, and the next turn reads "Centering worked: Y68, two dirt collected".
+        </figcaption>
+      </figure>
+      <figure class="fig">
+        <img src="assets/img/then_now_iron_entrance.png" width="1288" height="378" loading="lazy"
+             alt="Then-now sheet: on the left a grass bank recorded in an earlier life at step 4867, on the right the live view of the same bank.">
+        <figcaption>
+          <strong>Across lives.</strong> The live grass bank against life 1's frame of its shallow
+          iron entrance. "The recorded entrance matches the live bank." The agent dug in there and
+          mined its first iron ore 427 steps later.
+        </figcaption>
+      </figure>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/img/frame_look_effect.png" width="1480" height="520" loading="lazy"
+           alt="Dot plot. Turns that opened a stored frame name a new destination in 19 percent of cases against 11 percent without a look, pooled. Of those, 88 percent land within 8 blocks of the retrieved episode against a 33 percent positional null.">
+      <figcaption>
+        <strong>The effect of a look.</strong> Pooled over the Diamond and Ender Dragon runs, a
+        turn that opened a stored frame names a place the current plan did not have in 19% of
+        cases (65/338), against 11% (147/1,356) for turns that did not. Of the plans that changed,
+        88% (57/65) went to within 8 blocks of the retrieved episode, against 33% for a positional
+        null. The Nether Portal runs are not pooled here, and there the first comparison reverses:
+        5% (43/899) after a look against 9% (97/1,050) without.
+      </figcaption>
+    </figure>
   </div>
 </section>
 
