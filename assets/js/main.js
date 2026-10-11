@@ -17,17 +17,22 @@
     });
   }
 
-  // Highlight the section in view
-  var navAnchors = Array.prototype.slice.call(document.querySelectorAll('.nav-links a'));
+  // Highlight the section in view, in the top bar and in the contents rail
+  var navAnchors = Array.prototype.slice.call(document.querySelectorAll('.nav-links a, .toc a'));
   if ('IntersectionObserver' in window && navAnchors.length) {
     var byId = {};
-    navAnchors.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    navAnchors.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      (byId[id] = byId[id] || []).push(a);
+    });
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (!entry.isIntersecting) return;
-        navAnchors.forEach(function (a) { a.classList.remove('active'); });
-        var a = byId[entry.target.id];
-        if (a) a.classList.add('active');
+        navAnchors.forEach(function (a) { a.classList.remove('active'); a.removeAttribute('aria-current'); });
+        (byId[entry.target.id] || []).forEach(function (a) {
+          a.classList.add('active');
+          if (a.closest('.toc')) a.setAttribute('aria-current', 'location');
+        });
       });
     }, { rootMargin: '-45% 0px -50% 0px' });
     Object.keys(byId).forEach(function (id) {
@@ -38,7 +43,7 @@
 
   // Opening video: plays muted on a loop while on screen, with a button to stop it.
   // Visitors who ask for reduced motion get the poster until they press Play.
-  var hero = document.querySelector('.hero-video');
+  var hero = document.querySelector('.hero');
   var heroVideo = document.getElementById('hero-video');
   var pauseBtn = document.querySelector('.hero-pause');
   var topbar = document.querySelector('.topbar-overlay');
@@ -48,37 +53,43 @@
     var sync = function () {
       pauseBtn.textContent = stopped ? 'Play' : 'Pause';
       pauseBtn.setAttribute('aria-pressed', String(stopped));
-      pauseBtn.setAttribute('aria-label', (stopped ? 'Play' : 'Pause') + ' the background video');
+      pauseBtn.setAttribute('aria-label', (stopped ? 'Play' : 'Pause') + ' the video');
       if (stopped || !onScreen) { heroVideo.pause(); return; }
       var playing = heroVideo.play();
       if (playing && playing.catch) playing.catch(function () {});
     };
     pauseBtn.hidden = false;
     pauseBtn.addEventListener('click', function () { stopped = !stopped; sync(); });
+    // a milestone pressed while stopped plays from there
+    heroVideo.addEventListener('play', function () { if (stopped) { stopped = false; sync(); } });
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(function (entries) {
         onScreen = entries[0].isIntersecting;
         sync();
-      }).observe(hero);
+      }).observe(heroVideo);
     }
     sync();
   }
-  // Milestone buttons beside a video (.ms, naming the video in data-video): each jumps the video
-  // to just before its milestone and plays; the ones the video has passed are marked.
+  // Milestones beside a video (.ms, naming the video in data-video): each one with data-t is lit
+  // once the video passes that second, the latest of them is marked, and pressing one jumps the
+  // video to just before it and plays. .ms-count shows how many are lit, .ms-now the latest's name.
   Array.prototype.forEach.call(document.querySelectorAll('.ms[data-video]'), function (rail) {
     var video = document.getElementById(rail.dataset.video);
-    var marks = Array.prototype.slice.call(rail.querySelectorAll('button[data-t]'));
-    var nowLine = rail.querySelector('.ms-now');
+    var marks = Array.prototype.slice.call(rail.querySelectorAll('[data-t]'));
+    var count = rail.querySelector('.ms-count'), latest = rail.querySelector('.ms-now');
     if (!video || !marks.length) return;
     var mark = function () {
-      var t = video.currentTime, last = -1;
-      marks.forEach(function (b, i) {
+      var t = video.currentTime, last = null, n = 0;
+      marks.forEach(function (b) {
         var done = Number(b.dataset.t) <= t;
-        if (done) last = i;
         b.classList.toggle('done', done);
+        if (!done) return;
+        n++;
+        if (!last || Number(b.dataset.t) >= Number(last.dataset.t)) last = b;
       });
-      marks.forEach(function (b, i) { b.classList.toggle('now', i === last); });
-      if (nowLine) nowLine.textContent = last < 0 ? '' : (last + 1) + ' of ' + marks.length + ' reached';
+      marks.forEach(function (b) { b.classList.toggle('now', b === last); });
+      if (count) count.textContent = n;
+      if (latest) latest.textContent = last ? 'latest: ' + last.dataset.name : '';
     };
     marks.forEach(function (b) {
       b.addEventListener('click', function () {
@@ -89,12 +100,32 @@
     });
     video.addEventListener('timeupdate', mark);
     video.addEventListener('seeked', mark);
+    mark();
   });
 
   if (hero && topbar && 'IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       topbar.classList.toggle('at-top', entries[0].isIntersecting);
     }, { rootMargin: '-' + topbar.offsetHeight + 'px 0px 0px 0px' }).observe(hero);
+  }
+
+  // The memory figure: each operation button lights the parts it lists in data-parts and shows its
+  // paragraph; pressing it again shows the whole figure.
+  var mfig = document.getElementById('mfig');
+  if (mfig) {
+    var ops = Array.prototype.slice.call(mfig.querySelectorAll('.mfig-steps button'));
+    var parts = Array.prototype.slice.call(mfig.querySelectorAll('[data-part]'));
+    var texts = Array.prototype.slice.call(mfig.querySelectorAll('.mfig-text [data-op]'));
+    var show = function (op) {
+      var on = op ? op.dataset.parts.split(' ') : [];
+      ops.forEach(function (b) { b.setAttribute('aria-pressed', String(b === op)); });
+      parts.forEach(function (el) { el.classList.toggle('on', on.indexOf(el.dataset.part) >= 0); });
+      mfig.classList.toggle('focus', !!op);
+      texts.forEach(function (p) { p.hidden = p.dataset.op !== (op ? op.dataset.op : ''); });
+    };
+    ops.forEach(function (b) {
+      b.addEventListener('click', function () { show(b.getAttribute('aria-pressed') === 'true' ? null : b); });
+    });
   }
 
   // Figure lightbox
