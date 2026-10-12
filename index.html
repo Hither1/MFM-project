@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
   <link rel="stylesheet" href="assets/css/style.css?v=16">
   <link rel="stylesheet" href="assets/css/demo.css?v=16">
+  <link rel="stylesheet" href="assets/css/kicad.css?v=1">
 </head>
 <body>
 
@@ -33,6 +34,7 @@
       <li><a href="#results">Results</a></li>
       <li><a href="#lookback">Looking back at past frames</a></li>
       <li><a href="#improve">Self-improvement through skill learning</a></li>
+      <li><a href="#cua">Beyond Minecraft: computer use</a></li>
     </ul>
   </nav>
 </header>
@@ -143,6 +145,7 @@
     <li><a href="#results"><span class="n">V</span>Results</a></li>
     <li><a href="#lookback"><span class="n">VI</span>Looking back at past frames</a></li>
     <li><a href="#improve"><span class="n">VII</span>Self-improvement through skill learning</a></li>
+    <li><a href="#cua"><span class="n">VIII</span>Beyond Minecraft: computer use</a></li>
     <li><a href="#bibtex"><span class="n"></span>Cite</a></li>
   </ol>
 </nav>
@@ -913,6 +916,111 @@
       did not go up with every life (see the MFM repository README).
     </p>
   </div>
+</section>
+
+<!-- ============================ VIII. COMPUTER USE ============================ -->
+<!-- The viewer shows one recorded run, exported by scripts/export_kicad.py into assets/kicad/:
+     kicad_mfmcarry_gpt6high_order2 (MFM with memory carried across tasks, gpt-6-astra at high
+     effort, the 25 tasks shuffled with task-order seed 2, mean reward 0.440; two tasks that hit a
+     step error were run again and the later rows count). kicad.js fills the header numbers and the
+     table from run.json. The 0.440, 0.400 and 0.267 in the text are the three-seed means of the
+     Results table. -->
+<section class="section" id="cua">
+  <div class="wrap">
+    <h2><span class="num">VIII</span>Beyond Minecraft: computer use</h2>
+    <p>
+      Nothing in MFM is specific to a game. We ran the same memory on CUABench-KiCad, a computer-use
+      benchmark in which the agent edits and designs circuits in the KiCad desktop application,
+      seeing only screenshots and acting with mouse and keyboard. Its 25 tasks run one after
+      another in the same application, and the agent starts each one with the records and notes of
+      the tasks before it. With GPT-6-Astra, MFM averages a reward of 0.440, against 0.400 for the
+      best baseline and 0.267 without memory (see <a href="#results">Results</a>).
+    </p>
+    <p>
+      Below is one recorded run of MFM with GPT-6-Astra, task by task. A task's reward is the share
+      of three checks its saved netlist passes against a reference: the components, the connections
+      and the net names. Open a replay to step through the screenshots the agent saw, with what it
+      said and did at each step and what its memory gave it: the earlier situations recalled for it,
+      and the notes and records it opened.
+    </p>
+  </div>
+  <div class="wrap wide">
+    <div class="kv" id="kicad-viewer" data-run="mfm_gpt6_astra_order2">
+      <div class="kv-head">
+        <div>
+          <div class="kv-label">CUABench-KiCad · MFM</div>
+          <div class="kv-model">GPT-6-Astra</div>
+          <div class="kv-sub">one recorded run, in the order it ran</div>
+        </div>
+        <div><div class="kv-label">Mean reward</div><div class="kv-num" data-k="mean">–</div></div>
+        <div><div class="kv-label">Solved</div><div class="kv-num" data-k="full">–</div></div>
+        <div><div class="kv-label">Partly solved</div><div class="kv-num" data-k="part">–</div></div>
+        <div><div class="kv-label">Steps taken</div><div class="kv-num" data-k="steps">–</div></div>
+      </div>
+      <div class="kv-scroll">
+        <table class="kv-table">
+          <thead>
+            <tr>
+              <th data-sort="pos" aria-sort="ascending"><button type="button">#</button></th>
+              <th data-sort="title"><button type="button">Task</button></th>
+              <th data-sort="reward"><button type="button">Reward</button></th>
+              <th data-sort="steps"><button type="button">Steps</button></th>
+              <th data-sort="recall_steps"><button type="button" title="Steps at which a matching earlier situation was recalled for the agent">Recalls</button></th>
+              <th>Status</th>
+              <th>Replay</th>
+            </tr>
+          </thead>
+          <tbody><tr><td colspan="7" class="kv-msg">Loading the run…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <p class="note">
+      This is a single run, one of the task orders behind the mean above; the tasks are listed in
+      the order the agent took them. The task titles are ours; the benchmark names tasks by id. A
+      step cap of 200 applied, and the agent ended every task itself.
+    </p>
+  </div>
+
+  <dialog class="kr" id="kicad-replay" aria-labelledby="kicad-replay-title">
+    <div class="kr-in">
+      <div class="kr-top">
+        <h3 id="kicad-replay-title"></h3>
+        <span class="kv-status"></span>
+        <span class="kr-id"></span>
+        <span class="kr-sp"></span>
+        <button type="button" class="kr-btn" data-a="close">Close</button>
+      </div>
+      <div class="kr-body">
+        <div class="kr-stage">
+          <div class="kr-shot"><div class="kr-frame"><img alt="" width="1280" height="720"></div></div>
+          <div class="kr-ctl">
+            <button type="button" class="kr-btn" data-a="prev">Back</button>
+            <button type="button" class="kr-btn" data-a="play">Play</button>
+            <button type="button" class="kr-btn" data-a="next">Next</button>
+            <input type="range" class="kr-range" min="0" max="0" value="0" aria-label="Step">
+            <span class="kr-count"></span>
+          </div>
+        </div>
+        <div class="kr-side">
+          <h4>Task</h4>
+          <p class="kr-task" data-k="task"></p>
+          <p class="kr-none" data-k="carried"></p>
+          <h4>What the agent saw</h4>
+          <p data-k="say"></p>
+          <h4 data-k="plan-h">Its plan</h4>
+          <p data-k="plan"></p>
+          <h4>Actions, marked on the screen</h4>
+          <ul class="kr-acts"></ul>
+          <h4>From memory at this step</h4>
+          <div data-k="mem"></div>
+          <h4>Notes it wrote during this task</h4>
+          <div class="kr-notes"></div>
+        </div>
+      </div>
+    </div>
+  </dialog>
 </section>
 
 <!-- ============================ ARCHIVE: taken out in the second redesign ============================ -->
@@ -1738,5 +1846,6 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 <script src="assets/js/overview.js?v=4"></script>
 <script src="assets/js/mfm-query.js?v=4"></script>
 <script src="assets/js/demo.js?v=15"></script>
+<script src="assets/js/kicad.js?v=3"></script>
 </body>
 </html>

@@ -36,7 +36,7 @@ in `index.html`; GitHub Pages lets browsers cache these files for 10 minutes.
 | `assets/js/demo.js`, `assets/css/demo.css` | the memory explorer, the `#explorer` part of `index.html`: a recorded run replayed step by step. The memory panel shows the map by default; clicking a memory box or a file opens it below, and clicking it again goes back to the map. The timeline's labels are refitted whenever the track changes width (`fitTrack`) |
 | `assets/js/mfm-query.js` | a port of `mfm/memory/tools/episodes.py`, used by the query box |
 | `assets/demo/<run>/` | one exported run: `data.json`, `frames/*.jpg`, `check.json`, and `run.mp4` + `video.json` when it has a recording |
-| `scripts/` | `export_demo.py` writes a run into `assets/demo/`; `check_demo.js` tests the port; `make_demo_video.py` adds a run's recording; `serve.py` previews the site |
+| `scripts/` | `export_demo.py` writes a run into `assets/demo/`; `export_kicad.py` writes a KiCad run (task table and replays of section VIII) into `assets/kicad/`; `check_demo.js` tests the port; `make_demo_video.py` adds a run's recording; `serve.py` previews the site |
 
 ## Memory explorer
 
