@@ -1,16 +1,20 @@
 // The method figure (#mf in index.html): one stretch of a recorded run, replayed in five scenes.
-// Life 3 of the GPT-6-Astra Ender Dragon chain (assets/demo/of3m_mfm, the explorer's Ender Dragon
-// run) walks back to the shallow iron vein that its first life found and its second revisited, and
-// mines it at step 4,231. The frames are the run's own. The rows, cells, commands, messages and file
-// lines below are copied from its export (data.json: index, previous, grid, turns 1 and 19 to 23,
-// mine/), cut where "…" stands; the agent's messages are shown without their "OBSERVED vs EXPECTED:"
-// and "[PLAN]" prefixes. Life 2's frames are not in the export, so its episodes appear as index rows.
+// Life 2 of a GPT-6-Astra Ender Dragon chain (assets/demo/gpt6_dragon_l2_36k, the explorer's Ender
+// Dragon run) digs down to the iron vein its first life found, and mines it at step 8,992 (life 1:
+// 18,231). The frames are the run's own; the frame of life 1 is that life's ep_000673. The rows,
+// cells, commands, messages and file lines below are copied from the export (data.json: index,
+// previous, grid, turns 1 and 99 to 103, mine/GUIDE.md), cut where "…" stands; the agent's messages
+// are shown without the labels "OBSERVED vs EXPECTED:" and "[PLAN]". In turn 102 one command wrote
+// both actions.json and mine/working.md: stage 3 shows the second and stage 4 the first, and the
+// turn's closing message comes after both, as it did.
 (function () {
   'use strict';
 
   var fig = document.getElementById('mf');
   if (!fig) return;
-  var FRAMES = 'assets/demo/of3m_mfm/frames/';
+  var RUN = 'assets/demo/gpt6_dragon_l2_36k/';
+  var FRAMES = RUN + 'frames/';
+  var THEN = RUN + 'previous/life_1/ep_000673.jpg';   // life 1's frame of the vein (step 18,201)
   var HOLD = 2600;            // ms a finished scene stays before the next, while the figure plays itself
   var reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   function $(sel) { return fig.querySelector(sel); }
@@ -22,93 +26,83 @@
   function coord(v) { return (v < 0 ? '−' : '') + Math.abs(v).toFixed(v % 1 ? 1 : 0); }
 
   // ------------------------------------------------------------------ the record
-  // Life 3's episodes (index.jsonl): first step, last step, x, y, z, summary without "[ACTION] ".
+  // Life 2's episodes (index.jsonl): first step, last step, x, y, z, summary without "[ACTION] ".
   var EP = {
-    '000182': [3644, 3655, -3014.8, 68.3, -5560.8, 'watch(n=12) -> 12 ticks: moved 0.5, descended 1.0'],
-    '000183': [3655, 3656, -3015.3, 67.2, -5561.0, 'look_abs(yaw=155,pitch=15,ticks=15) -> 15 ticks: moved 0.0'],
-    '000184': [3656, 3657, -3015.3, 67, -5561.0, 'look_abs(yaw=151,pitch=0,ticks=15) -> 15 ticks: moved 0.0'],
-    '000185': [3657, 3701, -3015.3, 67, -5561.0, '{"forward":1,"jump":1,"attack":1} x44: moved 5.8, descended -1.0'],
-    '000186': [3701, 3712, -3018.7, 68, -5565.7, 'watch(n=12) -> 12 ticks: moved 0.7, descended 1.0'],
-    '000187': [3712, 3713, -3018.7, 67, -5566.4, 'look_abs(yaw=145,pitch=0,ticks=15) -> 15 ticks: moved 0.0'],
-    '000188': [3713, 3758, -3018.7, 67, -5566.4, '{"forward":1,"jump":1,"attack":1} x45: moved 5.2, descended 1.0, inv {\'spruce_sapling\': 1}'],
-    '000189': [3758, 3769, -3021.7, 66, -5570.7, 'watch(n=12) -> 12 ticks: moved 0.2'],
-    '000190': [3769, 3770, -3021.7, 66, -5570.9, 'look_abs(yaw=135,pitch=25,ticks=15) -> 15 ticks: moved 0.0'],
-    '000191': [3770, 3771, -3021.7, 66, -5570.9, 'look_abs(yaw=145,pitch=0,ticks=15) -> 15 ticks: moved 0.0'],
-    '000192': [3771, 3811, -3021.7, 66, -5570.9, '{"forward":1,"jump":1,"attack":1} x40: moved 7.1, descended -1.0'],
-    '000193': [3811, 3822, -3025.5, 67, -5576.8, 'watch(n=12) -> 12 ticks: moved 0.9, descended 1.0'],
-    '000194': [3822, 3829, -3026.0, 66, -5577.5, 'go_to(x=-3025.7,z=-5579.3,within=0.3,n=50) -> 50 ticks: moved 1.4, descended -1.3'],
-    '000195': [3829, 3840, -3025.9, 67.3, -5578.9, 'watch(n=12) -> 12 ticks: moved 1.2, descended 1.3'],
-    '000196': [3840, 3844, -3025.7, 66, -5580.2, 'look_abs(yaw=90,pitch=55,ticks=15) -> 15 ticks: moved 0.0'],
-    '000221': [4094, 4097, -3028.7, 63, -5580.6, 'look_abs(yaw=0,pitch=35,ticks=10) -> 10 ticks: moved 0.0'],
-    '000222': [4097, 4099, -3028.7, 63, -5580.6, 'look_abs(yaw=0,pitch=0,ticks=10) -> 10 ticks: moved 0.0'],
-    '000223': [4099, 4119, -3028.7, 63, -5580.6, '{"attack":1} x35: moved 0.0'],
-    '000224': [4119, 4121, -3028.7, 63, -5580.6, 'look_abs(yaw=0,pitch=60,ticks=10) -> 10 ticks: moved 0.0'],
-    '000225': [4121, 4141, -3028.7, 63, -5580.6, '{"attack":1} x35: moved 0.0, inv {\'dirt\': 1}'],
-    '000226': [4141, 4146, -3028.7, 63, -5580.6, '{"forward":1} x5: moved 0.8'],
-    '000227': [4146, 4157, -3028.7, 63, -5579.8, 'watch(n=12) -> 12 ticks: moved 0.2, inv {\'dirt\': 1}'],
-    '000228': [4157, 4160, -3028.7, 63, -5579.5, 'look_abs(yaw=90,pitch=0,ticks=10) -> 10 ticks: moved 0.0'],
-    '000229': [4160, 4180, -3028.7, 63, -5579.5, '{"attack":1} x35: moved 0.0'],
-    '000230': [4180, 4182, -3028.7, 63, -5579.5, 'look_abs(yaw=90,pitch=45,ticks=10) -> 10 ticks: moved 0.0'],
-    '000231': [4182, 4202, -3028.7, 63, -5579.5, '{"attack":1} x35: moved 0.0, inv {\'dirt\': 1}'],
-    '000232': [4202, 4203, -3028.7, 63, -5579.5, 'look_abs(yaw=90,pitch=70,ticks=10) -> 10 ticks: moved 0.0'],
-    '000233': [4203, 4231, -3028.7, 63, -5579.5, '{"attack":1} x50: moved 0.0, inv {\'dirt\': 1}, milestone [\'mine_iron_ore\']'],
-    '000234': [4231, 4236, -3028.7, 63, -5579.5, '{"forward":1} x5: moved 0.8']
+    '000449': [8823, 8825, -2953.4, 18, -5605.4, 'equip_hotbar(slot=4) -> 2 ticks: moved 0.0'],
+    '000450': [8825, 8827, -2953.4, 18, -5605.4, 'look_abs(pitch=20,yaw=-180,ticks=10) -> 10 ticks: moved 0.0'],
+    '000451': [8827, 8833, -2953.4, 18, -5605.4, 'look_abs(pitch=35,yaw=0,ticks=10) -> 10 ticks: moved 0.0'],
+    '000452': [8833, 8835, -2953.4, 18, -5605.4, 'equip_hotbar(slot=9) -> 2 ticks: moved 0.0'],
+    '000453': [8835, 8852, -2953.4, 18, -5605.4, '{"attack":1} x45: moved 0.0'],
+    '000454': [8852, 8853, -2953.4, 18, -5605.4, 'look_abs(pitch=65,yaw=0,ticks=10) -> 10 ticks: moved 0.0'],
+    '000455': [8853, 8870, -2953.4, 18, -5605.4, '{"attack":1} x45: moved 0.0, inv {\'cobblestone\': 1}'],
+    '000456': [8870, 8871, -2953.4, 18, -5605.4, 'look_abs(pitch=60,yaw=0,ticks=10) -> 10 ticks: moved 0.0'],
+    '000457': [8871, 8890, -2953.4, 18, -5605.4, 'descend_one() -> 19 ticks: moved 1.1, descended 1.0, inv {\'cobblestone\': 1}'],
+    '000458': [8890, 8963, -2953.4, 17, -5604.3, 'cut_step(yaw=0) -> 191 ticks: moved 1.0, descended 1.0, inv {\'cobblestone\': 3}'],
+    '000459': [8963, 8964, -2953.4, 16, -5603.3, 'look_abs(pitch=35,yaw=0,ticks=10) -> 10 ticks: moved 0.0'],
+    '000460': [8964, 8992, -2953.4, 16, -5603.3, '{"attack":1} x45: moved 0.0, milestone [\'mine_iron_ore\']'],
+    '000461': [8992, 9002, -2953.4, 16, -5603.3, 'watch(until=inventory,n=24) -> 24 ticks: moved 0.0, inv {\'iron_ore\': 1}']
   };
-  // Life 2's rows on the way down to the vein (previous/life_2/index.jsonl): id, steps, summary.
-  var PREV2 = [
-    ['000233', 4657, 4660, 'look_abs(yaw=90,pitch=65,ticks=15) -> 15 ticks: moved 0.7'],
-    ['000238', 4705, 4707, 'equip_hotbar(slot=7) -> 2 ticks: moved 0.0'],
-    ['000250', 4839, 4859, '{"attack":1} x40: moved 0.0, inv {\'dirt\': 1}'],
-    ['000255', 4896, 4899, 'look_abs(yaw=0,pitch=35,ticks=15) -> 15 ticks: moved 0.0'],
-    ['000262', 4959, 4962, 'look_abs(yaw=90,pitch=0,ticks=15) -> 15 ticks: moved 0.0'],
-    ['000267', 5005, 5033, '{"attack":1} x50: moved 0.0, inv {\'dirt\': 1}, milestone [\'mine_iron_ore\']']
+  // Life 1's rows where it reached the vein (previous/index.jsonl): id, steps, summary.
+  var PREV1 = [
+    ['000670', 17972, 18075, 'level_step(yaw=90,steps=2) -> 258 ticks: moved 2.0, inv {\'cobblestone\': 2, \'granite\': 2}'],
+    ['000671', 18075, 18077, 'look_abs(pitch=0,yaw=135,ticks=15) -> 15 ticks: moved 0.0'],
+    ['000672', 18077, 18201, 'level_step(yaw=90,steps=3) -> 387 ticks: moved 2.0, inv {\'cobblestone\': 2, \'granite\': 2}'],
+    ['000673', 18201, 18231, 'aim_speckles(x=330,y=81,pick=7) -> 111 ticks: moved 0.0, inv {\'cobblestone\': 1}, milestone [\'mine_iron_ore\']'],
+    ['000674', 18231, 18232, 'look_abs(pitch=30,yaw=90,ticks=15) -> 15 ticks: moved 0.0'],
+    ['000675', 18232, 18249, '{"attack":1} x35: moved 0.0, inv {\'iron_ore\': 1}']
   ];
-  // The cells life 3 walked by step 4,236 (grid.jsonl: x, z, step).
-  var TRAIL = [[-3010,-5573,1],[-3010,-5572,6],[-3010,-5571,11],[-3009,-5570,59],[-3009,-5569,67],[-3009,-5568,72],[-3008,-5568,75],[-3008,-5567,156],[-3009,-5567,610],[-3008,-5566,1002],[-3008,-5565,1121],[-3008,-5564,1128],[-3008,-5563,1271],[-3008,-5562,1410],[-3009,-5562,1709],[-3010,-5562,1829],[-3011,-5562,1971],[-3012,-5562,2132],[-3013,-5562,2188],[-3014,-5562,2247],[-3010,-5561,3051],[-3010,-5560,3139],[-3010,-5559,3145],[-3011,-5560,3608],[-3012,-5560,3615],[-3013,-5560,3622],[-3014,-5560,3630],[-3014,-5561,3633],[-3015,-5561,3638],[-3016,-5561,3646],[-3016,-5562,3650],[-3016,-5563,3667],[-3017,-5563,3668],[-3018,-5563,3681],[-3018,-5564,3683],[-3019,-5565,3693],[-3019,-5566,3697],[-3019,-5567,3705],[-3020,-5567,3718],[-3020,-5568,3719],[-3020,-5569,3726],[-3021,-5569,3727],[-3022,-5569,3739],[-3022,-5570,3748],[-3022,-5571,3755],[-3022,-5572,3773],[-3023,-5572,3779],[-3023,-5573,3780],[-3023,-5574,3786],[-3024,-5574,3788],[-3024,-5575,3792],[-3025,-5575,3797],[-3025,-5576,3799],[-3025,-5577,3806],[-3026,-5577,3807],[-3026,-5578,3815],[-3026,-5579,3825],[-3026,-5580,3830],[-3026,-5581,3836],[-3027,-5581,3897],[-3028,-5581,3996],[-3029,-5581,4081],[-3029,-5580,4145],[-3030,-5580,4234]];
-  // Where lives 1 and 2 went on the way to the vein (their index rows: x, z).
-  var ROUTE1 = [[-3009.7,-5567.7],[-3009.7,-5568.7],[-3009.1,-5568.8],[-3011.3,-5575.0],[-3016.4,-5580.7],[-3016.7,-5580.1],[-3021.9,-5579.7],[-3022.5,-5579.7],[-3024.7,-5579.7],[-3025.7,-5579.3],[-3027.2,-5579.3],[-3028.7,-5579.3]];
-  var ROUTE2 = [[-3008.7,-5558.8],[-3010.7,-5558.8],[-3015.8,-5561.0],[-3016.4,-5561.2],[-3018.9,-5567.4],[-3019.0,-5567.7],[-3023.0,-5574.1],[-3023.3,-5574.5],[-3024.8,-5576.4],[-3024.9,-5576.7],[-3025.7,-5579.0],[-3025.8,-5579.7],[-3025.9,-5580.7],[-3026.6,-5580.7],[-3027.5,-5580.7],[-3028.5,-5580.7],[-3028.7,-5579.8],[-3029.5,-5579.6]];
-  // The actions each turn wrote to actions.json, as the environment executed them: one index row each
-  // (turn 19 wrote 7 entries, turn 20 wrote 6 and turn 22 wrote 12).
+  // The cells life 2 walked by step 9,010 (grid.jsonl, kind "walked": x, z, the step it first stood there).
+  var TRAIL = [[-3010,-5573,1],[-3010,-5572,111],[-3010,-5571,228],[-3009,-5571,248],[-3008,-5571,560],[-3007,-5571,566],[-3007,-5570,567],[-3007,-5569,573],[-3007,-5568,579],[-3007,-5567,727],[-3007,-5566,732],[-3008,-5566,1169],[-3009,-5566,1481],[-3007,-5565,1832],[-3006,-5565,1840],[-3010,-5566,2227],[-3011,-5566,2275],[-3012,-5566,2323],[-3013,-5566,2465],[-3014,-5566,2513],[-3015,-5566,2715],[-3016,-5566,2763],[-3008,-5567,3156],[-3006,-5567,3204],[-3006,-5568,3205],[-3006,-5569,3285],[-3005,-5569,3338],[-3004,-5569,3375],[-3004,-5570,3541],[-3004,-5571,3548],[-3003,-5570,3556],[-3002,-5570,3562],[-3002,-5569,3563],[-3001,-5569,3577],[-3000,-5569,3583],[-2999,-5569,3588],[-2998,-5569,3607],[-2998,-5570,3611],[-2997,-5570,3615],[-2997,-5571,3622],[-2996,-5572,3630],[-2995,-5572,3711],[-2994,-5572,3718],[-2993,-5572,3780],[-2992,-5572,3825],[-2991,-5572,3832],[-2990,-5572,3849],[-2989,-5572,3877],[-2988,-5572,3882],[-2988,-5573,3885],[-2987,-5573,3889],[-2986,-5573,3901],[-2986,-5574,3904],[-2985,-5574,3910],[-2985,-5575,3912],[-2984,-5575,3917],[-2984,-5576,3920],[-2983,-5576,3925],[-2983,-5577,3933],[-2983,-5578,3957],[-2982,-5578,3961],[-2982,-5579,3977],[-2981,-5579,3981],[-2981,-5580,3983],[-2980,-5581,3990],[-2980,-5582,3997],[-2979,-5582,3999],[-2979,-5583,4002],[-2978,-5583,4007],[-2978,-5584,4008],[-2978,-5585,4013],[-2977,-5585,4015],[-2977,-5586,4021],[-2976,-5586,4025],[-2976,-5587,4027],[-2976,-5588,4032],[-2975,-5588,4033],[-2975,-5589,4038],[-2974,-5589,4041],[-2974,-5590,4044],[-2973,-5591,4049],[-2972,-5591,4057],[-2971,-5591,4062],[-2970,-5591,4067],[-2969,-5591,4071],[-2968,-5591,4076],[-2967,-5591,4081],[-2966,-5591,4087],[-2966,-5592,4089],[-2965,-5592,4093],[-2965,-5593,4097],[-2964,-5593,4099],[-2964,-5594,4105],[-2963,-5594,4107],[-2962,-5595,4114],[-2961,-5595,4121],[-2961,-5596,4122],[-2960,-5596,4128],[-2960,-5597,4130],[-2959,-5597,4135],[-2959,-5598,4137],[-2958,-5598,4143],[-2958,-5599,4145],[-2958,-5600,4780],[-2958,-5601,4787],[-2958,-5602,4950],[-2957,-5602,5055],[-2956,-5602,5136],[-2955,-5602,5235],[-2954,-5602,5308],[-2953,-5602,5381],[-2953,-5603,5466],[-2953,-5604,5539],[-2953,-5605,5612],[-2954,-5605,5714],[-2955,-5605,5790],[-2956,-5605,5872],[-2956,-5604,5965],[-2956,-5603,6044],[-2953,-5606,6636],[-2952,-5606,6699],[-2951,-5606,6784],[-2951,-5605,6817],[-2951,-5604,6929],[-2951,-5603,7073],[-2951,-5602,7146],[-2952,-5602,7232],[-2954,-5603,7479],[-2954,-5604,7563],[-2952,-5605,7794],[-2954,-5606,8815]];
+  // Where life 1 went on its way to the vein: a level tunnel from the east at y 15 (its index rows
+  // from step 17,000 on: x, z; the map begins at x -2930).
+  var ROUTE1 = [[-2930.7,-5603.4],[-2931.7,-5603.4],[-2932.7,-5603.4],[-2933.7,-5603.4],[-2934.7,-5603.4],[-2936.7,-5603.4],[-2939.7,-5603.4],[-2942.7,-5603.4],[-2945.7,-5603.4],[-2948.7,-5603.4],[-2950.7,-5603.4],[-2952.7,-5603.4]];
+  // The actions each turn wrote to actions.json, as the environment executed them: one index row each.
+  // Turn 102 wrote three; the milestone ended its list after the second, so the third never ran.
   var QUEUE = {
-    19: ['000184', '000185', '000186', '000187', '000188', '000189', '000190'],
-    20: ['000191', '000192', '000193', '000194', '000195', '000196'],
-    22: ['000222', '000223', '000224', '000225', '000226', '000227', '000228', '000229', '000230', '000231', '000232', '000233']
+    99: ['000452', '000453', '000454', '000455', '000456'],
+    100: ['000457'],
+    101: ['000458'],
+    102: ['000459', '000460', { skip: 'watch(until=inventory,n=20)' }]
   };
-  // The ore block all three lives mined first: they stood at (-3028.7, 63, -5579.5) facing west, pitch 70.
-  var IRON = [-3030, -5580];
+  // Where the vein is: life 1 mined its first ore standing at (-2952.7, 15, -5603.4); life 2 stood
+  // one block higher and west of that, at (-2953.4, 16, -5603.3), facing south.
+  var IRON = [-2953, -5603];
 
-  // The agent's own files, as they stood (mine/digest.md is the one life 3 wrote at step 0).
-  var DIGEST_HEAD = '…\n';
-  var DIGEST_IRON = '- Shallow iron: life_1 steps5296-5335, pose (-3028.70,63,-5579.31) … ep_000266. … Revisited successfully in life_2; …';
-  var PROCS = 'west_level.py\nwest_stairs.py: """Cut one or two westward descending steps; hold a pickaxe in a dry tunnel, centered across its width."""';
+  // The agent's own files, as they stood (life 2 wrote mine/GUIDE.md at step 0 and had not changed it).
+  var GUIDE_HEAD = '# World guide — workshop, life 2\n…\n';
+  var GUIDE_IRON = '- Iron: player (-2952.7, 15, -5603.4), step18201–18231, previous/life_1/episodes/ep_000673/observation/image.png. Several ore blocks in this vein.';
+  var GUIDE_CITE = 'previous/life_1/episodes/ep_000673/observation/image.png';
+  var PROCS = 'descend_one.py: """descend_one: enter an inspected one-block-lower solid landing about one block ahead, then inspect at pitch35; …"""\n' +
+    'cut_step.py: """cut_step: cut one descending step and advance; … Proven at steps5068-5249."""';
   var W = {
-    3656: '# Current plan — step3656\n…\n- Immediate: yaw151p0 forwardjumpattack44/watch12, then yaw145p0 forwardjumpattack45/watch12, finishyaw135p25. … On arrival compare --then-now previous/life_2/episodes/ep_000226 …',
-    3770: '# Current plan — step3770\n…\n- Immediate: yaw145p0 forwardjumpattack40/watch12 through visiblegrassgap; go_to(-3025.7,-5579.3) within.3 n50/watch12; finishyaw90p55. … NO floor mining before inspectingarrival. …',
-    3844: '# Current plan — step3844\n…\n- Immediate: HB8stonepick; … two weststeps each p0/45/70 attack35 … Expect(-3028.7,63,-5580.5), ~5-7dirtpickedup, fullhealth, southern dirtwall/stonefloor visible. … On arrival compare --then-now previous/life_2/episodes/ep_000255 …',
-    4097: '# Current plan — step4097\n…\n- Immediate: … Expect mine_iron_ore milestone7/24 at(-3028.70,63,-5579.53), …\n- Step4097 exactmatch: … Comparison life2ep255 generatedandVIEWED4097: positionalmatchwithin.06z …',
-    4231: '# Current plan — step4231\n- Current: (-3028.70,63,-5579.53), yaw90/p70, HP20 food20, … GUIclosed,7/24: mine_iron_ore verified4231. First ore drop NOT collected yet. …'
+    8833: 'Step8833 pos(-2953.4,18,-5605.4) pitch35yaw0 HP17food17 heldsword4. … Plan equip9 pick101 minecrosshair35 singleblock45 thenlook65south mineone45 look60south10, STATIONARY. … Targetiron(-2952.7,15,-5603.4) priorlife1ep673 viewed3568 then-nowarrivalpending3below2south. …',
+    8871: 'Step8871 pos(-2953.4,18,-5605.4) pitch60yaw0 HP17food17 pick99slot9. … Plan descend_one forward5 settle8 look35 sneak5 into inspected one-lower landing south; … Targetiron(-2952.7,15,-5603.4) priorlife1ep673 viewed3568 then-nowarrivalpending; threebelowcurrent. …',
+    8890: 'Step8890 pos(-2953.4,17,-5604.3) pitch35yaw0 HP17food17 pick99slot9 cobble87. … Plan cut_step0 south1 ->(-2953.4,16,-5603.3) pick96 cobble90 approximately; inspectforiron before nextturn east/down. Targetiron(-2952.7,15,-5603.4) priorlife1ep673 viewed3568 then-nowarrivalpending2below .7east .9south. …',
+    8963: 'Step8963 pos(-2953.4,16,-5603.3) pitch60yaw0 HP17food17 pick96slot9 cobble90. Southcut matched3stone and1down; IRON VISIBLE upperface directlysouth above granitefloor! Ran then-now previous/life_1/episodes/ep_000673/observation/image.png viewed /tmp/iron_then_now.png: consistentironovergranite from oneblockhigher/west; arrivedvein vicinity. Plan look35south10 attack45pure oneblock thenwatchinventory20 stationary, expect mine_iron_ore milestone ironore1 pick95 samepos. …',
+    8992: 'Step8992 MILESTONE mine_iron_ore VERIFIED7/24! pos(-2953.4,16,-5603.3) pitch35yaw0 HP17food17 pickdisplay96slot9 staleatbreak. Firstironbroken statsverified … planinterruptedatmilestone beforewatch. … priorlife1ep673 then-nowDONE8963: ironovergranite matchedvicinity from1higherwest. …'
   };
-  // What the agent said and ran (turns 1, 19, 20, 22 and 23).
+  var W_THEN = 'Ran then-now previous/life_1/episodes/ep_000673/observation/image.png';
+  var W_EXPECT = 'expect mine_iron_ore milestone';
+  // What the agent said and ran (turns 99 to 103, and turn 1).
   var T = {
-    t19: 'Follow two checked surface legs toward shallow iron, adjusting for our eastward offset. Stop before descending and inspect the approaching leaf wall.',
-    t20: 'Cross the visible clearing northwest, then approach the remembered iron descent. Stop to inspect the ground before digging; `actions.json` is ready.',
-    t22a: 'The three steps reached Y63 with six dirt collected and full health. The final turn shows the southern dirt wall; I’ll compare it with the recorded iron approach.',
-    tn: "./tools/episodes.py --then-now previous/life_2/episodes/ep_000255 --q 'Does this match the bottom of the three shallow steps, just north of iron?'",
-    tnOut: 'wrote then_now.png: THEN previous/life_2/episodes/ep_000255 | NOW. Q: Does this match the bottom of the three shallow steps, just north of iron?. View it with view_image.',
-    rg: "rg -n 'iron|Iron' mine/digest.md | head -15",
-    t22b: 'The position matches; I’ll open the cell beside iron.',
-    patchW: "apply_patch <<'PATCH' … *** Update File: mine/working.md",
-    t22c: 'Open one level cell south, then mine west toward the recorded iron block using the stone pickaxe. Stop at the ore break and inspect before collecting it.',
-    patchA: "apply_patch <<'PATCH' … *** Add File: actions.json",
-    acts: '+{"procedure": "look_abs", "args": {"yaw": 0, "pitch": 0, "ticks": 10}},\n+{"action": {"attack": 1}, "repeat": 35},\n+…\n+{"procedure": "look_abs", "args": {"yaw": 90, "pitch": 70, "ticks": 10}},\n+{"action": {"attack": 1}, "repeat": 50}',
-    actsOut: '12 entries; 257 nominal ticks',
-    t23: 'Iron mining is verified at the predicted position, with full health and four more dirt.',
-    t1a: 'This is the initial view: full health, empty inventory, and nearby trees. I\u2019ll read the workshop instructions and install safety reflexes before gathering wood.',
-    t1: 'Earlier runs found diamonds, but one died near Piglins. I’m preserving those locations and adding damage, lava, fall, and hunger guards.',
-    cat: 'cat previous/life_1/mine/working.md previous/life_1/mine/notes.md; cat previous/life_2/mine/digest.md previous/life_2/mine/working.md',
-    test: "python - <<'PY'\nimport ast\nimport json\n…",
-    testOut: 'west_stairs validated: 379 nominal ticks\nwest_level validated: 296 nominal ticks'
+    t99: 'Equip the fresh pickaxe and mine two blocks ahead while stationary. Inspect the exposed landing before moving.',
+    t100: 'Enter the inspected landing and collect the drop. Raise the view to inspect the next wall.',
+    t101: 'Descended one block and collected the drop as expected; the view now shows a close solid wall. Cut one descending step south toward the remembered iron. Inspect the newly exposed blocks before turning east.',
+    t102a: 'The step matched exactly, and the newly exposed upper face has iron-colored speckles. I’ll aim at that face and mine it to verify the iron milestone.',
+    tn: "python tools/episodes.py --then-now previous/life_1/episodes/ep_000673/observation/image.png --out /tmp/iron_then_now.png --q 'Does the exposed iron over granite match the remembered iron vein, approached one block higher and west?'",
+    tnOut: 'wrote /tmp/iron_then_now.png: THEN previous/life_1/episodes/ep_000673/observation/image.png | NOW. Q: Does the exposed iron over granite match the remembered iron vein, approached one block higher and west?. View it with view_image.',
+    writeW: "python - <<'PY' … Path('mine/working.md').write_text('Step8963 …",
+    writeA: "python - <<'PY' … Path('actions.json').write_text(json.dumps({'actions':[",
+    acts: "{'procedure':'look_abs','args':{'pitch':35,'yaw':0,'ticks':10}},\n{'action':{'attack':1},'repeat':45},\n{'procedure':'watch','args':{'until':'inventory','n':20}}",
+    t102b: 'The descent matched; iron is now visible above granite, consistent with the remembered vein. Aim at the iron face and mine one block while stationary. Wait briefly for its drop.',
+    t103: 'Iron mining verified—7/24 milestones. The view still shows the breaking iron face; pickup and durability have not updated.',
+    t1a: 'This is the initial view: full health, empty inventory, and spruce trees ahead. I’ll read the workshop instructions, inspect inherited scripts and earlier resource locations, and install the safety reflexes. Then I’ll start gathering wood from the nearby trees.',
+    t1: 'The earlier life found iron and a four-diamond vein, but lost its tools after stepping off a tunnel edge into lava. I’ll record those resource locations, retain its safer lava stop, and disable the tunnel procedure implicated in that fall.',
+    cat: 'cat previous/life_1/mine/working.md previous/life_1/mine/notes.md previous/life_1/mine/pre_death_46291.md previous/scripts.md; …',
+    q: "./tools/episodes.py --previous --tag milestone --q 'Where did the earlier life find iron and diamonds?'",
+    qOut: "…\nep_000673  steps 18201-18231  tags=milestone,inventory_changed,note pos=(-2952.7,-5603.4)  action=aim_speckles  … milestone ['mine_iron_ore']  …  -> previous/life_1/episodes/ep_000673/\n…",
+    shop: "python - <<'PY'\n…\np=Path('mine/procedures/level_step.py')\np.rename(p.with_name('_level_step.py'))\nPath('mine/GUIDE.md').write_text('''# World guide — workshop, life 2\n…",
+    shopOut: 'Created actions.json: 4 entries, 221 maximum raw ticks. Workshop guide and working memory saved; four reflexes active.'
   };
 
   // ------------------------------------------------------------------ the parts
@@ -167,11 +161,11 @@
     im.alt = '';
     im.title = 'The newest frame, which the agent sees as its turn begins';
     p.appendChild(im);
-    p.appendChild(document.createTextNode(text + ' \u00b7 newest frame'));
+    p.appendChild(document.createTextNode(text + ' · newest frame'));
     return p;
   }
   function clock(html) { $('.mf-clock').innerHTML = html; }
-  function stepClock(step) { clock('Life 3 &middot; step <b>' + num(step) + '</b>'); }
+  function stepClock(step) { clock('Life 2 &middot; step <b>' + num(step) + '</b>'); }
   function peek(kind, html) { fig.querySelector('[data-peek="' + kind + '"]').innerHTML = html; }
   // a note with some of its text marked; marks are [text, class] pairs
   function noteHTML(text, marks) {
@@ -181,9 +175,9 @@
     });
     return html.replace(/\n/g, '<br>');
   }
-  function digest(mark) {
-    var marks = mark === 'line' ? [[DIGEST_IRON, 'mark']] : mark === 'cite' ? [['ep_000266', 'mark'], ['Revisited successfully in life_2', 'mark']] : [];
-    return noteHTML(DIGEST_HEAD + DIGEST_IRON, marks);
+  function guide(mark) {
+    var marks = mark === 'line' ? [[GUIDE_IRON, 'mark']] : mark === 'cite' ? [[GUIDE_CITE, 'mark']] : [];
+    return noteHTML(GUIDE_HEAD + GUIDE_IRON, marks);
   }
   function working(step, marks) { return noteHTML(W[step], marks); }
   // a row of an index: id, steps, summary
@@ -191,7 +185,7 @@
     return '<div class="' + (cls || '') + '" title="' + esc('ep_' + r[0] + '  steps ' + r[1] + '-' + r[2] + '  ' + r[3]) + '">' +
       '<span>ep_' + r[0] + '</span><span>' + r[1] + '&ndash;' + r[2] + '</span><span>' + esc(r[3]) + '</span></div>';
   }
-  // life 3's index as it stood at `step`: the newest rows, the ones new since the last call marked
+  // life 2's index as it stood at `step`: the newest rows, the ones new since the last call marked
   function ownRows(step, animate, hit) {
     var all = Object.keys(EP).sort().filter(function (id) { return EP[id][1] <= step; });
     var shown = all.slice(-6);
@@ -203,18 +197,22 @@
     S.rows = all;
     peek('episodic', html);
   }
-  function lifeTwoRows(hit) {
-    peek('episodic', '<p class="mf-sub">previous/life_2/index.jsonl</p>' +
-      PREV2.map(function (r) { return rowHTML(r, r[0] === hit ? 'hit' : ''); }).join(''));
+  function lifeOneRows(hit) {
+    peek('episodic', '<p class="mf-sub">previous/index.jsonl &middot; life 1</p>' +
+      PREV1.map(function (r) { return rowHTML(r, r[0] === hit ? 'hit' : ''); }).join(''));
   }
 
   // the actions of a turn under the frame: done, the one the environment is executing, still to come.
   // `cur` is the episode being executed, null when the list is just written, 'all' when it has run.
+  // An entry { skip: label } was written but never executed.
   function queue(turn, cur) {
     var ids = QUEUE[turn], k = ids.indexOf(cur), n = ids.length;
-    var state = cur === 'all' ? 'all ' + n + ' executed' : k < 0 ? n + ' written' : 'executing ' + (k + 1) + ' of ' + n;
+    var ran = ids.filter(function (id) { return typeof id === 'string'; }).length;
+    var state = cur === 'all' ? (ran < n ? ran + ' of ' + n + ' executed' : 'all ' + n + ' executed')
+      : k < 0 ? n + ' written' : 'executing ' + (k + 1) + ' of ' + n;
     $('.mf-run').innerHTML = '<p class="mf-q-h"><span>actions.json, turn ' + turn + '</span><span>' + state + '</span></p>' +
       '<ol class="mf-q">' + ids.map(function (id, j) {
+        if (typeof id !== 'string') return '<li title="written, never executed">' + esc(id.skip.split('(')[0]) + '</li>';
         var cls = cur === 'all' || (k >= 0 && j < k) ? 'done' : j === k ? 'now' : '';
         return '<li class="' + cls + '" title="ep_' + id + ', steps ' + EP[id][0] + '-' + EP[id][1] + '">' +
           esc(EP[id][5].split(' -> ')[0].split(': ')[0]) + '</li>';
@@ -228,15 +226,17 @@
     return null;
   }
 
-  // the environment: two images, so that a new frame can fade in over the old one
-  function frame(id, instant) {
+  // the environment: two images, so that a new frame can fade in over the old one.
+  // `ran` shows the list that led to this frame as executed, instead of the frame's own action
+  // (the first frame of a turn the agent has not taken yet).
+  function frame(id, instant, ran) {
     var e = EP[id], src = FRAMES + 'ep_' + id + '.jpg';
     S.want = id;
     stepClock(e[0]);
     $('.mf-pos').innerHTML = '<span>state</span>x ' + coord(e[2]) + ' &nbsp;y ' + coord(e[3]) + ' &nbsp;z ' + coord(e[4]);
     // the frame an action is decided from: that action is the one being executed; past the list's end
     // (the first frame of the next turn), the list has all run
-    if (turnOf(id)) queue(turnOf(id), id);
+    if (turnOf(id) && !ran) queue(turnOf(id), id);
     else if (S.queue) queue(S.queue, 'all');
     map.walk(e[0], e[2], e[4]);
     var cur = imgs[S.front], next = imgs[1 - S.front];
@@ -260,25 +260,24 @@
     tn.hidden = kind !== 'thennow';
     Array.prototype.forEach.call(screen.querySelectorAll('.mf-toast, .mf-lives'), function (n) { n.remove(); });
     if (kind === 'thennow') {
-      var r = PREV2[3];
-      $('.mf-tn-row').innerHTML = 'ep_' + r[0] + '<br>steps ' + num(r[1]) + '&ndash;' + num(r[2]) + '<br>(&minus;3028.7, 63, &minus;5580.7)';
-      tn.querySelector('.now img').src = FRAMES + 'ep_000222.jpg';
+      tn.querySelector('.then img').src = THEN;
+      tn.querySelector('.now img').src = FRAMES + 'ep_000459.jpg';
     }
     if (kind === 'toast') {
-      screen.insertAdjacentHTML('beforeend', '<div class="mf-toast"><i class="ico" style="--i:5" aria-hidden="true"></i>Iron ore &middot; step 4,231</div>');
+      screen.insertAdjacentHTML('beforeend', '<div class="mf-toast"><i class="ico" style="--i:5" aria-hidden="true"></i>Iron ore &middot; step 8,992</div>');
     }
     if (kind === 'lives') {
       screen.insertAdjacentHTML('beforeend',
-        '<div class="mf-lives"><p>First iron ore, all three at this block</p>' +
-        [['Life 1', 5325, '--life-1'], ['Life 2', 5033, '--life-2'], ['Life 3', 4231, '--life-3']].map(function (l) {
-          return '<div class="bar" style="--w:' + (l[1] / 5600 * 100).toFixed(1) + '%;--c:var(' + l[2] + ')"><span>' + l[0] +
+        '<div class="mf-lives"><p>First iron ore, both from this vein</p>' +
+        [['Life 1', 18231, '--life-1'], ['Life 2', 8992, '--life-2']].map(function (l) {
+          return '<div class="bar" style="--w:' + (l[1] / 19000 * 100).toFixed(1) + '%;--c:var(' + l[2] + ')"><span>' + l[0] +
             '</span><span><i></i></span><em>step ' + num(l[1]) + '</em></div>';
         }).join('') +
-        '<p>episodes carried in: 0, 1,170 and 3,957</p></div>');
+        '<p>episodes carried in: 0 and 3,035</p></div>');
     }
   }
 
-  // the map: the cells walked so far, the routes of the earlier lives, the vein and the agent
+  // the map: the cells walked so far, the route of the earlier life, the vein and the agent
   var map = (function () {
     var NS = 'http://www.w3.org/2000/svg', svg = $('.mf-map');
     function el(name, attrs, parent) {
@@ -289,19 +288,20 @@
     }
     var pts = function (list) { return list.map(function (p) { return p[0] + ',' + p[1]; }).join(' '); };
     var r1 = el('polyline', { class: 'r1', points: pts(ROUTE1) });
-    var r2 = el('polyline', { class: 'r2', points: pts(ROUTE2) });
+    var r1Text = el('text', { x: -2931, y: -5606, 'text-anchor': 'end' });
+    r1Text.textContent = 'life 1';
     var cells = TRAIL.map(function (c) {
-      var r = el('rect', { class: 'cell', x: c[0] + 0.08, y: c[1] + 0.08, width: 0.84, height: 0.84 });
+      var r = el('rect', { class: 'cell', x: c[0], y: c[1], width: 1, height: 1 });
       r.step = c[2];
       return r;
     });
     var cx = IRON[0] + 0.5, cz = IRON[1] + 0.5;
-    var iron = el('polygon', { class: 'iron', points: [cx, cz - 0.9, cx + 0.9, cz, cx, cz + 0.9, cx - 0.9, cz].join(' ') });
-    var ironText = el('text', { x: cx - 0.4, y: cz + 2.6, 'text-anchor': 'middle' });
+    var iron = el('polygon', { class: 'iron', points: [cx, cz - 2.6, cx + 2.6, cz, cx, cz + 2.6, cx - 2.6, cz].join(' ') });
+    var ironText = el('text', { x: cx, y: cz + 7.6, 'text-anchor': 'middle' });
     ironText.textContent = 'iron';
-    var spawn = el('text', { x: -3009.5, y: -5574.4, 'text-anchor': 'middle' });
+    var spawn = el('text', { x: -3009.5, y: -5576, 'text-anchor': 'middle' });
     spawn.textContent = 'spawn';
-    var me = el('circle', { class: 'me', r: 0.75, cx: -3025.7, cy: -5580.2 });
+    var me = el('circle', { class: 'me', r: 2, cx: -2953.4, cy: -5605.4 });
     return {
       walk: function (step, x, z) {
         cells.forEach(function (c) { c.style.display = c.step <= step ? '' : 'none'; });
@@ -309,8 +309,7 @@
         me.setAttribute('cx', x); me.setAttribute('cy', z);
       },
       routes: function (lives) {
-        r1.style.display = lives.indexOf(1) >= 0 ? '' : 'none';
-        r2.style.display = lives.indexOf(2) >= 0 ? '' : 'none';
+        r1.style.display = r1Text.style.display = lives.indexOf(1) >= 0 ? '' : 'none';
       },
       iron: function (state) {
         iron.style.display = ironText.style.display = state ? '' : 'none';
@@ -332,144 +331,153 @@
     {
       key: 'record',
       parts: ['game', 'l-record', 'episodic', 'spatial'],
-      caption: '<b>1 Record.</b> The environment executes the agent\u2019s actions one at a time. For each one ' +
-        'the harness files an episode: the frame the action was decided from, the agent\u2019s position, health ' +
+      caption: '<b>1 Record.</b> The environment executes the agent’s actions one at a time. For each one ' +
+        'the harness files an episode: the frame the action was decided from, the agent’s position, health ' +
         'and inventory, the action and its outcome. Each episode gets a row of cues in <code>index.jsonl</code>, ' +
-        'and the cells the agent crosses go into <code>grid.jsonl</code>. These records are never edited.',
+        'and the cells the agent crosses go into <code>grid.jsonl</code>. These records are never edited. ' +
+        'Here the agent is underground at y 18, digging down toward the iron its first life found.',
       start: function () {
-        frame('000184', true);
-        ownRows(3656, false);
+        frame('000452', true);
+        ownRows(8833, false);
         map.routes([]); map.iron(null);
-        peek('semantic', digest()); peek('procedural', noteHTML(PROCS)); peek('working', working(3656));
-        turnHead('turn 19 \u00b7 step 3,656', '000184'); say('m', T.t19);
+        peek('semantic', guide()); peek('procedural', noteHTML(PROCS)); peek('working', working(8833));
+        turnHead('turn 99 · step 8,833', '000452'); say('m', T.t99);
       },
-      beats: frames(['000185', '000186', '000188', '000189'], 600, 680, function (id, instant) { ownRows(EP[id][0], !instant); })
-        .concat([[3360, function (instant) {
-          frame('000191', instant); ownRows(3770, !instant);
-          turnHead('turn 20 \u00b7 step 3,770', '000191'); say('m', T.t20, instant, 75);
-          peek('working', working(3770));
-        }]])
-        .concat(frames(['000192', '000193', '000194', '000195', '000196'], 4500, 680, function (id, instant) { ownRows(EP[id][0], !instant); })),
+      beats: frames(['000453', '000454', '000455', '000456'], 600, 620, function (id, instant) { ownRows(EP[id][0], !instant); })
+        .concat([[3100, function (instant) {
+          frame('000457', instant); ownRows(8871, !instant);
+          turnHead('turn 100 · step 8,871', '000457'); say('m', T.t100, instant, 75);
+          peek('working', working(8871));
+        }], [4700, function (instant) {
+          frame('000458', instant); ownRows(8890, !instant);
+          turnHead('turn 101 · step 8,890', '000458'); say('m', T.t101, instant, 90);
+          peek('working', working(8890));
+        }], [7000, function (instant) {
+          frame('000459', instant, true); ownRows(8963, !instant);
+        }]]),
       length: 7300
     },
     {
       key: 'retrieve',
       parts: ['agent', 'l-query', 'episodic', 'semantic', 'previous', 'game'],
-      caption: '<b>2 Retrieve.</b> Each turn begins with the newest frame. At step 4,097 the agent has dug three ' +
-        'stairs down toward the vein. Before digging further, it searches its memory: it puts life 2\u2019s frame of ' +
-        'this spot beside the live view (<code>--then-now</code>) and looks up its note on the vein. Life 2\u2019s ' +
-        'frames are not part of this page\u2019s data, so that episode appears as its index row.',
+      caption: '<b>2 Retrieve.</b> Each turn begins with the newest frame. At step 8,963 the stair the agent ' +
+        'just cut has exposed iron-colored speckles. Before mining, it searches its memory: it puts life 1’s ' +
+        'frame of the vein, the one its guide cites, beside the live view (<code>--then-now</code>) and checks ' +
+        'that the two show the same place.',
       start: function () {
-        frame('000222', true);
-        map.routes([2]); map.iron('ring');
+        frame('000459', true, true);
+        map.routes([1]); map.iron('ring');
         idle();
-        lifeTwoRows(null);
-        peek('semantic', digest()); peek('procedural', noteHTML(PROCS)); peek('working', working(3844));
-        $('.mf-prev [data-life="2"]').classList.add('hit');
-        turnHead('turn 20 \u00b7 step 3,770', '000191'); say('m', T.t20);
+        lifeOneRows(null);
+        peek('semantic', guide()); peek('procedural', noteHTML(PROCS)); peek('working', working(8890));
+        $('.mf-prev [data-life="1"]').classList.add('hit');
+        turnHead('turn 101 · step 8,890', '000458'); say('m', T.t101);
       },
       beats: [
-        [0, function (instant) { turnHead('turn 22 \u00b7 step 4,097', '000222'); say('m', T.t22a, instant, 80); }],
-        [2300, function (instant) { say('c', T.tn, instant, 120); }],
-        [3700, function () { say('o', T.tnOut); lifeTwoRows('000255'); overlay('thennow'); }],
-        [4900, function (instant) { say('c', T.rg, instant, 120); }],
-        [5500, function () { peek('semantic', digest('line')); }],
-        [6200, function (instant) { say('m', T.t22b, instant, 80); }]
+        [0, function (instant) { turnHead('turn 102 · step 8,963', '000459'); say('m', T.t102a, instant, 80); }],
+        [2300, function (instant) { say('c', T.tn, instant, 140); }],
+        [4100, function () { say('o', T.tnOut); lifeOneRows('000673'); overlay('thennow'); }],
+        [5300, function () { peek('semantic', guide('line')); }]
       ],
-      length: 6900
+      length: 6600
     },
     {
       key: 'consolidate',
       parts: ['agent', 'l-write', 'semantic', 'procedural', 'working'],
-      caption: '<b>3 Consolidate.</b> What the agent learns goes into files it writes itself: facts in ' +
-        '<code>digest.md</code>, procedures it can call as actions, and the plan in <code>working.md</code>. ' +
-        'Each entry cites its evidence; the note on the vein cites the life-1 episode where the vein was found. ' +
-        'Here the agent rewrites its plan, naming the life-2 episode it just compared and where it expects the iron.',
+      caption: '<b>3 Consolidate.</b> What the agent learns goes into files it writes itself: places and facts in ' +
+        '<code>GUIDE.md</code>, procedures it can call as actions, and the plan in <code>working.md</code>. ' +
+        'Each entry cites its evidence; the guide’s line on the vein names the life-1 frame to open. ' +
+        'Here the agent rewrites its plan, naming the frame it just compared and the milestone it expects.',
       start: function () {
-        frame('000222', true);
-        map.routes([2]); map.iron('ring');
+        frame('000459', true, true);
+        map.routes([1]); map.iron('ring');
         idle();
-        lifeTwoRows('000255');
-        peek('semantic', digest()); peek('procedural', noteHTML(PROCS)); peek('working', working(3844));
-        turnHead('turn 22 \u00b7 step 4,097', '000222'); say('m', T.t22a); say('c', T.tn); say('o', T.tnOut);
-        say('c', T.rg); say('m', T.t22b);
+        lifeOneRows('000673');
+        peek('semantic', guide()); peek('procedural', noteHTML(PROCS)); peek('working', working(8890));
+        turnHead('turn 102 · step 8,963', '000459'); say('m', T.t102a); say('c', T.tn); say('o', T.tnOut);
       },
       beats: [
-        [0, function (instant) { say('c', T.patchW, instant, 120); }],
+        [0, function (instant) { say('c', T.writeW, instant, 120); }],
         [900, function (instant) {
           var box = fig.querySelector('[data-peek="working"]');
-          type(box, W[4097], instant, 150, function () {
-            box.innerHTML = working(4097, [['Expect mine_iron_ore milestone7/24 at(-3028.70,63,-5579.53)', 'mark'], ['life2ep255', 'mark']]);
+          type(box, W[8963], instant, 170, function () {
+            box.innerHTML = working(8963, [[W_THEN, 'mark'], [W_EXPECT, 'mark']]);
           });
-          say('p', '+# Current plan — step4097');
+          say('p', 'Step8963 … IRON VISIBLE upperface directlysouth above granitefloor!');
         }],
-        [1900, function (instant) { say('p', '+- Immediate: … reachesiron. … Expect mine_iron_ore milestone7/24 at(-3028.70,63,-5579.53) …', instant, 140); }],
-        [3300, function (instant) { say('p', '+- Step4097 exactmatch: … Comparison life2ep255 generatedandVIEWED4097: positionalmatchwithin.06z …', instant, 140); }],
-        [4700, function () { peek('semantic', digest('cite')); }],
-        [5400, function (instant) { say('m', T.t22c, instant, 85); }]
+        [1900, function (instant) { say('p', W_THEN + ' … consistentironovergranite from oneblockhigher/west; arrivedvein vicinity.', instant, 150); }],
+        [3500, function (instant) { say('p', 'Plan look35south10 attack45pure oneblock thenwatchinventory20 stationary, expect mine_iron_ore milestone …', instant, 150); }],
+        [5000, function () { peek('semantic', guide('cite')); }]
       ],
-      length: 7200
+      length: 6000
     },
     {
       key: 'act',
       parts: ['agent', 'l-read', 'l-act', 'game', 'working'],
       caption: '<b>4 Act.</b> The turn ends with a short list of actions. The environment executes them and the ' +
-        'harness records each one, which is stage 1 again. The plan from step 4,097 expected the iron at ' +
-        '(&minus;3028.7, 63, &minus;5579.5); at step 4,231 the agent mined it there.',
+        'harness records each one, which is stage 1 again. The plan from step 8,963 expected the iron ' +
+        'milestone from one swing at the exposed face; at step 8,992 the agent had it. The milestone ended ' +
+        'the list, so the third action never ran.',
       start: function () {
-        frame('000222', true);
-        map.routes([2]); map.iron('ring');
+        frame('000459', true, true);
+        map.routes([1]); map.iron('ring');
         idle();
-        ownRows(4097, false);
-        peek('semantic', digest()); peek('procedural', noteHTML(PROCS));
-        peek('working', working(4097, [['Expect mine_iron_ore milestone7/24 at(-3028.70,63,-5579.53)', 'mark']]));
-        turnHead('turn 22 \u00b7 step 4,097', '000222'); say('m', T.t22b); say('c', T.patchW); say('m', T.t22c);
+        ownRows(8963, false);
+        peek('semantic', guide()); peek('procedural', noteHTML(PROCS));
+        peek('working', working(8963, [[W_EXPECT, 'mark']]));
+        turnHead('turn 102 · step 8,963', '000459'); say('c', T.tn); say('c', T.writeW);
       },
       beats: [
-        [0, function (instant) { say('c', T.patchA, instant, 120); }],
-        [700, function (instant) { say('p', T.acts, instant, 260); queue(22, null); }],
-        [1900, function () { say('o', T.actsOut); }]
-      ].concat(frames(['000223', '000225', '000227', '000229', '000231', '000233'], 2400, 560, function (id, instant) { ownRows(EP[id][0], !instant); }))
-        .concat([[5900, function (instant) {
-          frame('000234', instant); ownRows(4231, !instant, '000233');
+        [0, function (instant) { say('c', T.writeA, instant, 120); }],
+        [700, function (instant) { say('p', T.acts, instant, 260); queue(102, null); }],
+        [1900, function (instant) { say('m', T.t102b, instant, 95); }],
+        [4000, function (instant) { frame('000459', instant); }],
+        [4600, function (instant) { frame('000460', instant); ownRows(8964, !instant); }],
+        [5700, function (instant) {
+          frame('000461', instant, true); ownRows(8992, !instant, '000460');
           overlay('toast'); map.iron('got');
-        }], [6600, function (instant) {
-          turnHead('turn 23 \u00b7 step 4,231', '000234'); say('m', T.t23, instant, 80);
-          peek('working', working(4231, [['7/24: mine_iron_ore verified4231', 'ok']]));
-        }]]),
-      length: 7700
+        }],
+        [6400, function (instant) {
+          turnHead('turn 103 · step 8,992', '000461'); say('m', T.t103, instant, 80);
+          peek('working', working(8992, [['MILESTONE mine_iron_ore VERIFIED7/24!', 'ok']]));
+        }]
+      ],
+      length: 7600
     },
     {
       key: 'carry',
       parts: ['game', 'previous', 'episodic', 'semantic', 'procedural', 'working', 'agent'],
       caption: '<b>5 Carry over.</b> When a life ends, its records and the agent’s files pass on to the next life ' +
-        'under <code>previous/</code>, in the same world and with the same model. Life 3 began by reading ' +
-        'them and testing the two procedures it kept from life 2. All three lives mined their first iron at ' +
-        'this block, each sooner than the one before.',
+        'under <code>previous/</code>, in the same world and with the same model. Life 2 began by reading ' +
+        'them: it asked the earlier life’s index where iron and diamonds were found, wrote those places ' +
+        'into its guide with the frames to open, and retired the procedure implicated in life 1’s death. ' +
+        'It mined its first iron at step 8,992, where life 1 needed 18,231.',
       start: function () {
         var cur = imgs[S.front];
         cur.src = FRAMES + 'ep_000000.jpg'; cur.style.opacity = 1; imgs[1 - S.front].style.opacity = 0;
         S.want = null;
-        clock('Lives 1 to 3');
-        $('.mf-pos').innerHTML = '<span>world</span>the same world and spawn in every life';
+        clock('Lives 1 and 2');
+        $('.mf-pos').innerHTML = '<span>world</span>the same world and spawn in both lives';
         $('.mf-run').textContent = ''; S.queue = null;
-        map.walk(5000, 0, 0); map.hideMe(); map.routes([1, 2]); map.iron('got');
-        peek('episodic', '<p class="mf-sub">previous/</p><div><span>life_1/index.jsonl</span><span>1,170 rows</span></div>' +
-          '<div><span>life_2/index.jsonl</span><span>2,787 rows</span></div><p class="mf-sub">and this life’s own index.jsonl</p>');
-        peek('semantic', digest()); peek('procedural', noteHTML(PROCS));
-        peek('working', working(4231));
+        map.walk(9010, 0, 0); map.hideMe(); map.routes([1]); map.iron('got');
+        peek('episodic', '<p class="mf-sub">previous/</p><div><span>life_1/index.jsonl</span><span>3,035 rows</span></div>' +
+          '<p class="mf-sub">and this life’s own index.jsonl</p>');
+        peek('semantic', guide()); peek('procedural', noteHTML(PROCS));
+        peek('working', working(8992));
         $$('.mf-prev [data-life]').forEach(function (n) { n.classList.add('hit'); });
         overlay('lives');
-        turnHead('life 3, turn 1 \u00b7 step 0', '000000'); say('m', T.t1a);
+        turnHead('life 2, turn 1 · step 0', '000000'); say('m', T.t1a);
       },
       beats: [
-        [0, function (instant) { say('m', T.t1, instant, 80); }],
-        [300, function () { bars(0); }], [900, function () { bars(1); }], [1500, function () { bars(2); }],
-        [2600, function (instant) { say('c', T.cat, instant, 130); }],
-        [4000, function (instant) { say('c', T.test, instant, 130); }],
-        [4900, function () { say('o', T.testOut); }]
+        [300, function () { bars(0); }], [900, function () { bars(1); }],
+        [1200, function (instant) { say('c', T.cat, instant, 140); }],
+        [2400, function (instant) { say('c', T.q, instant, 140); }],
+        [3400, function () { say('o', T.qOut); }],
+        [4200, function (instant) { say('m', T.t1, instant, 95); }],
+        [6900, function (instant) { say('c', T.shop, instant, 160); }],
+        [8200, function () { say('o', T.shopOut); peek('semantic', guide('line')); }]
       ],
-      length: 5600
+      length: 8900
     }
   ];
   function bars(k) {
@@ -538,6 +546,7 @@
   run(0, 'still');
   var preload = function () {
     Object.keys(EP).concat(['000000']).forEach(function (id) { new Image().src = FRAMES + 'ep_' + id + '.jpg'; });
+    new Image().src = THEN;
     preload = function () {};
   };
   if ('IntersectionObserver' in window) {

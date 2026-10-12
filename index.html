@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=16">
+  <link rel="stylesheet" href="assets/css/style.css?v=18">
   <link rel="stylesheet" href="assets/css/demo.css?v=16">
   <link rel="stylesheet" href="assets/css/kicad.css?v=1">
 </head>
@@ -192,16 +192,19 @@
 
 <!-- ============================ II. HOW AGENTS REMEMBER ============================ -->
 <!-- Four designs of agent memory, each card with the same rows. The picture in each is the same
-     eight frames of the explorer's Ender Dragon run (assets/img/strip.jpg, tiles 0 2 3 5 6 7 9 11 of
-     its twelve: steps 0 to 10,003), with the iron ore (tile 6, ep_000241 at step 4,290) marked. The
-     note in the second card quotes three places from that run's mine/digest.md. -->
+     eight frames of the explorer's Ender Dragon chain (assets/img/strip_l2.jpg, tiles 0 2 3 5 6 7 9 11
+     of its twelve: six of life 1, gpt6_dragon_fresh, at steps 0, 1,600, 6,294, 12,510, 18,201 and
+     34,302, then two of life 2, gpt6_dragon_l2_36k, at steps 3,598 and 8,833), with the iron vein
+     (tile 6, life 1's ep_000673 at step 18,201) marked. The note in the second card quotes three
+     places from life 2's mine/GUIDE.md. -->
 <section class="section" id="evolution">
   <div class="wrap">
     <h2><span class="num">II</span>How agents remember</h2>
     <p>
       Agent memory has gone through a few designs, each recovering something the one before it
-      lost. We compare them on one question from our runs: early on, the agent walks past a shallow
-      iron vein, and thousands of steps later it needs iron. Where was the vein?
+      lost. We compare them on one question from our runs: in its first life, the agent finds an iron
+      vein deep underground, and tens of thousands of steps later, in its next life, it needs iron
+      again. Where was the vein?
     </p>
   </div>
   <div class="wrap wide">
@@ -222,7 +225,7 @@
         <p class="evo-row"><b>Keeps</b>The last few frames and messages.</p>
         <p class="evo-row"><b>Finds things by</b>Reading its prompt.</p>
         <p class="evo-row"><b>Loses</b>Everything older than the window.</p>
-        <p class="evo-row iron"><b>The iron vein</b>Gone. It left the window thousands of steps ago.</p>
+        <p class="evo-row iron"><b>The iron vein</b>Gone. It left the window tens of thousands of steps ago.</p>
       </li>
       <li class="evo-card">
         <div class="evo-head">
@@ -235,7 +238,7 @@
             <i class="gone" style="--k:0"></i><i class="gone" style="--k:2"></i><i class="gone" style="--k:3"></i><i class="gone" style="--k:5"></i>
             <i class="gone" style="--k:6"></i><i class="gone" style="--k:7"></i><i class="gone" style="--k:9"></i><i class="gone" style="--k:11"></i>
           </div>
-          <div class="tape-note"><b>notes</b>Shallow iron (-3028.7,63,-5579.3)<br>Water shore (-3021.4,67,-5585.7)<br>Lava hazard (-3217,11,-5576.3)</div>
+          <div class="tape-note"><b>notes</b>Iron: player (-2952.7, 15, -5603.4)<br>Water fill: player x=-3013.7,z=-5591.3<br>Lava source near (-3039, 34, -5670)</div>
           <p class="tape-cap"><span>frames</span><span>replaced by words</span></p>
         </div>
         <p class="evo-row"><b>Keeps</b>What the agent put into words.</p>
@@ -254,7 +257,7 @@
             <i style="--k:0"></i><i style="--k:2"></i><i style="--k:3"></i><i style="--k:5"></i>
             <i style="--k:6"></i><i style="--k:7"></i><i style="--k:9"></i><i style="--k:11"></i>
           </div>
-          <p class="tape-cap"><span>turn 1</span><span>turn 66</span></p>
+          <p class="tape-cap"><span>life 1, step 0</span><span>life 2, step 8,833</span></p>
         </div>
         <p class="evo-row"><b>Keeps</b>Everything it saw.</p>
         <p class="evo-row"><b>Finds things by</b>Turn or frame number.</p>
@@ -306,9 +309,9 @@
       whole directory passes on to its next life.
     </p>
     <p>
-      The figure below replays about 600 steps of one run, the third life of a GPT-6-Astra chain on
-      Ender Dragon. The agent walks back to the iron vein its first life found and mines it at step
-      4,231, about 1,100 steps earlier than the first life did. Every frame, command and file line
+      The figure below replays about 160 steps of one run, the second life of a GPT-6-Astra agent on
+      Ender Dragon. The agent digs down to the iron vein its first life found and mines it at step
+      8,992; its first life did not reach iron until step 18,231. Every frame, command and file line
       in the figure comes from the run's record. Stages 1 to 4 make up one turn and repeat; stage 5
       comes when a life ends. The figure plays by itself, or click a stage to watch just that part.
     </p>
@@ -337,22 +340,22 @@
           </div>
         </div>
         <button type="button" class="mf-play" hidden>Pause</button>
-        <p class="mf-clock">Life 3 &middot; step <b>3,844</b></p>
+        <p class="mf-clock">Life 2 &middot; step <b>8,833</b></p>
       </div>
       <div class="mf-stage">
         <div class="mf-gcol">
           <div class="mf-panel mf-game" data-part="game">
             <p class="mf-h">Environment <span>Minecraft</span></p>
             <div class="mf-screen">
-              <img class="mf-f" src="assets/demo/of3m_mfm/frames/ep_000196.jpg" width="320" height="180"
-                   alt="The agent's view at step 3,844: a spruce trunk, with grass and a pond beyond it.">
+              <img class="mf-f" src="assets/demo/gpt6_dragon_l2_36k/frames/ep_000452.jpg" width="320" height="180"
+                   alt="The agent's view at step 8,833: the stone wall of the stair it is digging underground.">
               <img class="mf-f" width="320" height="180" alt="" style="opacity:0">
             </div>
-            <p class="mf-pos"><span>state</span>x &minus;3025.7 &nbsp;y 66 &nbsp;z &minus;5580.2</p>
+            <p class="mf-pos"><span>state</span>x &minus;2953.4 &nbsp;y 18 &nbsp;z &minus;5605.4</p>
             <div class="mf-run"></div>
             <div class="mf-tn" hidden>
-              <div class="then"><span class="lbl">THEN &middot; life 2</span><span class="mf-tn-row"></span></div>
-              <div class="now"><span class="lbl">NOW &middot; life 3</span><img width="320" height="180" alt=""></div>
+              <div class="then"><span class="lbl">THEN &middot; life 1, step 18,201</span><img width="320" height="180" alt="Life 1's frame of the iron vein: iron ore above a granite floor at the end of a tunnel."></div>
+              <div class="now"><span class="lbl">NOW &middot; life 2, step 8,963</span><img width="320" height="180" alt="The live view: iron ore exposed in the face of the stair."></div>
             </div>
           </div>
           <div class="mf-up" data-part="l-act" aria-hidden="true"></div>
@@ -365,17 +368,17 @@
           <p class="mf-cap"><b>Written by the harness</b> every step, never edited</p>
           <div class="mf-row two">
             <div class="mf-box episodic" data-part="episodic"><b>Episodic</b><code>episodes/ &middot; index.jsonl</code><div class="mf-peek mf-rows" data-peek="episodic">what happened, and what it looked like</div></div>
-            <div class="mf-box spatial" data-part="spatial"><b>Spatial</b><code>grid.jsonl</code><svg class="mf-map" viewBox="-3033 -5584 28 28" role="img" aria-label="The cells the agent has walked, the routes of the earlier lives, and the iron vein"></svg></div>
+            <div class="mf-box spatial" data-part="spatial"><b>Spatial</b><code>grid.jsonl</code><svg class="mf-map" viewBox="-3019 -5612 90 50" role="img" aria-label="The cells the agent has walked from its spawn, the tunnel of the earlier life, and the iron vein"></svg></div>
           </div>
           <p class="mf-cap"><b>Written by the agent</b> read every turn, revised as it learns</p>
           <div class="mf-row two-even">
-            <div class="mf-box semantic" data-part="semantic"><b>Semantic</b><code>mine/digest.md</code><div class="mf-peek mf-note" data-peek="semantic">facts and places</div></div>
+            <div class="mf-box semantic" data-part="semantic"><b>Semantic</b><code>mine/GUIDE.md</code><div class="mf-peek mf-note" data-peek="semantic">facts and places</div></div>
             <div class="mf-box procedural" data-part="procedural"><b>Procedural</b><code>mine/procedures/</code><div class="mf-peek mf-note" data-peek="procedural">procedures it can call as actions</div></div>
           </div>
           <div class="mf-row">
             <div class="mf-box working" data-part="working"><b>Working</b><code>mine/working.md</code><div class="mf-peek mf-note" data-peek="working">the plan for the next turns</div></div>
           </div>
-          <p class="mf-prev" data-part="previous"><code>previous/</code><span data-life="1">life_1/ &middot; 1,170 episodes</span><span data-life="2">life_2/ &middot; 2,787 episodes</span></p>
+          <p class="mf-prev" data-part="previous"><code>previous/</code><span data-life="1">life_1/ &middot; 3,035 episodes</span></p>
         </div>
         <div class="mf-link">
           <div class="mf-arrow both a-query" data-part="l-query"><span class="mf-line"></span><small>query,<br>evidence</small></div>
@@ -393,7 +396,7 @@
           Each turn goes through four stages: the harness records what happened, and the agent
           retrieves, consolidates and acts. When a life ends, the memory carries over to the next life.
         </p>
-        <a class="mf-open" href="#run=of3m_mfm&amp;step=4097&amp;left=working">Open step 4,097 in the explorer</a>
+        <a class="mf-open" href="#run=gpt6_dragon_l2_36k&amp;step=8963&amp;left=working">Open step 8,963 in the explorer</a>
       </div>
     </figure>
   </div>
@@ -423,7 +426,8 @@
       We picked three of our runs and replay each one together with its memory. Press Play: the
       run's video plays on the right while the memory on the left fills up. Each box is one kind of
       memory, in the figure's colors. Click a box or a file to read it as it was at that step, and
-      click it again to go back. The Ender Dragon run is the life from the figure above.
+      click it again to go back. The Ender Dragon run is the life from the figure above, which reached
+      16 of 24 milestones in 36,000 steps.
     </p>
     <details class="dx-fold dx-about">
       <summary>About this replay</summary>
@@ -724,7 +728,7 @@
   </div>
   <div class="wrap wide">
     <!-- TODO(authors): the callouts' steps do not all match the turns of the life whose staircase is
-         drawn (of3m_mfm: iron ore at step 4,231, while callout (d) says 6,565; no turn of of3m is at
+         drawn (of3m_mfm, the earlier explorer run: iron ore at step 4,231, while callout (d) says 6,565; no turn of of3m is at
          step 866, 1,777, 4,588 or 4,917). Confirm which life each callout comes from before the
          caption says more than it does now. -->
     <figure class="fig">
@@ -751,16 +755,16 @@
           shifted north. The next turn reads "Centering worked: Y68, two dirt collected".
         </figcaption>
       </figure>
-      <!-- The left half is life 1's ep_000231 (step 4,867, at -3024.7, 65, -5579.7), the life 1 the
-           explorer's Ender Dragon run carried: the way into the iron vein of the method figure. The
-           live half is a later life of another run in that world (iron at step 6,565; MFM-video README).
-           TODO(authors): name that run. -->
+      <!-- The left half is ep_000231 (step 4,867, at -3024.7, 65, -5579.7) of life 1 of the of3m chain,
+           the earlier explorer run: the way into a shallow iron vein, not the deep vein of the method
+           figure. The live half is a later life of another run in that world (iron at step 6,565;
+           MFM-video README). TODO(authors): name that run. -->
       <figure class="fig">
         <img src="assets/img/then_now_iron_entrance.png" width="1288" height="378" loading="lazy"
              alt="Then-now sheet: on the left a grass bank recorded in an earlier life at step 4867, on the right the live view of the same bank.">
         <figcaption>
           <strong>(d) Across lives.</strong> In another run in the same world, a later life set the live
-          grass bank beside life 1's frame of the way into the same iron vein: "The recorded entrance
+          grass bank beside its first life's frame of the way into a shallow iron vein: "The recorded entrance
           matches the live bank." It dug in and mined iron 427 steps later.
         </figcaption>
       </figure>
@@ -800,10 +804,13 @@
 </section>
 
 <!-- ============================ VII. SKILL LEARNING ============================ -->
-<!-- The skills are those of the explorer's Ender Dragon run (of3m_mfm, life 3 of the chain): the
-     quotes are its turns 173, 306 and 447, the guard is mine/procedures/west_level.py, the versions
-     are the patches in its record, and the calls of lives 1 and 2 are counted from the index life 3
-     carried in (action_kind). -->
+<!-- The skills are those of the explorer's Ender Dragon run (gpt6_dragon_l2_36k, life 2 of the chain;
+     life 1 is gpt6_dragon_fresh): the quote is its turn 468 (turns 345 and 452 say the same of two
+     other skills), the guard is mine/procedures/descend_one.py, the retirement of level_step is in
+     turn 1 (mine/GUIDE.md), "written" is the step of the turn whose command first wrote the file, and
+     the calls are counted from the two lives' index rows (action_kind): 252 in life 1, 301 in life 2.
+     The harness's own count for life 2 is 303 (cut_step 62, descend_one 3). aim_speckles is the
+     example in skills/procedures/scripts, which both lives copied into mine/procedures. -->
 <section class="section" id="improve">
   <div class="wrap">
     <h2><span class="num">VII</span>Self-improvement through skill learning</h2>
@@ -812,88 +819,115 @@
       down. Part of that is facts, such as where the iron is. The other part is skills: when a
       sequence of actions has worked, the agent saves it as a script under
       <code>mine/procedures/</code> and from the next turn calls it like any built-in action. When a
-      life ends, we pass its records and these files on to the next life in the same world. We
-      followed one chain of three lives with GPT-6-Astra; the third life is the one in the figure
-      above and in the explorer.
+      life ends, we pass its records and these files on. This section follows the skills in three
+      steps: how one life writes them, what the next life in the same world gains from them, and
+      what happens when they are handed to an agent on a new task in a new world.
+    </p>
+
+    <h3>How a skill is written</h3>
+    <p>
+      We followed one chain of two lives with GPT-6-Astra on the Ender Dragon task; the second life
+      is the one in the figure above and in the explorer.
     </p>
     <div class="hard">
       <div>
         <h3>Saved after it works</h3>
-        <p>No skill is installed for the agent. Life 3 put out fires by hand before keeping the
-        method: "Since this method has worked twice, I'll save it as a reusable procedure."</p>
+        <p>The agent writes a skill only after doing the thing by hand. Life 2 cleared a stone wall
+        twice before keeping the method: "Save the clearing sequence after its second successful
+        trial."</p>
       </div>
       <div>
         <h3>Guarded by its own checks</h3>
-        <p>Each script first reads the game state and refuses to run where it was not tested.
-        <code>west_level</code> stops with "Requires closed GUI and health at least eighteen".</p>
+        <p>Each script first reads the game state and does nothing where it was not tested.
+        <code>descend_one</code> returns no actions unless the inventory screen is closed and the
+        camera is at pitch 60.</p>
       </div>
       <div>
         <h3>Inherited and revised</h3>
-        <p>A later life starts with the earlier lives' scripts, tests them, and edits what no longer
-        fits. Life 3 patched its own <code>north_bridge_pair</code> four times after writing it.</p>
+        <p>A later life starts with the earlier life's scripts, reads them, and drops what no longer
+        fits. Life 2 kept 20 of life 1's 21 procedures and retired <code>level_step</code>, the one
+        life 1 had called most, after tracing life 1's fall into lava to it.</p>
       </div>
     </div>
+
+    <h3>The skills of one life</h3>
+    <p>
+      These are the 13 skills life 2 called. Point at a skill, or focus it, to watch one of its
+      calls from that life.
+    </p>
     <div class="table-scroll">
-      <table class="data compact">
-        <thead><tr><th>Skill</th><th>What it does</th><th>Written</th><th>Calls in lives 1, 2, 3</th></tr></thead>
+      <!-- The icons are Minecraft item and block textures (Mojang), chosen by us to stand for each
+           skill: assets/img/icons/<skill>.png. Each hover clip is one call of the skill, the one of
+           median length among its calls in life 2 (gpt6_dragon_l2_36k), cut from that life's
+           per-step frames by MFM figures/probe_videos/make_skill_clips.py; the steps of every clip
+           are in assets/video/skills/hover/manifest.json. -->
+      <table class="data compact skills">
+        <thead><tr><th>Skill</th><th>What it does</th><th>Written</th><th>Calls in lives 1, 2</th></tr></thead>
         <tbody>
-          <tr><td><code>west_stairs</code></td><td>cuts one or two descending steps of a tunnel</td><td>life 1</td><td>31, 31, 36</td></tr>
-          <tr><td><code>west_level</code></td><td>cuts one or two level tunnel cells</td><td>life 1</td><td>54, 10, 62</td></tr>
-          <tr><td><code>north_level</code></td><td>the same, heading north</td><td>life 2; rewritten in life 3 at step 22,153</td><td>&mdash;, 11, 11</td></tr>
-          <tr><td><code>west_foot</code></td><td>clears foot-level blocks under open headroom</td><td>life 3, step 27,980</td><td>&mdash;, &mdash;, 1</td></tr>
-          <tr><td><code>scout_stride</code></td><td>creeps forward or sideways on checked footing in the Nether</td><td>life 3, step 35,645</td><td>&mdash;, &mdash;, 21</td></tr>
-          <tr><td><code>extinguish_visible</code></td><td>puts out up to four fires it can see</td><td>life 3, step 36,108</td><td>&mdash;, &mdash;, 2</td></tr>
-          <tr><td><code>canopy_west</code></td><td>clears a way through fungus stems and wart blocks</td><td>life 3, by step 39,988</td><td>&mdash;, &mdash;, 1</td></tr>
-          <tr><td><code>north_bridge_pair</code></td><td>bridges two blocks over a gap, checking each</td><td>life 3, step 44,052</td><td>&mdash;, &mdash;, 11</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="clear_west_safe" data-cap="Life 2 of the Ender Dragon chain, steps 29,550 to 29,606, at game speed."><img class="skill-ico" src="assets/img/icons/clear_west_safe.png" alt="" width="24" height="24"><code>clear_west_safe</code></button></td><td>clears an upper and a lower stone block while standing still, then inspects the floor</td><td>life 2, step 25,253</td><td>&mdash;, 94</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="quarry_west_pair" data-cap="Life 2 of the Ender Dragon chain, steps 13,655 to 13,723, at game speed."><img class="skill-ico" src="assets/img/icons/quarry_west_pair.png" alt="" width="24" height="24"><code>quarry_west_pair</code></button></td><td>mines an upper and a lower block of a west wall and collects the drops</td><td>life 2, step 2,416</td><td>&mdash;, 86</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="cut_step" data-cap="Life 2 of the Ender Dragon chain, steps 10,392 to 10,485, at game speed."><img class="skill-ico" src="assets/img/icons/cut_step.png" alt="" width="24" height="24"><code>cut_step</code></button></td><td>cuts one descending stair step and advances</td><td>life 2, step 5,249</td><td>&mdash;, 61</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="quarry_north_pair" data-cap="Life 2 of the Ender Dragon chain, steps 16,655 to 16,723, at game speed."><img class="skill-ico" src="assets/img/icons/quarry_north_pair.png" alt="" width="24" height="24"><code>quarry_north_pair</code></button></td><td>the same as <code>quarry_west_pair</code>, heading north</td><td>life 2, step 16,028</td><td>&mdash;, 27</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="bridge_north" data-cap="Life 2 of the Ender Dragon chain, steps 19,894 to 19,964, at game speed."><img class="skill-ico" src="assets/img/icons/bridge_north.png" alt="" width="24" height="24"><code>bridge_north</code></button></td><td>extends a floor one block north while sneaking</td><td>life 1</td><td>3, 10</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="clear_andesite_west" data-cap="Life 2 of the Ender Dragon chain, steps 32,158 to 32,214, at game speed."><img class="skill-ico" src="assets/img/icons/clear_andesite_west.png" alt="" width="24" height="24"><code>clear_andesite_west</code></button></td><td>clears an upper and a lower andesite block while standing still</td><td>life 2, step 27,581</td><td>&mdash;, 6</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="pillar_inspect" data-cap="Life 2 of the Ender Dragon chain, steps 19,554 to 19,624, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/pillar_inspect.png" alt="" width="24" height="24"><code>pillar_inspect</code></button></td><td>raises a cobblestone pillar under itself, then looks around</td><td>life 1</td><td>0, 5</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="clear_upper_gravel_west" data-cap="Life 2 of the Ender Dragon chain, steps 24,852 to 24,955, at game speed."><img class="skill-ico" src="assets/img/icons/clear_upper_gravel_west.png" alt="" width="24" height="24"><code>clear_upper_gravel_west</code></button></td><td>clears three upper gravel blocks while standing still</td><td>life 2, step 24,628</td><td>&mdash;, 3</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="climb_steps" data-cap="Life 2 of the Ender Dragon chain, steps 10,706 to 10,762, at game speed."><img class="skill-ico" src="assets/img/icons/climb_steps.png" alt="" width="24" height="24"><code>climb_steps</code></button></td><td>jumps up an inspected staircase</td><td>life 1</td><td>16, 3</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="aim_speckles" data-cap="Life 2 of the Ender Dragon chain, steps 17,521 to 17,574, at game speed."><img class="skill-ico" src="assets/img/icons/aim_speckles.png" alt="" width="24" height="24"><code>aim_speckles</code></button></td><td>aims at the ore speckles a harness note points to and mines that block</td><td>an example shipped with the harness</td><td>5, 2</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="descend_one" data-cap="Life 2 of the Ender Dragon chain, steps 21,088 to 21,127, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/descend_one.png" alt="" width="24" height="24"><code>descend_one</code></button></td><td>steps down onto an inspected landing one block lower</td><td>life 1</td><td>2, 2</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="descend_visible" data-cap="Life 2 of the Ender Dragon chain, steps 11,358 to 11,421, at game speed."><img class="skill-ico" src="assets/img/icons/descend_visible.png" alt="" width="24" height="24"><code>descend_visible</code></button></td><td>walks down an inspected staircase</td><td>life 1</td><td>10, 1</td></tr>
+          <tr><td><button type="button" class="skill-chip" data-clip="shallow_step" data-cap="Life 2 of the Ender Dragon chain, steps 4,783 to 4,957, at game speed."><img class="skill-ico" src="assets/img/icons/shallow_step.png" alt="" width="24" height="24"><code>shallow_step</code></button></td><td>mines a shallow descending step and advances</td><td>life 1</td><td>25, 1</td></tr>
         </tbody>
       </table>
     </div>
     <p>
-      These are the eight skills life 3 called. Of its 145 calls, 98 went to the two tunnelling skills
-      first written in life 1, <code>west_level</code> (62 calls) and <code>west_stairs</code> (36),
-      which it tested at the start and kept. Another 11 went to <code>north_level</code>, which it
-      rewrote from life 2's version partway through, and the remaining 36 went to five skills it
-      wrote during the life, four of them in the Nether.
+      Of life 2's 301 calls, 277 went to six skills it wrote during
+      the life, nearly all for digging: <code>clear_west_safe</code> (94 calls),
+      <code>quarry_west_pair</code> (86) and <code>cut_step</code> (61) lead. The other 24 went to
+      seven skills it inherited. It kept the rest of life 1's procedures without calling them, and
+      wrote three more that it never called.
     </p>
+
     <h3>What the next life gains</h3>
     <p>
-      With the skills and the records carried over, each life of the chain got further within the
-      same budget.
+      With the records and the skills carried over, the second life got further within the same
+      budget.
     </p>
   </div>
   <div class="wrap wide">
-    <!-- LIVES: the step at which each life of the chain earned each milestone. Lives 1 and 2 are read
-         from the index carried into life 3 (the last step of the episode tagged with the milestone),
-         life 3 from the evaluator; the two agree within 11 steps on life 3. -->
+    <!-- LIVES: the step at which each life of the chain earned each milestone, from each life's
+         evaluator report (worldmodel_report.json of gpt6_dragon_fresh and gpt6_dragon_l2_36k). The
+         last step of life 1 is that of its last episode; an engine timeout ended it there, short of
+         its 80,000-step budget. -->
     <div class="charts one">
       <figure class="chart" data-chart="lives" data-budget="36000" id="chart-lives">
-        <figcaption class="chart-title"><b>Three lives of one chain</b> <span>milestones reached against steps played</span></figcaption>
+        <figcaption class="chart-title"><b>Two lives of one chain</b> <span>milestones reached against steps played</span></figcaption>
         <div class="chart-plot"></div>
         <details class="chart-table" open><summary>Table</summary><div class="table-scroll">
           <table class="data">
-            <thead><tr><th>Milestone</th><th>Life 1</th><th>Life 2</th><th>Life 3</th></tr></thead>
+            <thead><tr><th>Milestone</th><th>Life 1</th><th>Life 2</th></tr></thead>
             <tbody>
-              <tr><th>Log</th><td>257</td><td>153</td><td>153</td></tr>
-              <tr><th>Crafting table</th><td>676</td><td>559</td><td>587</td></tr>
-              <tr><th>Wooden pickaxe</th><td>794</td><td>699</td><td>677</td></tr>
-              <tr><th>Cobblestone</th><td>1,940</td><td>2,098</td><td>1,937</td></tr>
-              <tr><th>Stone pickaxe</th><td>2,383</td><td>2,227</td><td>2,073</td></tr>
-              <tr><th>Iron ore</th><td>5,325</td><td>5,033</td><td>4,231</td></tr>
-              <tr><th>Furnace</th><td>2,806</td><td>2,507</td><td>2,353</td></tr>
-              <tr><th>Iron ingot</th><td>5,867</td><td>5,619</td><td>5,208</td></tr>
-              <tr><th>Iron pickaxe</th><td>6,243</td><td>6,060</td><td>5,293</td></tr>
-              <tr><th>Diamond ore</th><td>&mdash;</td><td>17,921</td><td>18,100</td></tr>
-              <tr><th>Diamond</th><td>&mdash;</td><td>17,932</td><td>18,110</td></tr>
-              <tr><th>Diamond pickaxe</th><td>&mdash;</td><td>18,155</td><td>18,295</td></tr>
-              <tr><th>Diamond sword</th><td>&mdash;</td><td>18,403</td><td>18,490</td></tr>
-              <tr><th>Obsidian</th><td>&mdash;</td><td>32,685</td><td>30,994</td></tr>
-              <tr><th>Flint and steel</th><td>23,032</td><td>28,009</td><td>9,995</td></tr>
-              <tr><th>Netherrack</th><td>&mdash;</td><td>41,591</td><td>35,204</td></tr>
-              <tr><th>Blaze killed, and the seven after it</th><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
+              <tr><th>Log</th><td>685</td><td>332</td></tr>
+              <tr><th>Crafting table</th><td>1,451</td><td>834</td></tr>
+              <tr><th>Wooden pickaxe</th><td>1,593</td><td>954</td></tr>
+              <tr><th>Cobblestone</th><td>3,142</td><td>1,417</td></tr>
+              <tr><th>Stone pickaxe</th><td>3,396</td><td>1,702</td></tr>
+              <tr><th>Iron ore</th><td>18,231</td><td>8,992</td></tr>
+              <tr><th>Furnace</th><td>4,820</td><td>2,416</td></tr>
+              <tr><th>Iron ingot</th><td>18,785</td><td>9,665</td></tr>
+              <tr><th>Iron pickaxe</th><td>19,185</td><td>9,971</td></tr>
+              <tr><th>Diamond ore</th><td>34,321</td><td>17,484</td></tr>
+              <tr><th>Diamond</th><td>34,832</td><td>17,494</td></tr>
+              <tr><th>Diamond pickaxe</th><td>35,071</td><td>17,666</td></tr>
+              <tr><th>Diamond sword</th><td>&mdash;</td><td>26,201</td></tr>
+              <tr><th>Obsidian</th><td>38,994</td><td>20,736</td></tr>
+              <tr><th>Flint and steel</th><td>35,312</td><td>17,951</td></tr>
+              <tr><th>Netherrack</th><td>&mdash;</td><td>35,828</td></tr>
+              <tr><th>Blaze killed, and the seven after it</th><td>&mdash;</td><td>&mdash;</td></tr>
             </tbody>
             <tfoot>
-              <tr data-row="carried"><th>Episodes carried in</th><td>0</td><td>1,170</td><td>3,957</td></tr>
-              <tr data-row="end"><th>Last step</th><td>30,286</td><td>43,479</td><td>49,570</td></tr>
+              <tr data-row="carried"><th>Episodes carried in</th><td>0</td><td>3,035</td></tr>
+              <tr data-row="end"><th>Last step</th><td>59,562</td><td>35,999</td></tr>
             </tfoot>
           </table>
         </div></details>
@@ -902,18 +936,136 @@
   </div>
   <div class="wrap">
     <p>
-      Within the 36,000-step budget, life 1 started from an empty memory and reached 10 milestones.
-      Life 2 started with life 1's 1,170 episodes and reached 15, and life 3, with 3,957 episodes
-      from both, reached 16. The iron vein from the figure is one place where the gain shows: all
-      three lives mined their first iron at that same block, at steps 5,325, 5,033 and 4,231. Life 3
-      also had its iron pickaxe at step 5,293, 950 steps before life 1, and flint and steel at step
-      9,995, where lives 1 and 2 needed 23,032 and 28,009.
+      Within the 36,000-step budget, life 1 started from an empty memory and reached 13 milestones.
+      Life 2 started with life 1's 3,035 episodes and reached 16, adding the diamond sword, obsidian
+      and netherrack. It also reached everything life 1 had in about half the steps: iron at step
+      8,992 against 18,231, from the vein in the figure, and its first diamond at step 17,494 against
+      34,832, five blocks from the place its guide had recorded from life 1.
     </p>
     <p class="note">
       A caveat: this is one chain in one world, so the gain mixes remembering the map with
-      the skills, and we cannot say how much is due to each. The lives also ran for different
-      lengths (life 1 stopped at step 30,286; lives 2 and 3 ran longer). In other chains we ran with the released code, the score
+      the skills, and we cannot say how much is due to each. Life 1 also ran past the budget, to step
+      59,562, so life 2 inherited more than a 36,000-step life would have left. In other chains we ran with the released code, the score
       did not go up with every life (see the MFM repository README).
+    </p>
+
+    <!-- PROBES: three short tasks in a world (seed 1) that no carried memory has seen. A life "with
+         carried skills" starts with scripts an earlier life wrote installed in mine/; a life without
+         starts with none. Steps are the step of the task's last milestone, from each life's
+         worldmodel_report.json: arms sr2[_rN]_iron_shield_vein_{none,skills} and
+         sr2_rN_climb_out_{none,skills_hf_opus} (claude-opus-5), sr4g[_r2]_cook_meat_tail_{none,ownx}
+         (gpt-6-astra). Each video is one whole life at game speed, every frame, made by
+         MFM figures/probe_videos/make_videos.py. The pair shown per task is the slowest life without
+         and the fastest life with carried skills. The skills named under each task are those the two
+         lives called (index rows of each life) or were handed; their hover clips come from the life
+         named in each clip's caption. -->
+    <h3>Skills on a new task</h3>
+    <p>
+      In one world, a skill and the memory of the map arrive together. To look at skills alone, we
+      gave agents three short tasks in a world no earlier life had seen. In one row the agent starts
+      with nothing; in the other it starts with scripts an earlier life wrote, already installed.
+      Each video is one whole life at game speed. For each task we show the slowest life without
+      carried skills beside the fastest life with them, so the pairs show the widest gap we saw and
+      not the typical one; the captions give the steps of every life. Under each task are the
+      skills involved; point at one to watch it run.
+    </p>
+
+    <h3>Iron Shield</h3>
+    <p>
+      The agent starts with a stone pickaxe, a crafting table, cobblestone and logs, and is told
+      where a vein of iron ore lies, 13 blocks below. It must build a furnace, dig to the vein,
+      smelt an ingot and craft a shield. Claude Opus 5, five lives per row.
+    </p>
+    <ul class="skill-used">
+      <li><button type="button" class="skill-chip" data-clip="shaft_down" data-cap="The with-skills life shown here, steps 343 to 582, at game speed."><img class="skill-ico" src="assets/img/icons/shaft_down.png" alt="" width="24" height="24"><code>shaft_down</code></button><span>An example shipped with the harness, so both rows have it. The life with carried skills called it once and went 13 blocks down to the vein in one action; the life without dug down with the built-in <code>mine_ahead</code>, 35 calls.</span></li>
+      <li><button type="button" class="skill-chip" data-clip="tunnel" data-cap="Diamond life 2, which wrote it, steps 10,763 to 11,002, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/tunnel.png" alt="" width="24" height="24"><code>tunnel</code></button><span>Written in a two-life Diamond chain and carried in. This life did not call it; the clip is from the life that wrote it.</span></li>
+    </ul>
+    <div class="clips">
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_iron_shield_none.jpg">
+          <source src="assets/video/skills/probe_iron_shield_none.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_iron_shield_none.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>No carried skill, slowest of five.</strong> Shield at step 3,260. The five lives took 1,866, 1,949, 2,114, 2,922 and 3,260 steps, 2,422 on average.</figcaption>
+      </figure>
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_iron_shield_skill.jpg">
+          <source src="assets/video/skills/probe_iron_shield_skill.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_iron_shield_skill.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>With the scripts of a two-life Diamond chain, fastest of five.</strong> Shield at step 1,105. The five lives took 1,105, 1,421, 1,657, 2,155 and 2,188 steps, 1,705 on average.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Climb Out</h3>
+    <p>
+      The agent starts sealed in a pocket 40 blocks underground with a stone pickaxe and eight
+      cobblestone, and must reach the surface and mine a block of bricks set straight above it.
+      Claude Opus 5, five lives per row.
+    </p>
+    <ul class="skill-used">
+      <li><button type="button" class="skill-chip" data-clip="climb_shaft" data-cap="The with-skills life shown here, steps 1 to 182, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/climb_shaft.png" alt="" width="24" height="24"><code>climb_shaft</code></button><span>Written in a published Ender Dragon life and carried in with <code>stair_up</code> and three others. This life called it twice at the start, rose three blocks, then kept climbing the same way by hand.</span></li>
+      <li><button type="button" class="skill-chip" data-clip="pillar_up" data-cap="The no-skill life shown here, steps 360 to 438, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/pillar_up.png" alt="" width="24" height="24"><code>pillar_up</code></button><span>A built-in action, not a skill the agent wrote. The life without carried skills climbed with it, 20 calls between 61 of <code>mine_ahead</code>.</span></li>
+    </ul>
+    <div class="clips">
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_climb_out_none.jpg">
+          <source src="assets/video/skills/probe_climb_out_none.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_climb_out_none.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>No carried skill, slowest of five.</strong> Bricks mined at step 2,483. The five lives took 1,649, 1,689, 1,859, 2,050 and 2,483 steps, 1,946 on average.</figcaption>
+      </figure>
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_climb_out_skill.jpg">
+          <source src="assets/video/skills/probe_climb_out_skill.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_climb_out_skill.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>With the scripts of an Ender Dragon life, fastest of five.</strong> Bricks mined at step 1,665. The five lives took 1,665, 1,819, 1,835, 1,912 and 2,103 steps, 1,867 on average.</figcaption>
+      </figure>
+    </div>
+
+    <h3>Cook Meat</h3>
+    <p>
+      The agent starts with a stone sword, a stone pickaxe, a crafting table, cobblestone and logs,
+      with three cows nearby, and must build a furnace, kill an animal and cook its meat.
+      GPT-6-Astra, two lives per row.
+    </p>
+    <ul class="skill-used">
+      <li><button type="button" class="skill-chip" data-clip="blaze_fight" data-cap="The blaze-hunting life it was carried from, steps 1 to 75, at game speed."><img class="skill-ico" src="assets/img/icons/blaze_fight.png" alt="" width="24" height="24"><code>blaze_fight</code></button><span>A fight loop written by Claude Opus 5 for hunting blazes, and carried in. Both lives that received it set it aside in their first turn and killed the cow by hand; the clip is from the life it came from.</span></li>
+    </ul>
+    <div class="clips">
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_cook_meat_none.jpg">
+          <source src="assets/video/skills/probe_cook_meat_none.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_cook_meat_none.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>No carried skill, slower of two.</strong> Cooked meat at step 771; the other life took 508.</figcaption>
+      </figure>
+      <figure class="fig">
+        <video controls loop muted playsinline preload="none" width="1280" height="720"
+               poster="assets/img/skills/probe_cook_meat_skill.jpg">
+          <source src="assets/video/skills/probe_cook_meat_skill.mp4" type="video/mp4">
+          Your browser does not play this video.
+          <a href="assets/video/skills/probe_cook_meat_skill.mp4">Download it</a>.
+        </video>
+        <figcaption><strong>With the fight loop, faster of two.</strong> Cooked meat at step 428; the other life took 523.</figcaption>
+      </figure>
+    </div>
+    <p class="note">
+      How to read these: only Iron Shield shows a gap between the rows, about 30% fewer steps
+      (exact one-sided permutation test, p = 0.048 with five lives per row), and we have not
+      established that the carried scripts caused it. In Climb Out the two rows are about equal. In
+      Cook Meat the carried skill was never called, so the task does not test it.
     </p>
   </div>
 </section>
@@ -929,7 +1081,8 @@
   <div class="wrap">
     <h2><span class="num">VIII</span>Beyond Minecraft: computer use</h2>
     <p>
-      Nothing in MFM is specific to a game. We ran the same memory on CUABench-KiCad, a computer-use
+      Nothing in MFM is specific to a game. We ran the same memory on
+      <a href="https://cua.ai/cuabench">CUABench-KiCad</a>, a computer-use
       benchmark in which the agent edits and designs circuits in the KiCad desktop application,
       seeing only screenshots and acting with mouse and keyboard. Its 25 tasks run one after
       another in the same application, and the agent starts each one with the records and notes of
@@ -1843,9 +1996,10 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 
 <script src="assets/js/main.js?v=8"></script>
 <script src="assets/js/charts.js?v=2"></script>
-<script src="assets/js/overview.js?v=4"></script>
-<script src="assets/js/mfm-query.js?v=4"></script>
-<script src="assets/js/demo.js?v=15"></script>
+<script src="assets/js/overview.js?v=5"></script>
+<script src="assets/js/mfm-query.js?v=5"></script>
+<script src="assets/js/demo.js?v=16"></script>
 <script src="assets/js/kicad.js?v=3"></script>
+<script src="assets/js/skills.js?v=1"></script>
 </body>
 </html>

@@ -1,0 +1,200 @@
+[
+ {
+  "name": "shaft_down",
+  "steps": [
+   343,
+   582
+  ],
+  "frames": 240,
+  "mean": 62.3,
+  "gamma": null,
+  "kb": 617
+ },
+ {
+  "name": "climb_shaft",
+  "steps": [
+   1,
+   182
+  ],
+  "frames": 182,
+  "mean": 18.4,
+  "gamma": 2.0,
+  "kb": 251
+ },
+ {
+  "name": "pillar_up",
+  "steps": [
+   360,
+   438
+  ],
+  "frames": 79,
+  "mean": 14.1,
+  "gamma": 2.0,
+  "kb": 95
+ },
+ {
+  "name": "blaze_fight",
+  "steps": [
+   1,
+   75
+  ],
+  "frames": 75,
+  "mean": 66.8,
+  "gamma": null,
+  "kb": 824
+ },
+ {
+  "name": "tunnel",
+  "steps": [
+   10763,
+   11002
+  ],
+  "frames": 240,
+  "mean": 16.1,
+  "gamma": 2.0,
+  "kb": 376
+ },
+ {
+  "name": "clear_west_safe",
+  "steps": [
+   29550,
+   29606
+  ],
+  "frames": 57,
+  "mean": 48.4,
+  "gamma": null,
+  "kb": 169
+ },
+ {
+  "name": "quarry_west_pair",
+  "steps": [
+   13655,
+   13723
+  ],
+  "frames": 69,
+  "mean": 47.4,
+  "gamma": null,
+  "kb": 141
+ },
+ {
+  "name": "cut_step",
+  "steps": [
+   10392,
+   10485
+  ],
+  "frames": 94,
+  "mean": 55.0,
+  "gamma": null,
+  "kb": 173
+ },
+ {
+  "name": "quarry_north_pair",
+  "steps": [
+   16655,
+   16723
+  ],
+  "frames": 69,
+  "mean": 46.2,
+  "gamma": null,
+  "kb": 121
+ },
+ {
+  "name": "bridge_north",
+  "steps": [
+   19894,
+   19964
+  ],
+  "frames": 71,
+  "mean": 41.5,
+  "gamma": null,
+  "kb": 153
+ },
+ {
+  "name": "clear_andesite_west",
+  "steps": [
+   32158,
+   32214
+  ],
+  "frames": 57,
+  "mean": 51.9,
+  "gamma": null,
+  "kb": 163
+ },
+ {
+  "name": "pillar_inspect",
+  "steps": [
+   19554,
+   19624
+  ],
+  "frames": 71,
+  "mean": 23.5,
+  "gamma": 2.0,
+  "kb": 151
+ },
+ {
+  "name": "clear_upper_gravel_west",
+  "steps": [
+   24852,
+   24955
+  ],
+  "frames": 104,
+  "mean": 59.9,
+  "gamma": null,
+  "kb": 253
+ },
+ {
+  "name": "climb_steps",
+  "steps": [
+   10706,
+   10762
+  ],
+  "frames": 57,
+  "mean": 66.2,
+  "gamma": null,
+  "kb": 187
+ },
+ {
+  "name": "aim_speckles",
+  "steps": [
+   17521,
+   17574
+  ],
+  "frames": 54,
+  "mean": 50.8,
+  "gamma": null,
+  "kb": 107
+ },
+ {
+  "name": "descend_one",
+  "steps": [
+   21088,
+   21127
+  ],
+  "frames": 40,
+  "mean": 14.2,
+  "gamma": 2.0,
+  "kb": 70
+ },
+ {
+  "name": "descend_visible",
+  "steps": [
+   11358,
+   11421
+  ],
+  "frames": 64,
+  "mean": 61.9,
+  "gamma": null,
+  "kb": 181
+ },
+ {
+  "name": "shallow_step",
+  "steps": [
+   4783,
+   4957
+  ],
+  "frames": 175,
+  "mean": 58.0,
+  "gamma": null,
+  "kb": 411
+ }
+]

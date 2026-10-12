@@ -389,7 +389,7 @@ details.fullfig .fig { margin-top: 14px; }
 /* ---------- how agents remember: four designs, side by side ---------- */
 /* Each design is a card with the same rows (what it keeps, how it finds things, what it loses, and
    what it can say about the iron vein), aligned across the cards. The picture in each card is the
-   same eight frames of a run (assets/img/strip.jpg, one 128x72 tile per frame, left to right),
+   same eight frames of a chain of two lives (assets/img/strip_l2.jpg, one 128x72 tile per frame, left to right),
    treated the way that design treats them. */
 .evo {
   list-style: none; margin: 26px 0 8px; padding: 0;
@@ -414,7 +414,7 @@ details.fullfig .fig { margin-top: 14px; }
 .tape { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
 .tape i {
   position: relative; aspect-ratio: 16 / 9; border-radius: 3px;
-  background: url("../img/strip.jpg") no-repeat; background-size: 1200% 100%;
+  background: url("../img/strip_l2.jpg") no-repeat; background-size: 1200% 100%;
   background-position: calc(var(--k) * 100% / 11) 0;
   transition: opacity 0.2s;
 }
@@ -580,10 +580,6 @@ details.fullfig .fig { margin-top: 14px; }
 .mf-tn { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0 0; }
 .mf-tn > div { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 5px; background: var(--night); }
 .mf-tn img { width: 100%; height: 100%; object-fit: cover; }
-.mf-tn .then {
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 22px 7px 6px;
-  color: var(--on-dark-soft); font-family: var(--mono); font-size: 0.6rem; line-height: 1.4;
-}
 .mf-tn .lbl {
   position: absolute; left: 4px; top: 4px; padding: 0 5px; border-radius: 3px;
   background: rgba(8, 14, 24, 0.82); color: #fff; font: 600 0.62rem/1.6 var(--sans);
@@ -634,13 +630,13 @@ details.fullfig .fig { margin-top: 14px; }
 .mf-note .ok { color: var(--good-ink); font-weight: 600; }
 .mf-map { display: block; width: 100%; height: 106px; }
 .mf-map .cell { fill: var(--spatial); opacity: 0.8; }
-.mf-map .r1, .mf-map .r2 { fill: none; stroke-width: 0.45; stroke-dasharray: 0.9 0.7; stroke-linecap: round; }
+.mf-map .r1, .mf-map .r2 { fill: none; stroke-width: 1.1; stroke-dasharray: 2.2 1.7; stroke-linecap: round; }
 .mf-map .r1 { stroke: var(--life-1); }
 .mf-map .r2 { stroke: var(--life-2); }
-.mf-map .iron { fill: none; stroke: var(--working); stroke-width: 0.5; }
+.mf-map .iron { fill: none; stroke: var(--working); stroke-width: 1.1; }
 .mf-map .iron.got { fill: var(--working); }
-.mf-map .me { fill: var(--navy); stroke: #fff; stroke-width: 0.35; }
-.mf-map text { font-family: var(--sans); font-size: 1.7px; fill: var(--ink-faint); }
+.mf-map .me { fill: var(--navy); stroke: #fff; stroke-width: 0.8; }
+.mf-map text { font-family: var(--sans); font-size: 4.6px; fill: var(--ink-faint); }
 .mf-prev {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 12px;
   padding: 5px 9px; border: 1.5px dashed #b9c3cf; border-radius: 8px;
@@ -894,6 +890,32 @@ table.data :is(td, th).ours { color: var(--accent-ink); font-weight: 600; }
 table.data td.best { font-weight: 700; color: var(--accent-ink); }
 table.data.compact th, table.data.compact td { text-align: left; white-space: normal; vertical-align: top; padding: 8px 12px; font-size: 0.88rem; }
 .table-scroll table.data.compact { min-width: 680px; }
+table.data.skills td { vertical-align: middle; }
+table.data.skills td:first-child { white-space: nowrap; }
+.skill-ico { display: inline-block; width: 24px; height: 24px; margin-right: 10px; vertical-align: middle; image-rendering: pixelated; }
+/* Skill chips: an icon and a name; skills.js plays a short clip of the skill in .skill-pop on hover or focus */
+.skill-chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 3px 10px 3px 4px; margin: 0;
+  border: 1px solid var(--line); border-radius: 999px; background: #fff; color: inherit; font: inherit;
+  cursor: pointer; vertical-align: middle; white-space: nowrap;
+}
+.skill-chip .skill-ico { margin-right: 0; }
+.skill-chip code { background: none; border: 0; padding: 0; }
+.skill-chip:hover, .skill-chip:focus-visible { border-color: var(--accent); background: var(--accent-soft); outline: none; }
+.skill-chip:focus-visible { box-shadow: 0 0 0 2px var(--accent-soft); }
+.skill-pop {
+  position: fixed; z-index: 60; width: min(360px, calc(100vw - 16px)); padding: 6px;
+  background: #111820; border-radius: var(--radius-sm); box-shadow: 0 18px 40px -12px rgba(16, 32, 56, 0.6);
+  pointer-events: none;
+}
+.skill-pop[hidden] { display: none; }
+.skill-pop video { width: 100%; height: auto; border-radius: 4px; background: #000; }
+.skill-pop p { margin: 6px 4px 2px; max-width: none; color: #e6ebf2; font-size: 0.8rem; line-height: 1.4; }
+/* The skills named beside a pair of probe videos */
+.skill-used { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.skill-used li { display: grid; grid-template-columns: 190px 1fr; gap: 14px; align-items: center; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.5; }
+.skill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+@media (max-width: 640px) { .skill-used li { grid-template-columns: 1fr; gap: 4px; } }
 .chart table.data { font-size: 0.84rem; }
 .chart table.data th, .chart table.data td { padding: 6px 10px; }
 

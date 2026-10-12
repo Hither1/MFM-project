@@ -228,7 +228,8 @@
     if (o.grep != null) rows = stage('--grep ' + JSON.stringify(o.grep), grep(rows, o.grep, files));
     if (o.last != null) rows = stage('--last ' + o.last, recent(rows, o.last));
     rows = rows.map(function (r) {
-      var note = r.note || firstNote(notes(r));
+      // a note the index row already carries is tidied the same way (one line, cut at the limit)
+      var note = r.note ? firstNote([r.note]) : firstNote(notes(r));
       if (!note) return r;
       var c = {}; for (var k in r) c[k] = r[k];
       c.note = note; return c;

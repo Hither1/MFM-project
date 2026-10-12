@@ -28,9 +28,9 @@ in `index.html`; GitHub Pages lets browsers cache these files for 10 minutes.
 | `assets/css/style.css` | styles; the theme (colours, fonts, column widths) is the `:root` block at the top. Text, cards, figures and charts share one column width (`--col`, 1,120 px), so the paragraphs are as wide as the figures; lower `--col` for shorter lines. The block also holds the colours of the five kinds of memory (as in Figure 2 of the paper) and of the chart series |
 | `assets/img/sift_*.png` | pixel-art block strips from the earlier Minecraft theme, drawn by `scripts/make_sift_tiles.py`; not used by the page now |
 | `assets/js/main.js` | mobile navigation, the highlight of the section in view (top bar and contents rail), figure lightbox, the milestone strip under the opening video; it also still wires the buttons of the static memory figure (`#mfig`), which is now in the archive |
-| `assets/js/overview.js` | the method figure (`#mf`, section III): about 600 steps of life 3 of the explorer's Ender Dragon run, replayed in five stages (record, retrieve, consolidate, act, carry over): stages 1 to 4 make one turn and repeat, and stage 5 comes when a life ends. The environment panel shows the turn's `actions.json` as a queue, ticked off as each action runs (`QUEUE` lists the episodes of each turn), and each turn in the agent's log starts with the frame the agent saw at that moment. It shows the explorer's frames (`assets/demo/of3m_mfm/frames/`), and every index row, message, command and file excerpt in it is quoted from that run's `data.json`, with `…` where lines or words are left out. It plays while on screen; choosing a scene stops it there, and visitors who ask for reduced motion see each scene's end state |
+| `assets/js/overview.js` | the method figure (`#mf`, section III): about 160 steps of life 2 of the explorer's Ender Dragon run (`gpt6_dragon_l2_36k`), replayed in five stages (record, retrieve, consolidate, act, carry over): stages 1 to 4 make one turn and repeat, and stage 5 comes when a life ends. The environment panel shows the turn's `actions.json` as a queue, ticked off as each action runs (`QUEUE` lists the episodes of each turn), and each turn in the agent's log starts with the frame the agent saw at that moment. It shows the explorer's frames (`assets/demo/gpt6_dragon_l2_36k/frames/`) and one frame of life 1 (`previous/life_1/ep_000673.jpg` beside them, copied from that life's record), and every index row, message, command and file excerpt in it is quoted from that run's `data.json`, with `…` where lines or words are left out. It plays while on screen; choosing a scene stops it there, and visitors who ask for reduced motion see each scene's end state |
 | `assets/js/charts.js` | draws the result charts from the table inside each chart's figure; the table stays on the page as the chart's table view, so a number is changed by editing the table |
-| `assets/img/` | figures, copied from `figures/` of the MFM repository or from the paper (`fig2_memory_filesystem.png`, `memory_comparison.png`, `retrieval_lag.png`, `steps_per_turn.png`, the portal frames); `strip.jpg` is twelve frames of the explorer's Ender Dragon run, eight of which make the pictures of section II; `milestones.png` is the 24 milestone icons of `figs/task_milestones.pdf` in the paper, 36 px each, in task order |
+| `assets/img/` | figures, copied from `figures/` of the MFM repository or from the paper (`fig2_memory_filesystem.png`, `memory_comparison.png`, `retrieval_lag.png`, `steps_per_turn.png`, the portal frames); `strip_l2.jpg` is twelve frames of the two lives of the explorer's Ender Dragon chain (eight of life 1, four of life 2), eight of which make the pictures of section II; `strip.jpg` is the earlier strip, not used by the page now; `milestones.png` is the 24 milestone icons of `figs/task_milestones.pdf` in the paper, 36 px each, in task order |
 | `assets/video/` | `dragon_chain_21of24_16x.mp4`, the opening video: the 64-minute Ender Dragon recording sped up 16 times, no sound, with the milestone strip under it; `og9_mfm_reconstruction_h264.mp4`, the earlier opening video, not used by the page now; both H.264 for browsers |
 | `demo.html` | a redirect to `index.html#explorer`, where the memory explorer now is; it keeps old links working |
 | `assets/js/demo.js`, `assets/css/demo.css` | the memory explorer, the `#explorer` part of `index.html`: a recorded run replayed step by step. The memory panel shows the map by default; clicking a memory box or a file opens it below, and clicking it again goes back to the map. The timeline's labels are refitted whenever the track changes width (`fitTrack`) |
@@ -40,8 +40,11 @@ in `index.html`; GitHub Pages lets browsers cache these files for 10 minutes.
 
 ## Memory explorer
 
-The explorer reads `assets/demo/runs.json` and the run it names. To add or refresh a run
-(PIL is needed for the frames):
+The explorer reads `assets/demo/runs.json` and the run it names. A run marked `"hidden": true`
+there is left out of the run menu and opens only from a link (`#run=<name>`): `of3m_mfm`, the
+earlier Ender Dragon run, is kept that way so that old links to it still open; nothing on the
+page uses it now that the menu's Ender Dragon run, the method figure and section VII are all
+`gpt6_dragon_l2_36k`. To add or refresh a run (PIL is needed for the frames):
 
 ```bash
 python scripts/export_demo.py /path/to/MFM/MCU/output/<run> --title "Shown in the run menu"
@@ -78,9 +81,9 @@ figure is redrawn there, copy the new PNG over the file of the same name in `ass
 
 In the opening video, each lit milestone jumps to `data-t` seconds: the step at which it was
 credited divided by 320, since a second of the video is 320 steps (the game's 20 steps a
-second, 16 times faster). The chart of the three lives in *Getting better* reads its steps
-from its table. The chart of milestones against the episodes carried in, computed from the
-same table at the step in `data-at`, is in the archive: at step 30,000, where life 1 ended, it
-showed 10, 14 and 14, which did not match the 10, 15 and 16 counted within the task's 36,000
-steps. The KiCad chart in *Results* leaves out the paper's "MFM, no memory across tasks" row;
+second, 16 times faster). The chart of the two lives in section VII reads its steps
+from its table (life 1 is `gpt6_dragon_fresh`, life 2 `gpt6_dragon_l2_36k`; the steps are from
+each life's `worldmodel_report.json`). The chart of milestones against the episodes carried in,
+computed from the same table at the step in `data-at`, is in the archive and was made for the
+earlier three-life chain. The KiCad chart in *Results* leaves out the paper's "MFM, no memory across tasks" row;
 its numbers are in a comment beside the chart.

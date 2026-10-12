@@ -494,7 +494,9 @@ def main():
     entry = {"name": name, "title": data["run"]["title"], "task": data["run"]["task"],
              "model": model, "episodes": len(index), "steps": data["run"]["steps"]}
     at = [i for i, r in enumerate(runs) if r.get("name") == name]
-    if at:                      # a run exported again keeps its place in the list
+    if at:                      # a run exported again keeps its place in the list, and its `hidden` mark
+        if runs[at[0]].get("hidden"):
+            entry["hidden"] = True
         runs[at[0]] = entry
     else:
         runs.append(entry)

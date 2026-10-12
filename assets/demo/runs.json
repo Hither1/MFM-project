@@ -1,26 +1,27 @@
 [
  {
-  "name": "abaw3_mfmskills",
-  "title": "Water, log, water, GPT-5.6-Sol (3/3 goals)",
-  "task": "aba_water_log_water",
-  "model": "gpt-5.6-sol",
-  "episodes": 78,
+  "name": "gpt6_dragon_l2_36k",
+  "title": "Ender Dragon, GPT-6-Astra, second life (16/24 milestones)",
+  "task": "ender_dragon",
+  "model": "gpt-6-astra",
+  "episodes": 2196,
+  "steps": 35999
+ },
+ {
+  "name": "g4_mfm_astra_diamond_flat",
+  "title": "Diamond, GPT-6-Astra, (10/10 milestones)",
+  "task": "mine_diamond_from_scratch",
+  "model": "gpt-6-astra",
+  "episodes": 611,
   "steps": 11999
  },
  {
   "name": "of3m_mfm",
-  "title": "Ender Dragon, GPT-6-Astra (16/24 milestones)",
+  "title": "Ender Dragon, GPT-6-Astra, the run of the method figure (16/24 milestones)",
   "task": "ender_dragon",
   "model": "openai/gpt-6-astra",
   "episodes": 3083,
-  "steps": 49400
- },
- {
-  "name": "g4_mfm_sol_diamond_flat",
-  "title": "Diamond, GPT-5.6-Sol, no query tool (10/10 milestones)",
-  "task": "mine_diamond_from_scratch",
-  "model": "gpt-5.6-sol",
-  "episodes": 611,
-  "steps": 11999
+  "steps": 49400,
+  "hidden": true
  }
 ]

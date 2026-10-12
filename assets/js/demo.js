@@ -52,7 +52,9 @@
     linked = !!want.run;
     getJSON(BASE + 'runs.json').then(function (runs) {
       var sel = $('#dx-run');
-      sel.innerHTML = runs.map(function (r) {
+      // a run marked `hidden` in runs.json is kept for the links that open it (the method figure's),
+      // and is listed only when such a link asked for it
+      sel.innerHTML = runs.filter(function (r) { return !r.hidden || r.name === want.run; }).map(function (r) {
         return '<option value="' + esc(r.name) + '">' + esc(r.title) + ' · ' +
           num(r.episodes) + ' episodes</option>';
       }).join('');
