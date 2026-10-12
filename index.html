@@ -32,7 +32,7 @@
       <li><a href="#explorer">Explore a run</a></li>
       <li><a href="#results">Results</a></li>
       <li><a href="#lookback">Looking back at past frames</a></li>
-      <li><a href="#improve">Getting better across lives</a></li>
+      <li><a href="#improve">Self-improvement through skill learning</a></li>
     </ul>
   </nav>
 </header>
@@ -142,7 +142,7 @@
     <li><a href="#explorer"><span class="n">IV</span>Explore a run</a></li>
     <li><a href="#results"><span class="n">V</span>Results</a></li>
     <li><a href="#lookback"><span class="n">VI</span>Looking back at past frames</a></li>
-    <li><a href="#improve"><span class="n">VII</span>Getting better across lives</a></li>
+    <li><a href="#improve"><span class="n">VII</span>Self-improvement through skill learning</a></li>
     <li><a href="#bibtex"><span class="n"></span>Cite</a></li>
   </ol>
 </nav>
@@ -700,7 +700,7 @@
         </p>
         <p>
           In the next two sections we look at where these gains come from: how the agent uses the
-          frames it keeps, and what it carries over from one life to the next.
+          frames it keeps, and the skills it writes for itself and carries from one life to the next.
         </p>
       </div>
     </div>
@@ -790,21 +790,72 @@
       </figure>
     </div>
     <p>
-      Most of these looks happen within a life. The same files also pass on to the next life, and
-      that is where the agent gets better at the task itself.
+      Looking back tells the agent what is there. The same memory also holds what it has learned
+      to do: skills it writes for itself and passes on to the next life.
     </p>
   </div>
 </section>
 
-<!-- ============================ VII. GETTING BETTER ============================ -->
+<!-- ============================ VII. SKILL LEARNING ============================ -->
+<!-- The skills are those of the explorer's Ender Dragon run (of3m_mfm, life 3 of the chain): the
+     quotes are its turns 173, 306 and 447, the guard is mine/procedures/west_level.py, the versions
+     are the patches in its record, and the calls of lives 1 and 2 are counted from the index life 3
+     carried in (action_kind). -->
 <section class="section" id="improve">
   <div class="wrap">
-    <h2><span class="num">VII</span>Getting better across lives</h2>
+    <h2><span class="num">VII</span>Self-improvement through skill learning</h2>
     <p>
-      When a life ends, we pass its records and the agent's own files on to the next life, in the
-      same world. The model's weights never change, so anything the next life does better comes from what
-      it reads. We followed one chain of three lives with GPT-6-Astra; the third life is the one in
-      the figure above and in the explorer.
+      The model's weights never change, so an MFM agent can only get better through what it writes
+      down. Part of that is facts, such as where the iron is. The other part is skills: when a
+      sequence of actions has worked, the agent saves it as a script under
+      <code>mine/procedures/</code> and from the next turn calls it like any built-in action. When a
+      life ends, we pass its records and these files on to the next life in the same world. We
+      followed one chain of three lives with GPT-6-Astra; the third life is the one in the figure
+      above and in the explorer.
+    </p>
+    <div class="hard">
+      <div>
+        <h3>Saved after it works</h3>
+        <p>No skill is installed for the agent. Life 3 put out fires by hand before keeping the
+        method: "Since this method has worked twice, I'll save it as a reusable procedure."</p>
+      </div>
+      <div>
+        <h3>Guarded by its own checks</h3>
+        <p>Each script first reads the game state and refuses to run where it was not tested.
+        <code>west_level</code> stops with "Requires closed GUI and health at least eighteen".</p>
+      </div>
+      <div>
+        <h3>Inherited and revised</h3>
+        <p>A later life starts with the earlier lives' scripts, tests them, and edits what no longer
+        fits. Life 3 patched its own <code>north_bridge_pair</code> four times after writing it.</p>
+      </div>
+    </div>
+    <div class="table-scroll">
+      <table class="data compact">
+        <thead><tr><th>Skill</th><th>What it does</th><th>Written</th><th>Calls in lives 1, 2, 3</th></tr></thead>
+        <tbody>
+          <tr><td><code>west_stairs</code></td><td>cuts one or two descending steps of a tunnel</td><td>life 1</td><td>31, 31, 36</td></tr>
+          <tr><td><code>west_level</code></td><td>cuts one or two level tunnel cells</td><td>life 1</td><td>54, 10, 62</td></tr>
+          <tr><td><code>north_level</code></td><td>the same, heading north</td><td>life 2; rewritten in life 3 at step 22,153</td><td>&mdash;, 11, 11</td></tr>
+          <tr><td><code>west_foot</code></td><td>clears foot-level blocks under open headroom</td><td>life 3, step 27,980</td><td>&mdash;, &mdash;, 1</td></tr>
+          <tr><td><code>scout_stride</code></td><td>creeps forward or sideways on checked footing in the Nether</td><td>life 3, step 35,645</td><td>&mdash;, &mdash;, 21</td></tr>
+          <tr><td><code>extinguish_visible</code></td><td>puts out up to four fires it can see</td><td>life 3, step 36,108</td><td>&mdash;, &mdash;, 2</td></tr>
+          <tr><td><code>canopy_west</code></td><td>clears a way through fungus stems and wart blocks</td><td>life 3, by step 39,988</td><td>&mdash;, &mdash;, 1</td></tr>
+          <tr><td><code>north_bridge_pair</code></td><td>bridges two blocks over a gap, checking each</td><td>life 3, step 44,052</td><td>&mdash;, &mdash;, 11</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      These are the eight skills life 3 called. Of its 145 calls, 98 went to the two tunnelling skills
+      first written in life 1, <code>west_level</code> (62 calls) and <code>west_stairs</code> (36),
+      which it tested at the start and kept. Another 11 went to <code>north_level</code>, which it
+      rewrote from life 2's version partway through, and the remaining 36 went to five skills it
+      wrote during the life, four of them in the Nether.
+    </p>
+    <h3>What the next life gains</h3>
+    <p>
+      With the skills and the records carried over, each life of the chain got further within the
+      same budget.
     </p>
   </div>
   <div class="wrap wide">
@@ -855,17 +906,10 @@
       also had its iron pickaxe at step 5,293, 950 steps before life 1, and flint and steel at step
       9,995, where lives 1 and 2 needed 23,032 and 28,009.
     </p>
-    <p>
-      Procedures carry over too. Of the 145 calls life 3 made to its own procedures, 98 went to two it
-      brought over from life 2 at the start, <code>west_level</code> (62 calls) and
-      <code>west_stairs</code> (36). Another 11 went to <code>north_level</code>, which it rewrote
-      from life 2's version partway through, and the remaining 36 went to five procedures it wrote
-      during the life.
-    </p>
     <p class="note">
       A caveat: this is one chain in one world, so the gain mixes remembering the map with
-      remembering what works, and the lives ran for different lengths (life 1 stopped at step
-      30,286; lives 2 and 3 ran longer). In other chains we ran with the released code, the score
+      the skills, and we cannot say how much is due to each. The lives also ran for different
+      lengths (life 1 stopped at step 30,286; lives 2 and 3 ran longer). In other chains we ran with the released code, the score
       did not go up with every life (see the MFM repository README).
     </p>
   </div>
