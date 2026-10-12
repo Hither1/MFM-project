@@ -913,6 +913,7 @@ table.data.skills td:first-child { white-space: nowrap; }
 .skill-pop p { margin: 6px 4px 2px; max-width: none; color: #e6ebf2; font-size: 0.8rem; line-height: 1.4; }
 /* The skills named beside a pair of probe videos */
 .skill-used { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.skill-used .skill-chip { justify-self: start; }
 .skill-used li { display: grid; grid-template-columns: 190px 1fr; gap: 14px; align-items: center; font-size: 0.9rem; color: var(--ink-soft); line-height: 1.5; }
 .skill-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
 @media (max-width: 640px) { .skill-used li { grid-template-columns: 1fr; gap: 4px; } }
