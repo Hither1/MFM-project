@@ -232,6 +232,8 @@ h1 {
 }
 .hero figcaption strong { color: var(--on-dark); }
 .hero figcaption a { color: #9cc3ff; }
+/* The note that sets the hero video apart from the paper's results */
+.hero-note { display: block; margin-top: 10px; }
 .hero :focus-visible { outline-color: #fff; }
 
 /* ---------- sections ---------- */

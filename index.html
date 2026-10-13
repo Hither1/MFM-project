@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=20">
+  <link rel="stylesheet" href="assets/css/style.css?v=21">
   <link rel="stylesheet" href="assets/css/demo.css?v=16">
   <link rel="stylesheet" href="assets/css/kicad.css?v=1">
 </head>
@@ -122,11 +122,15 @@
       </nav>
       <figcaption>
         <strong>21 of the 24 milestones.</strong> Our agent, MFM with Claude Opus 5.5, playing Ender
-        Dragon: 64 minutes of play shown at 16 times speed. The video joins four lives of one chain.
-        Each life started with the memory of the lives before it and got the chain's tools back, and
-        the lives in the Nether started at a fortress. So it shows how far one chain got, not a
-        benchmark score (those are in <a href="#results">Results</a>). Click a lit milestone to jump
-        to it.
+        Dragon: 64 minutes of play shown at 16 times speed. Click a lit milestone to jump to it.
+        <span class="hero-note">
+          <strong>A separate hill-climbing experiment.</strong> This video is not one of the paper's
+          main results, which cap each life at 36,000 steps (see <a href="#results">Results</a>).
+          Here we raised the cap to 80,000 steps per life and continued the chain to a fourth life.
+          Each life started with the memory of the lives before it and got the chain's tools back,
+          and the lives in the Nether started at a fortress. We found that the baseline methods had
+          saturated, while MFM still had room to improve with a larger step budget and more lives.
+        </span>
       </figcaption>
     </figure>
   </div>
