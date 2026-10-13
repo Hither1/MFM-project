@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=18">
+  <link rel="stylesheet" href="assets/css/style.css?v=19">
   <link rel="stylesheet" href="assets/css/demo.css?v=16">
   <link rel="stylesheet" href="assets/css/kicad.css?v=1">
 </head>
@@ -157,7 +157,7 @@
   <div class="wrap">
     <h2><span class="num">I</span>Why long games need memory</h2>
     <p>
-      We give a coding model a Minecraft world and nothing else. It sees the world only as
+      We give an LLM a Minecraft world. It sees the world only as
       first-person frames and plays in turns: each turn it looks at the newest frame and writes a
       short list of actions, which the environment then executes. In the Ender Dragon task it has a
       budget of 36,000 steps, about half an hour of game time, to work through 24 milestones, from
@@ -201,8 +201,7 @@
   <div class="wrap">
     <h2><span class="num">II</span>How agents remember</h2>
     <p>
-      Agent memory has gone through a few designs, each recovering something the one before it
-      lost. We compare them on one question from our runs: in its first life, the agent finds an iron
+      Agent memory has gone through a few designs. We compare them on one question from our runs: in its first life, the agent finds an iron
       vein deep underground, and tens of thousands of steps later, in its next life, it needs iron
       again. Where was the vein?
     </p>
@@ -723,7 +722,8 @@
       often open past frames, from the current life and from earlier ones:
       <code>episodes.py --then-now</code> puts a past frame beside the live view, and
       <code>zoom.py</code> crops a frame for a closer look. Below, we marked five of these looks on
-      one life's milestone staircase and show four of them larger underneath.
+      one life's milestone staircase and show four of them larger underneath. Point at a callout, or
+      focus it, to enlarge its pair of frames.
     </p>
   </div>
   <div class="wrap wide">
@@ -732,8 +732,44 @@
          step 866, 1,777, 4,588 or 4,917). Confirm which life each callout comes from before the
          caption says more than it does now. -->
     <figure class="fig">
-      <img src="assets/img/dragon_mfm_callouts.png" width="2256" height="1488" loading="lazy"
-           alt="Milestone staircase of an MFM life on the Ender Dragon task with GPT-6-Astra, reaching 16 of 24 milestones within 36,000 steps. Five callouts pair a recorded frame with the later moment an agent retrieved it.">
+      <!-- LOOK SPOTS: one button over each callout of the figure, placed in percent of the image
+           (2256 by 1488). lookback.js shows the button's .look-card, enlarged, while it is pointed
+           at or focused. The words are the callout's own. The frames are the larger ones used
+           below; (b) has none on the site, so its two are cut from this figure (271 by 152). -->
+      <div class="look">
+        <img src="assets/img/dragon_mfm_callouts.png" width="2256" height="1488" loading="lazy"
+             alt="Milestone staircase of an MFM life on the Ender Dragon task with GPT-6-Astra, reaching 16 of 24 milestones within 36,000 steps. Five callouts pair a recorded frame with the later moment an agent retrieved it.">
+        <button type="button" class="look-spot" style="left:19.25%;top:50.2%;width:31.7%;height:17.3%" aria-label="Callout (a), step 866: enlarge"></button>
+        <div class="look-card" hidden>
+          <p class="look-head"><b>(a)</b> step 866</p>
+          <img class="look-sheet" src="assets/img/then_now_quarry_rim.png" alt="" loading="lazy">
+          <div class="look-caps"><p><span>recorded</span>the hole it had dug, seen from its southern rim</p><p><span>retrieved</span>18 steps later: it was straddling the rim; centring gave Y68 and dirt</p></div>
+        </div>
+        <button type="button" class="look-spot" style="left:56.5%;top:74.45%;width:31.8%;height:17.45%" aria-label="Callout (b), step 1,777: enlarge"></button>
+        <div class="look-card" hidden>
+          <p class="look-head"><b>(b)</b> step 1,777</p>
+          <div class="look-duo"><img class="pixel" src="assets/img/look_cut_recorded.png" alt="" loading="lazy"><img class="pixel" src="assets/img/look_cut_retrieved.png" alt="" loading="lazy"></div>
+          <div class="look-caps"><p><span>recorded</span>the cut that failed to open a level passage (ep_000126)</p><p><span>retrieved</span>78 steps later: <code>look_at</code> had pitched wrong, so it switched to <code>look_abs</code></p></div>
+        </div>
+        <button type="button" class="look-spot" style="left:27.35%;top:29.8%;width:31.7%;height:17.3%" aria-label="Callout (c), step 4,588: enlarge"></button>
+        <div class="look-card" hidden>
+          <p class="look-head"><b>(c)</b> step 4,588</p>
+          <div class="look-duo"><img src="assets/img/frame_wolf.jpg" alt="" loading="lazy"><img class="pixel" src="assets/img/zoom_wolf.png" alt="" loading="lazy"></div>
+          <div class="look-caps"><p><span>recorded</span>a pale animal on the hillside ahead</p><p><span>retrieved, zoom crop</span>zoomed: a wolf, not a sheep; did not attack, turned east for food</p></div>
+        </div>
+        <button type="button" class="look-spot" style="left:42.85%;top:8.85%;width:34.4%;height:17.4%" aria-label="Callout (d), step 4,867: enlarge"></button>
+        <div class="look-card" hidden>
+          <p class="look-head"><b>(d)</b> step 4,867</p>
+          <img class="look-sheet" src="assets/img/then_now_iron_entrance.png" alt="" loading="lazy">
+          <div class="look-caps"><p><span>recorded</span>life 1&rsquo;s shallow iron entrance (ep_000231)</p><p><span>retrieved</span>1,271 steps later (step 6,138): the grass bank matched, so it dug in; iron ore at 6,565</p></div>
+        </div>
+        <button type="button" class="look-spot" style="left:65.45%;top:53.3%;width:33.0%;height:17.4%" aria-label="Callout (e), step 4,917: enlarge"></button>
+        <div class="look-card" hidden>
+          <p class="look-head"><b>(e)</b> step 4,917</p>
+          <div class="look-duo"><img src="assets/img/frame_sheep.jpg" alt="" loading="lazy"><img class="pixel" src="assets/img/zoom_sheep.png" alt="" loading="lazy"></div>
+          <div class="look-caps"><p><span>recorded</span>an animal on the slope ahead</p><p><span>retrieved, zoom crop</span>zoomed: a pink sheep, not a pig; killed for food, mutton for the descent</p></div>
+        </div>
+      </div>
       <figcaption>
         <strong>Five times the agent looked back.</strong> The staircase is an MFM life on Ender Dragon
         with GPT-6-Astra, 16 of 24 milestones within the 36,000-step budget. Each callout, at the step
@@ -810,7 +846,9 @@
      turn 1 (mine/GUIDE.md), "written" is the step of the turn whose command first wrote the file, and
      the calls are counted from the two lives' index rows (action_kind): 252 in life 1, 301 in life 2.
      The harness's own count for life 2 is 303 (cut_step 62, descend_one 3). aim_speckles is the
-     example in skills/procedures/scripts, which both lives copied into mine/procedures. -->
+     example in skills/procedures/scripts, which both lives copied into mine/procedures; it is not
+     the agent's own skill, so the table and the counts under it leave out its calls (5 in life 1,
+     2 in life 2), which leaves 299 of life 2's 301. -->
 <section class="section" id="improve">
   <div class="wrap">
     <h2><span class="num">VII</span>Self-improvement through skill learning</h2>
@@ -852,7 +890,7 @@
 
     <h3>The skills of one life</h3>
     <p>
-      These are the 13 skills life 2 called. Point at a skill, or focus it, to watch one of its
+      These are the 12 skills of the agent's own writing that life 2 called. Point at a skill, or focus it, to watch one of its
       calls from that life.
     </p>
     <div class="table-scroll">
@@ -873,7 +911,6 @@
           <tr><td><button type="button" class="skill-chip" data-clip="pillar_inspect" data-cap="Life 2 of the Ender Dragon chain, steps 19,554 to 19,624, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/pillar_inspect.png" alt="" width="24" height="24"><code>pillar_inspect</code></button></td><td>raises a cobblestone pillar under itself, then looks around</td><td>life 1</td><td>0, 5</td></tr>
           <tr><td><button type="button" class="skill-chip" data-clip="clear_upper_gravel_west" data-cap="Life 2 of the Ender Dragon chain, steps 24,852 to 24,955, at game speed."><img class="skill-ico" src="assets/img/icons/clear_upper_gravel_west.png" alt="" width="24" height="24"><code>clear_upper_gravel_west</code></button></td><td>clears three upper gravel blocks while standing still</td><td>life 2, step 24,628</td><td>&mdash;, 3</td></tr>
           <tr><td><button type="button" class="skill-chip" data-clip="climb_steps" data-cap="Life 2 of the Ender Dragon chain, steps 10,706 to 10,762, at game speed."><img class="skill-ico" src="assets/img/icons/climb_steps.png" alt="" width="24" height="24"><code>climb_steps</code></button></td><td>jumps up an inspected staircase</td><td>life 1</td><td>16, 3</td></tr>
-          <tr><td><button type="button" class="skill-chip" data-clip="aim_speckles" data-cap="Life 2 of the Ender Dragon chain, steps 17,521 to 17,574, at game speed."><img class="skill-ico" src="assets/img/icons/aim_speckles.png" alt="" width="24" height="24"><code>aim_speckles</code></button></td><td>aims at the ore speckles a harness note points to and mines that block</td><td>an example shipped with the harness</td><td>5, 2</td></tr>
           <tr><td><button type="button" class="skill-chip" data-clip="descend_one" data-cap="Life 2 of the Ender Dragon chain, steps 21,088 to 21,127, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/descend_one.png" alt="" width="24" height="24"><code>descend_one</code></button></td><td>steps down onto an inspected landing one block lower</td><td>life 1</td><td>2, 2</td></tr>
           <tr><td><button type="button" class="skill-chip" data-clip="descend_visible" data-cap="Life 2 of the Ender Dragon chain, steps 11,358 to 11,421, at game speed."><img class="skill-ico" src="assets/img/icons/descend_visible.png" alt="" width="24" height="24"><code>descend_visible</code></button></td><td>walks down an inspected staircase</td><td>life 1</td><td>10, 1</td></tr>
           <tr><td><button type="button" class="skill-chip" data-clip="shallow_step" data-cap="Life 2 of the Ender Dragon chain, steps 4,783 to 4,957, at game speed."><img class="skill-ico" src="assets/img/icons/shallow_step.png" alt="" width="24" height="24"><code>shallow_step</code></button></td><td>mines a shallow descending step and advances</td><td>life 1</td><td>25, 1</td></tr>
@@ -881,10 +918,10 @@
       </table>
     </div>
     <p>
-      Of life 2's 301 calls, 277 went to six skills it wrote during
+      Of life 2's 299 calls to them, 277 went to six skills it wrote during
       the life, nearly all for digging: <code>clear_west_safe</code> (94 calls),
-      <code>quarry_west_pair</code> (86) and <code>cut_step</code> (61) lead. The other 24 went to
-      seven skills it inherited. It kept the rest of life 1's procedures without calling them, and
+      <code>quarry_west_pair</code> (86) and <code>cut_step</code> (61) lead. The other 22 went to
+      six skills it inherited from life 1. It kept the rest of life 1's procedures without calling them, and
       wrote three more that it never called.
     </p>
 
@@ -941,12 +978,6 @@
       and netherrack. It also reached everything life 1 had in about half the steps: iron at step
       8,992 against 18,231, from the vein in the figure, and its first diamond at step 17,494 against
       34,832, five blocks from the place its guide had recorded from life 1.
-    </p>
-    <p class="note">
-      A caveat: this is one chain in one world, so the gain mixes remembering the map with
-      the skills, and we cannot say how much is due to each. Life 1 also ran past the budget, to step
-      59,562, so life 2 inherited more than a 36,000-step life would have left. In other chains we ran with the released code, the score
-      did not go up with every life (see the MFM repository README).
     </p>
 
     <!-- PROBES: three short tasks in a world (seed 1) that no carried memory has seen. A life "with
@@ -2000,5 +2031,6 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 <script src="assets/js/demo.js?v=16"></script>
 <script src="assets/js/kicad.js?v=3"></script>
 <script src="assets/js/skills.js?v=1"></script>
+<script src="assets/js/lookback.js?v=1"></script>
 </body>
 </html>
