@@ -937,6 +937,8 @@ table.data.skills td:first-child { white-space: nowrap; }
 .look-caps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 .look-caps p { margin: 0; max-width: none; font-size: 0.9rem; line-height: 1.45; color: var(--ink); }
 .look-caps span { display: block; font-size: 0.74rem; color: var(--ink-faint); }
+.look-note { margin: 10px 0 0; padding-top: 9px; border-top: 1px solid var(--line-soft); max-width: none; font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft); }
+.look-note strong { color: var(--ink); }
 /* The skills named beside a pair of probe videos */
 .skill-used { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
 .skill-used .skill-chip { justify-self: start; }

@@ -14,7 +14,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
-  <link rel="stylesheet" href="assets/css/style.css?v=19">
+  <link rel="stylesheet" href="assets/css/style.css?v=20">
   <link rel="stylesheet" href="assets/css/demo.css?v=16">
   <link rel="stylesheet" href="assets/css/kicad.css?v=1">
 </head>
@@ -722,8 +722,8 @@
       often open past frames, from the current life and from earlier ones:
       <code>episodes.py --then-now</code> puts a past frame beside the live view, and
       <code>zoom.py</code> crops a frame for a closer look. Below, we marked five of these looks on
-      one life's milestone staircase and show four of them larger underneath. Point at a callout, or
-      focus it, to enlarge its pair of frames.
+      one life's milestone staircase. Point at a callout, or focus it, to enlarge its pair of frames
+      and read what the look changed.
     </p>
   </div>
   <div class="wrap wide">
@@ -734,16 +734,22 @@
     <figure class="fig">
       <!-- LOOK SPOTS: one button over each callout of the figure, placed in percent of the image
            (2256 by 1488). lookback.js shows the button's .look-card, enlarged, while it is pointed
-           at or focused. The words are the callout's own. The frames are the larger ones used
-           below; (b) has none on the site, so its two are cut from this figure (271 by 152). -->
+           at or focused. The two captions are the callout's own, and the note under them says what
+           the look changed. (b) has no larger frames on the site, so its two are cut from this
+           figure (271 by 152), and it has no note.
+           Callout (d): the left half is ep_000231 (step 4,867, at -3024.7, 65, -5579.7) of life 1 of
+           the of3m chain, the earlier explorer run: the way into a shallow iron vein, not the deep
+           vein of the method figure. The live half is a later life of another run in that world
+           (iron at step 6,565; MFM-video README). TODO(authors): name that run. -->
       <div class="look">
         <img src="assets/img/dragon_mfm_callouts.png" width="2256" height="1488" loading="lazy"
              alt="Milestone staircase of an MFM life on the Ender Dragon task with GPT-6-Astra, reaching 16 of 24 milestones within 36,000 steps. Five callouts pair a recorded frame with the later moment an agent retrieved it.">
         <button type="button" class="look-spot" style="left:19.25%;top:50.2%;width:31.7%;height:17.3%" aria-label="Callout (a), step 866: enlarge"></button>
         <div class="look-card" hidden>
           <p class="look-head"><b>(a)</b> step 866</p>
-          <img class="look-sheet" src="assets/img/then_now_quarry_rim.png" alt="" loading="lazy">
+          <img class="look-sheet" src="assets/img/then_now_quarry_rim.png" alt="Then-now sheet: on the left a dug hole recorded at step 866, on the right the live view of the same hole from its southern rim." loading="lazy">
           <div class="look-caps"><p><span>recorded</span>the hole it had dug, seen from its southern rim</p><p><span>retrieved</span>18 steps later: it was straddling the rim; centring gave Y68 and dirt</p></div>
+          <p class="look-note"><strong>Within a life.</strong> A move west had not taken the agent down into the hole it had dug. Its stored frame beside the live one showed it standing on the southern rim, so it shifted north. The next turn reads "Centering worked: Y68, two dirt collected".</p>
         </div>
         <button type="button" class="look-spot" style="left:56.5%;top:74.45%;width:31.8%;height:17.45%" aria-label="Callout (b), step 1,777: enlarge"></button>
         <div class="look-card" hidden>
@@ -754,20 +760,23 @@
         <button type="button" class="look-spot" style="left:27.35%;top:29.8%;width:31.7%;height:17.3%" aria-label="Callout (c), step 4,588: enlarge"></button>
         <div class="look-card" hidden>
           <p class="look-head"><b>(c)</b> step 4,588</p>
-          <div class="look-duo"><img src="assets/img/frame_wolf.jpg" alt="" loading="lazy"><img class="pixel" src="assets/img/zoom_wolf.png" alt="" loading="lazy"></div>
+          <div class="look-duo"><img src="assets/img/frame_wolf.jpg" alt="A Minecraft hillside at dusk with a small pale animal in the distance." loading="lazy"><img class="pixel" src="assets/img/zoom_wolf.png" alt="Zoomed crop of the pale animal, showing a muzzle and tail." loading="lazy"></div>
           <div class="look-caps"><p><span>recorded</span>a pale animal on the hillside ahead</p><p><span>retrieved, zoom crop</span>zoomed: a wolf, not a sheep; did not attack, turned east for food</p></div>
+          <p class="look-note"><strong>A closer look: a wolf.</strong> A pale animal on the hillside, and the crop the agent made of it: "The close-up shows a muzzle and tail: this is a wolf, not a sheep." It left the wolf alone.</p>
         </div>
         <button type="button" class="look-spot" style="left:42.85%;top:8.85%;width:34.4%;height:17.4%" aria-label="Callout (d), step 4,867: enlarge"></button>
         <div class="look-card" hidden>
           <p class="look-head"><b>(d)</b> step 4,867</p>
-          <img class="look-sheet" src="assets/img/then_now_iron_entrance.png" alt="" loading="lazy">
+          <img class="look-sheet" src="assets/img/then_now_iron_entrance.png" alt="Then-now sheet: on the left a grass bank recorded in an earlier life at step 4867, on the right the live view of the same bank." loading="lazy">
           <div class="look-caps"><p><span>recorded</span>life 1&rsquo;s shallow iron entrance (ep_000231)</p><p><span>retrieved</span>1,271 steps later (step 6,138): the grass bank matched, so it dug in; iron ore at 6,565</p></div>
+          <p class="look-note"><strong>Across lives.</strong> In another run in the same world, a later life set the live grass bank beside its first life's frame of the way into a shallow iron vein: "The recorded entrance matches the live bank." It dug in and mined iron 427 steps later.</p>
         </div>
         <button type="button" class="look-spot" style="left:65.45%;top:53.3%;width:33.0%;height:17.4%" aria-label="Callout (e), step 4,917: enlarge"></button>
         <div class="look-card" hidden>
           <p class="look-head"><b>(e)</b> step 4,917</p>
-          <div class="look-duo"><img src="assets/img/frame_sheep.jpg" alt="" loading="lazy"><img class="pixel" src="assets/img/zoom_sheep.png" alt="" loading="lazy"></div>
+          <div class="look-duo"><img src="assets/img/frame_sheep.jpg" alt="A Minecraft slope at sunset with an animal among the trees." loading="lazy"><img class="pixel" src="assets/img/zoom_sheep.png" alt="Zoomed crop of the animal: a pink sheep." loading="lazy"></div>
           <div class="look-caps"><p><span>recorded</span>an animal on the slope ahead</p><p><span>retrieved, zoom crop</span>zoomed: a pink sheep, not a pig; killed for food, mutton for the descent</p></div>
+          <p class="look-note"><strong>A closer look: a sheep.</strong> An animal on the slope ahead, and the crop of it: a pink sheep, not a pig. The agent killed it for food and kept the mutton for the way down.</p>
         </div>
       </div>
       <figcaption>
@@ -781,57 +790,6 @@
     </figure>
   </div>
   <div class="wrap">
-    <div class="pair">
-      <figure class="fig">
-        <img src="assets/img/then_now_quarry_rim.png" width="1288" height="378" loading="lazy"
-             alt="Then-now sheet: on the left a dug hole recorded at step 866, on the right the live view of the same hole from its southern rim.">
-        <figcaption>
-          <strong>(a) Within a life.</strong> A move west had not taken the agent down into the hole it
-          had dug. Its stored frame beside the live one showed it standing on the southern rim, so it
-          shifted north. The next turn reads "Centering worked: Y68, two dirt collected".
-        </figcaption>
-      </figure>
-      <!-- The left half is ep_000231 (step 4,867, at -3024.7, 65, -5579.7) of life 1 of the of3m chain,
-           the earlier explorer run: the way into a shallow iron vein, not the deep vein of the method
-           figure. The live half is a later life of another run in that world (iron at step 6,565;
-           MFM-video README). TODO(authors): name that run. -->
-      <figure class="fig">
-        <img src="assets/img/then_now_iron_entrance.png" width="1288" height="378" loading="lazy"
-             alt="Then-now sheet: on the left a grass bank recorded in an earlier life at step 4867, on the right the live view of the same bank.">
-        <figcaption>
-          <strong>(d) Across lives.</strong> In another run in the same world, a later life set the live
-          grass bank beside its first life's frame of the way into a shallow iron vein: "The recorded entrance
-          matches the live bank." It dug in and mined iron 427 steps later.
-        </figcaption>
-      </figure>
-    </div>
-    <div class="pair">
-      <figure class="fig">
-        <div class="duo">
-          <img src="assets/img/frame_wolf.jpg" width="640" height="360" loading="lazy"
-               alt="A Minecraft hillside at dusk with a small pale animal in the distance.">
-          <img class="pixel" src="assets/img/zoom_wolf.png" width="260" height="216" loading="lazy"
-               alt="Zoomed crop of the pale animal, showing a muzzle and tail.">
-        </div>
-        <figcaption>
-          <strong>(c) A closer look: a wolf.</strong> A pale animal on the hillside, and the crop the agent
-          made of it: "The close-up shows a muzzle and tail: this is a wolf, not a sheep." It left the
-          wolf alone.
-        </figcaption>
-      </figure>
-      <figure class="fig">
-        <div class="duo">
-          <img src="assets/img/frame_sheep.jpg" width="640" height="360" loading="lazy"
-               alt="A Minecraft slope at sunset with an animal among the trees.">
-          <img class="pixel" src="assets/img/zoom_sheep.png" width="480" height="480" loading="lazy"
-               alt="Zoomed crop of the animal: a pink sheep.">
-        </div>
-        <figcaption>
-          <strong>(e) A closer look: a sheep.</strong> An animal on the slope ahead, and the crop of it: a
-          pink sheep, not a pig. The agent killed it for food and kept the mutton for the way down.
-        </figcaption>
-      </figure>
-    </div>
     <p>
       Looking back tells the agent what is there. The same memory also holds what it has learned
       to do: skills it writes for itself and passes on to the next life.
