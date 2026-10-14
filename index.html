@@ -895,9 +895,9 @@
   </div>
   <div class="wrap wide">
     <!-- LIVES: the step at which each life of the chain earned each milestone, from each life's
-         evaluator report (worldmodel_report.json of gpt6_dragon_fresh and gpt6_dragon_l2_36k). The
-         last step of life 1 is that of its last episode; an engine timeout ended it there, short of
-         its 80,000-step budget. -->
+         evaluator report (worldmodel_report.json of gpt6_dragon_fresh and gpt6_dragon_l2_36k), cut at
+         the benchmark's 36,000 steps like life 2. Life 1 itself ran on to step 59,562 (an engine
+         timeout ended it short of its 80,000-step budget) and reached obsidian at step 38,994. -->
     <div class="charts one">
       <figure class="chart" data-chart="lives" data-budget="36000" id="chart-lives">
         <figcaption class="chart-title"><b>Two lives of one chain</b> <span>milestones reached against steps played</span></figcaption>
@@ -919,14 +919,14 @@
               <tr><th>Diamond</th><td>34,832</td><td>17,494</td></tr>
               <tr><th>Diamond pickaxe</th><td>35,071</td><td>17,666</td></tr>
               <tr><th>Diamond sword</th><td>&mdash;</td><td>26,201</td></tr>
-              <tr><th>Obsidian</th><td>38,994</td><td>20,736</td></tr>
+              <tr><th>Obsidian</th><td>&mdash;</td><td>20,736</td></tr>
               <tr><th>Flint and steel</th><td>35,312</td><td>17,951</td></tr>
               <tr><th>Netherrack</th><td>&mdash;</td><td>35,828</td></tr>
               <tr><th>Blaze killed, and the seven after it</th><td>&mdash;</td><td>&mdash;</td></tr>
             </tbody>
             <tfoot>
               <tr data-row="carried"><th>Episodes carried in</th><td>0</td><td>3,035</td></tr>
-              <tr data-row="end"><th>Last step</th><td>59,562</td><td>35,999</td></tr>
+              <tr data-row="end"><th>Last step</th><td>35,999</td><td>35,999</td></tr>
             </tfoot>
           </table>
         </div></details>
