@@ -70,8 +70,8 @@
       <a class="btn" href="#results">Results</a>
     </p>
 
-    <!-- HERO VIDEO: the dragon chain at 16x (20 frames a second, one frame per step, so a milestone
-         credited at step s is at second s / 320). To change it, replace the <source>, the poster and
+    <!-- HERO VIDEO: the dragon chain at 2x (20 frames a second, every other step, so a milestone
+         credited at step s is at second s / 40). To change it, replace the <source>, the poster and
          the data-t of each milestone below.
          TODO(authors): confirm the caption against the run record: the model, the four lives joined,
          and how the later lives were started (MFM README, "Continued lives": the kit given back, and
@@ -80,10 +80,10 @@
       <div class="hero-screen">
         <video id="hero-video" muted loop playsinline preload="metadata" width="640" height="360"
                poster="assets/img/dragon_chain_poster.jpg"
-               aria-label="MFM playing the Ender Dragon task, sped up 16 times">
-          <source src="assets/video/dragon_chain_21of24_16x.mp4" type="video/mp4">
+               aria-label="MFM playing the Ender Dragon task, sped up 2 times">
+          <source src="assets/video/dragon_chain_21of24_2x.mp4" type="video/mp4">
         </video>
-        <p class="hero-tag" aria-hidden="true">Ender Dragon task, 16&times; speed</p>
+        <p class="hero-tag" aria-hidden="true">Ender Dragon task, 2&times; speed</p>
       </div>
       <!-- MILESTONES: the task's 24 milestones in its order (the icons are assets/img/milestones.png,
            one 36-pixel square each, in this order). A reached one is a button with the second of the
@@ -94,27 +94,27 @@
           <button class="hero-pause" type="button" hidden aria-pressed="false">Pause</button>
         </div>
         <ol>
-          <li><button type="button" class="slot" data-t="22.84" data-name="Log" aria-label="Log: jump to it"><i class="ico" style="--i:0"></i></button></li>
-          <li><button type="button" class="slot" data-t="22.98" data-name="Crafting table" aria-label="Crafting table: jump to it"><i class="ico" style="--i:1"></i></button></li>
-          <li><button type="button" class="slot" data-t="23.48" data-name="Wooden pickaxe" aria-label="Wooden pickaxe: jump to it"><i class="ico" style="--i:2"></i></button></li>
-          <li><button type="button" class="slot" data-t="24.52" data-name="Cobblestone" aria-label="Cobblestone: jump to it"><i class="ico" style="--i:3"></i></button></li>
-          <li><button type="button" class="slot" data-t="23.66" data-name="Stone pickaxe" aria-label="Stone pickaxe: jump to it"><i class="ico" style="--i:4"></i></button></li>
-          <li><button type="button" class="slot" data-t="30.78" data-name="Iron ore" aria-label="Iron ore: jump to it"><i class="ico" style="--i:5"></i></button></li>
-          <li><button type="button" class="slot" data-t="23.86" data-name="Furnace" aria-label="Furnace: jump to it"><i class="ico" style="--i:6"></i></button></li>
-          <li><button type="button" class="slot" data-t="24.94" data-name="Iron ingot" aria-label="Iron ingot: jump to it"><i class="ico" style="--i:7"></i></button></li>
-          <li><button type="button" class="slot" data-t="33.56" data-name="Iron pickaxe" aria-label="Iron pickaxe: jump to it"><i class="ico" style="--i:8"></i></button></li>
-          <li><button type="button" class="slot" data-t="35.88" data-name="Diamond ore" aria-label="Diamond ore: jump to it"><i class="ico" style="--i:9"></i></button></li>
-          <li><button type="button" class="slot" data-t="24.78" data-name="Diamond" aria-label="Diamond: jump to it"><i class="ico" style="--i:10"></i></button></li>
-          <li><button type="button" class="slot" data-t="37.62" data-name="Diamond pickaxe" aria-label="Diamond pickaxe: jump to it"><i class="ico" style="--i:11"></i></button></li>
-          <li><button type="button" class="slot" data-t="25.14" data-name="Diamond sword" aria-label="Diamond sword: jump to it"><i class="ico" style="--i:12"></i></button></li>
-          <li><button type="button" class="slot" data-t="26.26" data-name="Obsidian" aria-label="Obsidian: jump to it"><i class="ico" style="--i:13"></i></button></li>
-          <li><button type="button" class="slot" data-t="25.28" data-name="Flint and steel" aria-label="Flint and steel: jump to it"><i class="ico" style="--i:14"></i></button></li>
-          <li><button type="button" class="slot" data-t="65.46" data-name="Netherrack" aria-label="Netherrack: jump to it"><i class="ico" style="--i:15"></i></button></li>
-          <li><button type="button" class="slot" data-t="157.08" data-name="Blaze killed" aria-label="Blaze killed: jump to it"><i class="ico" style="--i:16"></i></button></li>
-          <li><button type="button" class="slot" data-t="193.94" data-name="Blaze rod" aria-label="Blaze rod: jump to it"><i class="ico" style="--i:17"></i></button></li>
-          <li><button type="button" class="slot" data-t="172.48" data-name="Enderman killed" aria-label="Enderman killed: jump to it"><i class="ico" style="--i:18"></i></button></li>
-          <li><button type="button" class="slot" data-t="184.58" data-name="Ender pearl" aria-label="Ender pearl: jump to it"><i class="ico" style="--i:19"></i></button></li>
-          <li><button type="button" class="slot" data-t="194.04" data-name="Blaze powder" aria-label="Blaze powder: jump to it"><i class="ico" style="--i:20"></i></button></li>
+          <li><button type="button" class="slot" data-t="182.72" data-name="Log" aria-label="Log: jump to it"><i class="ico" style="--i:0"></i></button></li>
+          <li><button type="button" class="slot" data-t="183.84" data-name="Crafting table" aria-label="Crafting table: jump to it"><i class="ico" style="--i:1"></i></button></li>
+          <li><button type="button" class="slot" data-t="187.84" data-name="Wooden pickaxe" aria-label="Wooden pickaxe: jump to it"><i class="ico" style="--i:2"></i></button></li>
+          <li><button type="button" class="slot" data-t="196.16" data-name="Cobblestone" aria-label="Cobblestone: jump to it"><i class="ico" style="--i:3"></i></button></li>
+          <li><button type="button" class="slot" data-t="189.28" data-name="Stone pickaxe" aria-label="Stone pickaxe: jump to it"><i class="ico" style="--i:4"></i></button></li>
+          <li><button type="button" class="slot" data-t="246.24" data-name="Iron ore" aria-label="Iron ore: jump to it"><i class="ico" style="--i:5"></i></button></li>
+          <li><button type="button" class="slot" data-t="190.88" data-name="Furnace" aria-label="Furnace: jump to it"><i class="ico" style="--i:6"></i></button></li>
+          <li><button type="button" class="slot" data-t="199.52" data-name="Iron ingot" aria-label="Iron ingot: jump to it"><i class="ico" style="--i:7"></i></button></li>
+          <li><button type="button" class="slot" data-t="268.48" data-name="Iron pickaxe" aria-label="Iron pickaxe: jump to it"><i class="ico" style="--i:8"></i></button></li>
+          <li><button type="button" class="slot" data-t="287.04" data-name="Diamond ore" aria-label="Diamond ore: jump to it"><i class="ico" style="--i:9"></i></button></li>
+          <li><button type="button" class="slot" data-t="198.24" data-name="Diamond" aria-label="Diamond: jump to it"><i class="ico" style="--i:10"></i></button></li>
+          <li><button type="button" class="slot" data-t="300.96" data-name="Diamond pickaxe" aria-label="Diamond pickaxe: jump to it"><i class="ico" style="--i:11"></i></button></li>
+          <li><button type="button" class="slot" data-t="201.12" data-name="Diamond sword" aria-label="Diamond sword: jump to it"><i class="ico" style="--i:12"></i></button></li>
+          <li><button type="button" class="slot" data-t="210.08" data-name="Obsidian" aria-label="Obsidian: jump to it"><i class="ico" style="--i:13"></i></button></li>
+          <li><button type="button" class="slot" data-t="202.24" data-name="Flint and steel" aria-label="Flint and steel: jump to it"><i class="ico" style="--i:14"></i></button></li>
+          <li><button type="button" class="slot" data-t="523.68" data-name="Netherrack" aria-label="Netherrack: jump to it"><i class="ico" style="--i:15"></i></button></li>
+          <li><button type="button" class="slot" data-t="1256.64" data-name="Blaze killed" aria-label="Blaze killed: jump to it"><i class="ico" style="--i:16"></i></button></li>
+          <li><button type="button" class="slot" data-t="1551.52" data-name="Blaze rod" aria-label="Blaze rod: jump to it"><i class="ico" style="--i:17"></i></button></li>
+          <li><button type="button" class="slot" data-t="1379.84" data-name="Enderman killed" aria-label="Enderman killed: jump to it"><i class="ico" style="--i:18"></i></button></li>
+          <li><button type="button" class="slot" data-t="1476.64" data-name="Ender pearl" aria-label="Ender pearl: jump to it"><i class="ico" style="--i:19"></i></button></li>
+          <li><button type="button" class="slot" data-t="1552.32" data-name="Blaze powder" aria-label="Blaze powder: jump to it"><i class="ico" style="--i:20"></i></button></li>
           <li><span class="slot miss" data-name="Eye of ender: not reached" role="img" aria-label="Eye of ender, not reached"><i class="ico" style="--i:21"></i></span></li>
           <li><span class="slot miss" data-name="End stone: not reached" role="img" aria-label="End stone, not reached"><i class="ico" style="--i:22"></i></span></li>
           <li><span class="slot miss" data-name="Ender dragon: not reached" role="img" aria-label="Ender dragon, not reached"><i class="ico" style="--i:23"></i></span></li>
@@ -122,7 +122,7 @@
       </nav>
       <figcaption>
         <strong>21 of the 24 milestones.</strong> Our agent, MFM with Claude Opus 5.5, playing Ender
-        Dragon: 64 minutes of play shown at 16 times speed. Click a lit milestone to jump to it.
+        Dragon: 64 minutes of play shown at twice the speed. Click a lit milestone to jump to it.
         <span class="hero-note">
           <strong>A separate hill-climbing experiment.</strong> This video is not one of the paper's
           main results, which cap each life at 36,000 steps (see <a href="#results">Results</a>).
