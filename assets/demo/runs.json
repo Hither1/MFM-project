@@ -8,11 +8,11 @@
   "steps": 35999
  },
  {
-  "name": "g4_mfm_astra_diamond_flat",
-  "title": "Diamond, GPT-6-Astra, (10/10 milestones)",
+  "name": "gpt6_noprim_diamond",
+  "title": "Diamond, GPT-6-Astra, no built-in skills (10/10 milestones)",
   "task": "mine_diamond_from_scratch",
   "model": "gpt-6-astra",
-  "episodes": 611,
+  "episodes": 1025,
   "steps": 11999
  },
  {
