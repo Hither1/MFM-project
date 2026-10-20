@@ -167,7 +167,7 @@
     <p>
       We give an LLM a Minecraft world. It sees the world only as
       first-person frames and plays in turns: each turn it looks at the newest frame and writes a
-      short list of actions, which the environment then executes. In the Ender Dragon task it has a
+      short list of raw keyboard and mouse actions, which the environment then executes. In the Ender Dragon task it has a
       budget of 36,000 steps, about half an hour of game time, to work through 24 milestones, from
       the first log to the dragon. Most of what makes this hard comes down to memory.
     </p>
@@ -186,8 +186,9 @@
       </div>
       <div>
         <h3>Skills are learned in play</h3>
-        <p>No one gives it a procedure for tunneling or for fighting a blaze. It has to notice what
-        worked and save it in a form it can reuse, in this life and the next.</p>
+        <p>No one gives it a procedure, not for tunneling or fighting a blaze, and not even for
+        walking to a block. It has to notice what worked and save it in a form it can reuse, in
+        this life and the next.</p>
       </div>
     </div>
     <p>
@@ -319,8 +320,11 @@
       with its frame, state and outcome and a row of cues in <code>index.jsonl</code>; and
       <em>spatial</em> memory, a grid of where the agent has been. The agent writes the other three
       itself: <em>semantic</em> notes, <em>procedures</em> it can call as actions, and a
-      <em>working</em> plan. It reads all five with ordinary shell commands during its turn, and the
-      whole directory passes on to its next life.
+      <em>working</em> plan. In its first life all three start empty. We give it no procedures and
+      no reflexes, the guards that watch a plan while it runs, only raw keyboard and mouse actions,
+      so every procedure it calls is one it wrote after seeing how the environment responded. It
+      reads all five with ordinary shell commands during its turn, and the whole directory passes
+      on to its next life.
     </p>
     <p>
       The figure below replays about 160 steps of one run, the second life of a GPT-6-Astra agent on
@@ -829,10 +833,11 @@
       The model's weights never change, so an MFM agent can only get better through what it writes
       down. Part of that is facts, such as where the iron is. The other part is skills: when a
       sequence of actions has worked, the agent saves it as a script under
-      <code>mine/procedures/</code> and from the next turn calls it like any built-in action. When a
-      life ends, we pass its records and these files on. This section follows the skills in three
-      steps: how one life writes them, what the next life in the same world gains from them, and
-      what happens when they are handed to an agent on a new task in a new world.
+      <code>mine/procedures/</code> and from the next turn calls it as a single action. A first life
+      starts with no scripts at all. When a life ends, we pass its records and these files on. This
+      section follows the skills in three steps: how one life writes them, what the next life in
+      the same world gains from them, and what happens when they are handed to an agent on a new
+      task in a new world.
     </p>
 
     <h3>How a skill is written</h3>
@@ -982,7 +987,7 @@
       smelt an ingot and craft a shield.
     </p>
     <ul class="skill-used">
-      <li><button type="button" class="skill-chip" data-clip="shaft_down" data-cap="The with-skills life shown here, steps 343 to 582, at game speed."><img class="skill-ico" src="assets/img/icons/shaft_down.png" alt="" width="24" height="24"><code>shaft_down</code></button><span>An example shipped with the harness, so both rows have it. The life with carried skills called it once and went 13 blocks down to the vein in one action; the life without dug down with the built-in <code>mine_ahead</code>, 35 calls.</span></li>
+      <li><button type="button" class="skill-chip" data-clip="shaft_down" data-cap="The with-skills life shown here, steps 343 to 582, at game speed."><img class="skill-ico" src="assets/img/icons/shaft_down.png" alt="" width="24" height="24"><code>shaft_down</code></button><span>The life with carried skills called it once and went 13 blocks down to the vein in one action; the life without dug down with <code>mine_ahead</code>, 35 calls.</span></li>
       <li><button type="button" class="skill-chip" data-clip="tunnel" data-cap="Diamond life 2, which wrote it, steps 10,763 to 11,002, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/tunnel.png" alt="" width="24" height="24"><code>tunnel</code></button></li>
     </ul>
     <div class="clips">
