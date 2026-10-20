@@ -822,10 +822,9 @@
      other skills), the guard is mine/procedures/descend_one.py, the retirement of level_step is in
      turn 1 (mine/GUIDE.md), "written" is the step of the turn whose command first wrote the file, and
      the calls are counted from the two lives' index rows (action_kind): 252 in life 1, 301 in life 2.
-     The harness's own count for life 2 is 303 (cut_step 62, descend_one 3). aim_speckles is the
-     example in skills/procedures/scripts, which both lives copied into mine/procedures; it is not
-     the agent's own skill, so the table and the counts under it leave out its calls (5 in life 1,
-     2 in life 2), which leaves 299 of life 2's 301. -->
+     The harness's own count for life 2 is 303 (cut_step 62, descend_one 3). The table and the
+     counts under it leave out aim_speckles (5 calls in life 1, 2 in life 2), which leaves 299 of
+     life 2's 301. -->
 <section class="section" id="improve">
   <div class="wrap">
     <h2><span class="num">VII</span>Self-improvement through skill learning</h2>
@@ -1592,9 +1591,6 @@
             <tr><td><code>shaft_down</code> (procedure)</td><td>life 1, turn 48</td><td>written after the descent had worked by hand</td><td>inherited unchanged; iron pickaxe to y&le;13 in about 850 steps against 2.2k to 3.4k fresh</td></tr>
             <tr><td><code>tunnel</code> (procedure)</td><td>life 1, turn 50</td><td>written after four manual cells worked</td><td>life 2 repairs one line (forward 6 to 12 ticks), validated, kept</td></tr>
             <tr><td><code>probe</code> (procedure)</td><td>life 2, turn 56</td><td>new; embeds "release one tick between attacks"</td><td>inherited by life 3</td></tr>
-            <tr><td><code>aim_speckles</code> (procedure)</td><td>every life, turn 2</td><td>adapted from the harness template</td><td>unchanged; the call that mined the diamond</td></tr>
-            <tr><td>lava guard (reflex)</td><td>life 1</td><td>template, widened to own procedures and stationary mining</td><td>inherited; fired once in life 1, four times in life 3</td></tr>
-            <tr><td>fall guard (reflex)</td><td>life 1</td><td>template, rewritten to a 0.6-block threshold</td><td>life 2 reverts to the template with a stated reason</td></tr>
             <tr><td>spruce approach</td><td>life 1</td><td>discovered</td><td>verified by a then-now check; first log at step 168 against 431 to 679</td></tr>
             <tr><td>the iron column</td><td>life 1, step 5,346</td><td>found while shafting</td><td>lives 2 and 3 mine their first iron at the same block</td></tr>
             <tr><td>lava hazard; a dirt seal does not persist</td><td>life 1</td><td>reflex firing and a failed seal</td><td>life 3 tunnels south of it</td></tr>
@@ -1641,7 +1637,6 @@
       life_1/                        2,787 episodes, its logs.txt, its mine/
       life_2/                        3,083 episodes, its logs.txt, its mine/
   tools/                    <span class="tag harness">harness</span>  episodes.py (queries)  zoom.py (crops)
-  references/  skills/      <span class="tag harness">harness</span>  read on demand
   mine/                     <span class="tag agent">agent</span>    carried to the next life
       digest.md  notes.md  working.md
       procedures/*.py                scripts the agent wrote and calls as actions
@@ -1785,7 +1780,7 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
         <h3>One harness, one flag</h3>
         <p>
           Every arm of a benchmark runs on the same harness and differs by a single flag. The
-          engine, macro set, perception, caps, knowledge text and step budget are identical
+          engine, perception, caps, knowledge text and step budget are identical
           across arms.
         </p>
         <table class="data compact">
@@ -2000,7 +1995,7 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 <script src="assets/js/charts.js?v=2"></script>
 <script src="assets/js/overview.js?v=5"></script>
 <script src="assets/js/mfm-query.js?v=5"></script>
-<script src="assets/js/demo.js?v=16"></script>
+<script src="assets/js/demo.js?v=17"></script>
 <script src="assets/js/kicad.js?v=3"></script>
 <script src="assets/js/skills.js?v=1"></script>
 <script src="assets/js/lookback.js?v=1"></script>

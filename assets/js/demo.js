@@ -1304,8 +1304,8 @@
         }).join('');
       }
     } else if (D.mine.files[p] != null) {
-      html = head('As it stood when the run ended. No <code>apply_patch</code> call in the record wrote it: ' +
-                  'it is a template placed at the start of the life, or a file written from the shell or by the harness.') +
+      html = head('As it stood when the run ended. No <code>apply_patch</code> call in the record wrote it, ' +
+                  'so its history is not shown.') +
         '<pre>' + esc(D.mine.files[p]) + '</pre>';
     } else {
       var re = new RegExp(p.replace(/[.\/]/g, '\\$&'));
