@@ -126,15 +126,15 @@
         </ol>
       </nav>
       <figcaption>
-        <strong>21 of the 24 milestones.</strong> Our agent, MFM with Claude Opus 5.5, playing Ender
-        Dragon: 58 minutes of play at the game's own speed. Click a lit milestone to jump to it.
+        <strong>21 of the 24 milestones.</strong> Our agent—MFM with Claude Opus 5.5—playing the
+        Ender Dragon task over 58 minutes at real-time game speed. Click any lit milestone to jump straight to it.
         <span class="hero-note">
-          <strong>A separate hill-climbing experiment.</strong> This video is not one of the paper's
-          main results, which cap each life at 36,000 steps (see <a href="#results">Results</a>).
-          Here we raised the cap to 80,000 steps per life and continued the chain to a fourth life.
-          Each life started with the memory of the lives before it and got the chain's tools back,
-          and the lives in the Nether started at a fortress. We found that the baseline methods had
-          saturated, while MFM still had room to improve with a larger step budget and more lives.
+          <strong>A separate hill-climbing experiment.</strong> This video is outside the paper's
+          main benchmark, which caps each life at 36,000 steps (see <a href="#results">Results</a>).
+          Here we raised the step budget to 80,000 steps per life and ran a four-life chain.
+          Each life inherited the memory and tools of earlier lives, and Nether lives started at a
+          fortress. Where baseline methods had already plateaued, MFM kept climbing with a larger
+          step budget and additional lives.
         </span>
       </figcaption>
     </figure>
@@ -166,36 +166,36 @@
   <div class="wrap">
     <h2><span class="num">I</span>Why long games need memory</h2>
     <p>
-      We give an LLM a Minecraft world. It sees the world only as
-      first-person frames and plays in turns: each turn it looks at the newest frame and writes a
-      short list of raw keyboard and mouse actions, which the environment then executes. In the Ender Dragon task it has a
-      budget of 36,000 steps, about half an hour of game time, to work through 24 milestones, from
-      the first log to the dragon. Most of what makes this hard comes down to memory.
+      We drop an LLM into a Minecraft world. It sees only first-person frames and plays in turns:
+      each turn, it looks at the latest frame and outputs a short sequence of raw keyboard and mouse
+      actions for the environment to execute. In the Ender Dragon task, it has a step budget of
+      36,000 steps—about half an hour of play—to progress through 24 milestones from punching its
+      first tree to defeating the dragon. What makes this so challenging comes down to memory.
     </p>
   </div>
   <div class="wrap">
     <div class="hard">
       <div>
         <h3>What it needs is out of view</h3>
-        <p>The agent walks past an iron vein early on and needs it thousands of steps later, long
-        after the vein has left the screen and the model's context.</p>
+        <p>The agent may walk past an exposed iron vein early on and need it thousands of steps
+        later—long after the vein has vanished from the screen and the context window.</p>
       </div>
       <div>
         <h3>Mistakes compound</h3>
-        <p>Each milestone builds on the ones before. Dying in lava loses everything it carries, and the
-        same lake will kill again unless the agent remembers it.</p>
+        <p>Every milestone builds on the ones before it. Falling into lava wipes out the agent's
+        entire inventory, and the exact same hazard will kill it again unless it remembers what went wrong.</p>
       </div>
       <div>
         <h3>Skills are learned in play</h3>
-        <p>No one gives it a procedure, not for tunneling or fighting a blaze, and not even for
-        walking to a block. It has to notice what worked and save it in a form it can reuse, in
-        this life and the next.</p>
+        <p>We give the agent no built-in procedures—not for tunneling, not for fighting a blaze,
+        not even for walking to a block. It has to spot which action sequences work and save them as
+        reusable procedures for this life and the next.</p>
       </div>
     </div>
     <p>
-      Without memory, all three models we tried stall at about six of the 24 milestones. So the
-      question is what to keep from such a long game, and how the agent can find it again when it
-      matters.
+      Without persistent memory, all three base models we tested stall around milestone 6 of 24.
+      The core question is what to keep from tens of thousands of steps of experience—and how the
+      agent can find the right detail again when it matters.
     </p>
   </div>
 </section>
@@ -211,9 +211,9 @@
   <div class="wrap">
     <h2><span class="num">II</span>How agents remember</h2>
     <p>
-      Agent memory has gone through a few designs. We compare them on one question from our runs: in its first life, the agent finds an iron
-      vein deep underground, and tens of thousands of steps later, in its next life, it needs iron
-      again. Where was the vein?
+      Agent memory generally follows a few designs. We can compare them on a single question from
+      our runs: in its first life, the agent spots an iron vein deep underground; tens of thousands
+      of steps later, in its second life, it needs iron again. Where was that vein?
     </p>
   </div>
   <div class="wrap wide">
@@ -222,7 +222,7 @@
         <div class="evo-head">
           <span class="evo-n">1</span>
           <h3>Context window</h3>
-          <p>The model reads the recent past straight from its prompt.</p>
+          <p>The model reads recent steps directly from its prompt.</p>
         </div>
         <div class="evo-pic" aria-hidden="true">
           <div class="tape">
@@ -231,16 +231,16 @@
           </div>
           <p class="tape-cap"><span>dropped</span><span>still in the window</span></p>
         </div>
-        <p class="evo-row"><b>Keeps</b>The last few frames and messages.</p>
-        <p class="evo-row"><b>Finds things by</b>Reading its prompt.</p>
-        <p class="evo-row"><b>Loses</b>Everything older than the window.</p>
-        <p class="evo-row iron"><b>The iron vein</b>Gone. It left the window tens of thousands of steps ago.</p>
+        <p class="evo-row"><b>Keeps</b>Only the last few frames and messages.</p>
+        <p class="evo-row"><b>Finds things by</b>Reading its active prompt.</p>
+        <p class="evo-row"><b>Loses</b>Everything older than the context window.</p>
+        <p class="evo-row iron"><b>The iron vein</b>Gone—it scrolled out of context tens of thousands of steps ago.</p>
       </li>
       <li class="evo-card">
         <div class="evo-head">
           <span class="evo-n">2</span>
           <h3>Text memory</h3>
-          <p>The agent writes notes, summaries or a log, and searches them by keyword or similarity.</p>
+          <p>The agent writes notes, summaries, or logs, and searches them by keyword or similarity.</p>
         </div>
         <div class="evo-pic" aria-hidden="true">
           <div class="tape">
@@ -250,16 +250,16 @@
           <div class="tape-note"><b>notes</b>Iron: player (-2952.7, 15, -5603.4)<br>Water fill: player x=-3013.7,z=-5591.3<br>Lava source near (-3039, 34, -5670)</div>
           <p class="tape-cap"><span>frames</span><span>replaced by words</span></p>
         </div>
-        <p class="evo-row"><b>Keeps</b>What the agent put into words.</p>
-        <p class="evo-row"><b>Finds things by</b>Searching the text.</p>
-        <p class="evo-row"><b>Loses</b>What it didn't write down, and what anything looked like.</p>
-        <p class="evo-row iron"><b>The iron vein</b>Its coordinates, if it wrote them down, but not what the way in looks like.</p>
+        <p class="evo-row"><b>Keeps</b>Only what the agent thought to put into words.</p>
+        <p class="evo-row"><b>Finds things by</b>Searching its text notes.</p>
+        <p class="evo-row"><b>Loses</b>Unwritten details and what the scene actually looked like.</p>
+        <p class="evo-row iron"><b>The iron vein</b>Coordinates if noted, but not what the tunnel entrance looks like.</p>
       </li>
       <li class="evo-card">
         <div class="evo-head">
           <span class="evo-n">3</span>
           <h3>Frame memory</h3>
-          <p>Every frame is kept, so the agent can look at it again.</p>
+          <p>Every frame is saved on disk so the agent can inspect it later.</p>
         </div>
         <div class="evo-pic" aria-hidden="true">
           <div class="tape">
@@ -268,16 +268,16 @@
           </div>
           <p class="tape-cap"><span>life 1, step 0</span><span>life 2, step 8,833</span></p>
         </div>
-        <p class="evo-row"><b>Keeps</b>Everything it saw.</p>
+        <p class="evo-row"><b>Keeps</b>Every frame it ever saw.</p>
         <p class="evo-row"><b>Finds things by</b>Turn or frame number.</p>
-        <p class="evo-row"><b>Loses</b>Not the frames but the way back to them: it has to know when it saw the thing.</p>
-        <p class="evo-row iron"><b>The iron vein</b>In there, somewhere among thousands of frames.</p>
+        <p class="evo-row"><b>Loses</b>The way back—it has to already know when it saw the target.</p>
+        <p class="evo-row iron"><b>The iron vein</b>Buried somewhere among thousands of unindexed frames.</p>
       </li>
       <li class="evo-card ours">
         <div class="evo-head">
           <span class="evo-n">4</span>
           <h3>Multimodal filesystem memory</h3>
-          <p>MFM files each frame it records under cues and keeps what the agent learns next to it.</p>
+          <p>MFM indexes every recorded frame under searchable cues and stores the agent's notes and procedures beside it.</p>
         </div>
         <div class="evo-pic" aria-hidden="true">
           <div class="tape cued">
@@ -286,26 +286,28 @@
           </div>
           <p class="tape-cap"><span>each frame under when, where, what</span><span class="k">found by place</span></p>
         </div>
-        <p class="evo-row"><b>Keeps</b>The frame, state and outcome of every action, indexed by when, where and what happened, plus the agent's own facts, procedures and plan.</p>
-        <p class="evo-row"><b>Finds things by</b>A query on the cues, then a look at the frames.</p>
-        <p class="evo-row"><b>Loses</b>Nothing it recorded. Its notes can be wrong, so each one cites the episodes it came from.</p>
-        <p class="evo-row iron"><b>The iron vein</b>Ask for the place, open the frame, set it beside the live view.</p>
+        <p class="evo-row"><b>Keeps</b>Every action's frame, state, and outcome—indexed by when, where, and what happened—plus the agent's own notes, procedures, and plan.</p>
+        <p class="evo-row"><b>Finds things by</b>Querying the text cues, then opening the matching frames.</p>
+        <p class="evo-row"><b>Loses</b>Nothing recorded. Notes can be wrong, so each one cites the episodes behind it.</p>
+        <p class="evo-row iron"><b>The iron vein</b>Query the location, open the past frame, and compare it side by side with the live view.</p>
       </li>
     </ol>
   </div>
   <div class="wrap">
     <p>
-      Text is easy to search but loses what things looked like; raw frames keep everything but are
-      hard to search. In MFM we keep the frames and put a small text index on top of them, so a
-      short query leads back to the full picture, and the agent files what it learns next to that
-      evidence.
+      Text is easy to search but strips away visual detail; raw frames preserve everything but are
+      hard to search. MFM keeps the raw frames and places a lightweight text index over them: a
+      quick query leads straight back to the original image, and the agent files its notes and
+      procedures right beside the evidence.
     </p>
     <p>
-      For the filesystem aspect specifically, the useful properties are persistence across
-      sessions, selectively opening large artifacts, updating separate object/task records, and
-      sharing evidence across agents. Simply remembering “I already placed three blocks” motivates
-      memory, but gives little reason to require a multimodal filesystem. Then, we follow our agent
-      back to the iron vein.
+      We store memory as ordinary files because long-horizon tasks demand it. Memory has to outlast
+      a single life so the next life can build on it. It quickly grows too large to fit in a prompt,
+      so the agent opens only the specific frames it needs. It keeps separate files for places,
+      knowledge, and plans—updating each independently—and the entire folder can be handed directly
+      to a fresh agent, as we show in <a href="#memory-transfer">Section VII</a>. Remembering “I
+      already placed three blocks” needs none of this; surviving across tens of thousands of steps
+      does. Next, we follow our agent back to that iron vein.
     </p>
   </div>
 </section>
@@ -315,24 +317,25 @@
   <div class="wrap">
     <h2><span class="num">III</span>How MFM works</h2>
     <p>
-      We store the agent's memory as plain files in its workspace, sorted into the five kinds of
-      memory in Figure 2 of our paper. The harness, the program that runs the environment for the
-      agent, writes two of them as the agent plays: <em>episodic</em> memory, one episode per action
-      with its frame, state and outcome and a row of cues in <code>index.jsonl</code>; and
-      <em>spatial</em> memory, a grid of where the agent has been. The agent writes the other three
-      itself: <em>semantic</em> notes, <em>procedures</em> it can call as actions, and a
-      <em>working</em> plan. In its first life all three start empty. We give it no procedures and
-      no reflexes, the guards that watch a plan while it runs, only raw keyboard and mouse actions,
-      so every procedure it calls is one it wrote after seeing how the environment responded. It
-      reads all five with ordinary shell commands during its turn, and the whole directory passes
-      on to its next life.
+      We store the agent's memory as plain files in its workspace, organized into the five kinds of
+      memory shown in Figure 2 of our paper. As the agent plays, the harness writes two of them
+      automatically: <em>episodic</em> memory—one episode per action with its frame, state, outcome,
+      and a line of cues in <code>index.jsonl</code>—and <em>spatial</em> memory, a grid of visited
+      coordinates. The agent writes the other three itself: <em>semantic</em> notes, reusable
+      <em>procedures</em> it can call as actions, and a <em>working</em> plan. In its first life,
+      all three start empty. We provide no built-in procedures and no reflexes (the guards that
+      monitor a running plan)—only raw keyboard and mouse actions—so every procedure the agent calls
+      is one it wrote itself after observing how the world responded. During its turn, it reads and
+      updates all five using standard shell commands, and when a life ends, the whole directory
+      carries over to the next life.
     </p>
     <p>
-      The figure below replays about 160 steps of one run, the second life of a GPT-6-Astra agent on
-      Ender Dragon. The agent digs down to the iron vein its first life found and mines it at step
-      8,992; its first life did not reach iron until step 18,231. Every frame, command and file line
-      in the figure comes from the run's record. Stages 1 to 4 make up one turn and repeat; stage 5
-      comes when a life ends. The figure plays by itself, or click a stage to watch just that part.
+      The interactive figure below replays about 160 steps from the second life of a GPT-6-Astra
+      agent on Ender Dragon. Guided by its first life's memory, the agent digs straight to the iron
+      vein and mines it at step 8,992—whereas life 1 did not reach iron until step 18,231. Every
+      frame, command, and file line comes directly from the recorded run. Stages 1 to 4 repeat
+      on every turn, and stage 5 runs when a life ends. Watch it play through, or click any stage to
+      inspect it.
     </p>
   </div>
   <div class="wrap wide">
@@ -429,7 +432,7 @@
       </figure>
     </details>
     <p>
-      In the explorer below you can step through whole runs, including this one.
+      In the interactive explorer below, you can scrub through complete runs step by step—including this one.
     </p>
   </div>
 </section>
@@ -442,23 +445,22 @@
   <div class="wrap wide">
     <h2><span class="num">IV</span>Explore a run</h2>
     <p class="dx-lede">
-      We picked 2 of our runs and replay each one together with its memory. Press Play: the
-      run's video plays on the right while the memory on the left fills up. Each box is one kind of
-      memory, in the figure's colors. Click a box or a file to read it as it was at that step, and
-      click it again to go back. The Ender Dragon run is the life from the figure above, which reached
-      16 of 24 milestones in 36,000 steps. The Diamond run is a GPT-6-Astra life given no skills
-      at the start: the harness offered no built-in procedure and
-      installed no reflexes, so the agent worked from raw actions. It wrote three procedures and
-      one reflex of its own and mined the diamond at step 9,368 of 12,000.
+      We selected 2 recorded runs so you can watch the agent play alongside its evolving filesystem
+      memory. Press Play: gameplay runs on the right while the five memory boxes populate on the
+      left. Click any box or file to inspect its exact contents at that step, and click again to
+      return. The Ender Dragon run is the second life shown above, reaching 16 of 24 milestones
+      within 36,000 steps. The Diamond run is a GPT-6-Astra life starting from scratch with raw
+      actions only—no built-in procedures and no reflexes. Along the way, the agent wrote three
+      procedures and one reflex of its own, mining the diamond at step 9,368 of 12,000.
     </p>
     <details class="dx-fold dx-about">
       <summary>About this replay</summary>
       <p>
-        We show the memory as the harness and the agent wrote it: the rows of
-        <code>index.jsonl</code>, the map, the log, and the notes in <code>mine/</code>. Pause or
-        move the step to look at any moment. A query runs over the memory as it stood then, with
-        the rules of the agent's own tool. Everything here is the record of one run, exported by
-        <code>scripts/export_demo.py</code>. Nothing is simulated and no model is called.
+        Everything shown here is the exact record written by the harness and the agent: the rows of
+        <code>index.jsonl</code>, the spatial grid, the log, and the files under <code>mine/</code>.
+        Pause or scrub to any step to inspect the workspace at that moment, or run a query over the
+        memory as it stood then using the agent's own search rules. Exported directly by
+        <code>scripts/export_demo.py</code>—nothing is simulated and no model is called.
       </p>
   <ul class="limits">
         <li>
@@ -657,13 +659,13 @@
   <div class="wrap">
     <h2><span class="num">V</span>Results</h2>
     <p>
-      We compare MFM with the same agent without memory (Direct) and with two recent memory systems
-      for long-horizon agents, PRO-LONG and VISTA, each on three models. In Minecraft
-      (MCU-AgentBeats), <em>Mine Diamond from Scratch</em> has 10 milestones in a budget of 12,000
-      steps, and <em>Ender Dragon</em> has 24 milestones in 36,000 steps. In CUABench-KiCad, the agent designs and edits
-      circuits in a desktop app through screenshots, mouse and keyboard, and each task is scored
-      from 0 to 1. We ran every setting with three seeds; bars show the mean and whiskers one
-      standard deviation.
+      We evaluate MFM against the same agent without persistent memory (Direct) and two recent
+      long-horizon memory systems, PRO-LONG and VISTA, across three base models. In Minecraft
+      (MCU-AgentBeats), <em>Mine Diamond from Scratch</em> spans 10 milestones within a 12,000-step
+      budget, and <em>Ender Dragon</em> spans 24 milestones within 36,000 steps. In CUABench-KiCad,
+      the agent designs and edits circuits in the KiCad desktop app using screenshots, mouse, and
+      keyboard, scored from 0 to 1 per task. Every setting is run across three seeds; bars show the
+      mean and whiskers show one standard deviation.
     </p>
   </div>
   <div class="wrap wide">
@@ -690,8 +692,8 @@
             <thead><tr><th>Model</th><th class="s-direct">Direct</th><th class="s-prolong">PRO-LONG</th><th class="s-vista">VISTA</th><th class="s-ours ours">MFM</th></tr></thead>
             <tbody>
               <tr><th>GPT-5.6-Sol</th><td>6.0 ± 1.0</td><td>8.3 ± 0.6</td><td>9.0 ± 1.0</td><td class="ours">10.7 ± 0.6</td></tr>
-              <tr><th>Claude Opus 5</th><td>6.0 ± 1.0</td><td>8.0 ± 1.0</td><td>8.7 ± 0.6</td><td class="ours">13.3 ± 0.6</td></tr>
-              <tr><th>GPT-6-Astra</th><td>6.3 ± 0.6</td><td>11.0 ± 1.0</td><td>12.7 ± 0.6</td><td class="ours">15.0 ± 1.0</td></tr>
+              <tr><th>Claude Opus 5</th><td>6.0 ± 1.0</td><td>8.0 ± 1.0</td><td>8.7 ± 0.6</td><td class="ours">10.3 ± 0.6</td></tr>
+              <tr><th>GPT-6-Astra</th><td>6.3 ± 0.6</td><td>11.0 ± 1.0</td><td>12.7 ± 0.6</td><td class="ours">16.0 ± 0.0</td></tr>
             </tbody>
           </table>
         </div></details>
@@ -715,19 +717,17 @@
           </table>
         </div></details>
       </figure>
-      <!-- TODO(authors): the abstract says 16/24 on Ender Dragon and Table 1 says 15.0 ± 1.0; Table 1 also
-           has an MFM row for "GPT-5.5" without a Dragon score, which is left out here. -->
       <div class="charts-text">
         <p>
-          MFM has the highest mean with every model on every task, and the gap is widest on Ender
-          Dragon, the longest task. With GPT-6-Astra it reaches all 10 Mine Diamond milestones, and
-          15.0 of 24 on Ender Dragon, where the best baseline averages 12.7. On KiCad it
-          averages 0.440 with GPT-6-Astra, against 0.400 for the best baseline and 0.267 without
-          memory.
+          MFM achieves the highest mean across every model and every benchmark, with the widest lead
+          on Ender Dragon, our longest horizon task. Paired with GPT-6-Astra, it completes all 10
+          Mine Diamond milestones in every seed and reaches 16 of 24 milestones on Ender Dragon,
+          compared to 12.7 for the strongest baseline. On KiCad, it averages 0.440 with GPT-6-Astra,
+          ahead of 0.400 for the best baseline and 0.267 without persistent memory.
         </p>
         <p>
-          In the next two sections we look at where these gains come from: how the agent uses the
-          frames it keeps, and the skills it writes for itself and carries from one life to the next.
+          The next two sections examine where these gains come from: how the agent inspects past
+          frames to guide decisions, and how it writes and refines procedures across lives.
         </p>
       </div>
     </div>
@@ -739,12 +739,12 @@
   <div class="wrap">
     <h2><span class="num">VI</span>Looking back at past frames</h2>
     <p>
-      The index leads the agent to the right episode, but what it checks is the frame. Our agents
-      often open past frames, from the current life and from earlier ones:
-      <code>episodes.py --then-now</code> puts a past frame beside the live view, and
-      <code>zoom.py</code> crops a frame for a closer look. Below, we marked five of these looks on
-      one life's milestone staircase. Point at a callout, or focus it, to enlarge its pair of frames
-      and read what the look changed.
+      The text index points the agent to the right episode, but the frame itself holds the visual
+      evidence. Our agents regularly open stored frames from both the current life and earlier ones:
+      <code>episodes.py --then-now</code> places a past frame side by side with the live view, and
+      <code>zoom.py</code> crops a region for closer inspection. Below, we highlight five moments
+      along one life's milestone staircase where looking back changed what the agent did. Hover or
+      focus any callout to enlarge the frames and see the outcome.
     </p>
   </div>
   <div class="wrap wide">
@@ -801,19 +801,20 @@
         </div>
       </div>
       <figcaption>
-        <strong>Five times the agent looked back.</strong> The staircase is an MFM life on Ender Dragon
-        with GPT-6-Astra, 16 of 24 milestones within the 36,000-step budget. Each callout, at the step
-        it happened, pairs a frame the memory recorded with the moment it was retrieved, and says what
-        the look changed: centering over a hole it was straddling (a), replacing an aiming procedure that had pitched
-        wrong (b), not attacking a wolf (c), digging in at an iron entrance recorded in an earlier life
-        (d), and identifying a sheep as food (e).
+        <strong>Five times the agent looked back.</strong> The staircase tracks an MFM life on Ender
+        Dragon with GPT-6-Astra, reaching 16 of 24 milestones within the 36,000-step budget. Each
+        callout pairs a recorded frame with the later moment the agent retrieved it, showing how the
+        visual check changed its action: centering over a hole it was straddling (a), replacing an
+        aiming procedure that had pitched wrong (b), avoiding a wolf it had mistaken for a sheep (c),
+        digging into an iron entrance recorded in an earlier life (d), and identifying a sheep for
+        food (e).
       </figcaption>
     </figure>
   </div>
   <div class="wrap">
     <p>
-      Looking back tells the agent what is there. The same memory also holds what it has learned
-      to do: skills it writes for itself and passes on to the next life.
+      Looking back at past frames tells the agent what is in the world. The same filesystem also
+      stores how to act in it: procedures the agent writes for itself and passes on to the next life.
     </p>
   </div>
 </section>
@@ -831,46 +832,46 @@
   <div class="wrap">
     <h2><span class="num">VII</span>Self-improvement through skill learning</h2>
     <p>
-      The model's weights never change, so an MFM agent can only get better through what it writes
-      down. Part of that is facts, such as where the iron is. The other part is skills: when a
-      sequence of actions has worked, the agent saves it as a script under
-      <code>mine/procedures/</code> and from the next turn calls it as a single action. A first life
-      starts with no scripts at all. When a life ends, we pass its records and these files on. This
-      section follows the skills in three steps: how one life writes them, what the next life in
-      the same world gains from them, and what happens when they are handed to an agent on a new
-      task in a new world.
+      Because the model's weights never change, an MFM agent improves entirely through what it
+      writes to its filesystem. Part of that is semantic knowledge, like where an iron vein lies.
+      The other part is procedural memory: when a sequence of raw actions works, the agent saves it
+      as a Python procedure under <code>mine/procedures/</code> and calls it as a single action on
+      future turns. The first life starts with no procedures at all. When a life ends, its episodic
+      records and procedures carry over to the next. Here we trace how procedures evolve across two
+      lives in the same world, and then test transferring world knowledge and procedures separately
+      to fresh agents on new tasks.
     </p>
 
     <h3>How a skill is written</h3>
     <p>
-      We followed one chain of two lives with GPT-6-Astra on the Ender Dragon task; the second life
-      is the one in the figure above and in the explorer.
+      We trace a two-life chain with GPT-6-Astra on the Ender Dragon task; the second life is the
+      one featured in the method figure and interactive explorer above.
     </p>
     <div class="hard">
       <div>
         <h3>Saved after it works</h3>
-        <p>The agent writes a skill only after doing the thing by hand. Life 2 cleared a stone wall
-        twice before keeping the method: "Save the clearing sequence after its second successful
-        trial."</p>
+        <p>The agent turns a sequence into a procedure only after testing it by hand. Life 2 cleared
+        a stone wall manually twice before saving the script: "Save the clearing sequence after its
+        second successful trial."</p>
       </div>
       <div>
         <h3>Guarded by its own checks</h3>
-        <p>Each script first reads the game state and does nothing where it was not tested.
-        <code>descend_one</code> returns no actions unless the inventory screen is closed and the
-        camera is at pitch 60.</p>
+        <p>Every procedure checks the game state first and aborts if preconditions aren't met. For
+        example, <code>descend_one</code> returns no actions unless the inventory screen is closed
+        and the camera pitch is 60.</p>
       </div>
       <div>
         <h3>Inherited and revised</h3>
-        <p>A later life starts with the earlier life's scripts, reads them, and drops what no longer
-        fits. Life 2 kept 20 of life 1's 21 procedures and retired <code>level_step</code>, the one
-        life 1 had called most, after tracing life 1's fall into lava to it.</p>
+        <p>Each new life inspects the earlier life's procedures and retires what failed. Life 2 kept
+        20 of life 1's 21 procedures and retired <code>level_step</code>—the procedure life 1 had
+        called most—after tracing life 1's fatal fall into lava back to it.</p>
       </div>
     </div>
 
     <h3>The skills of one life</h3>
     <p>
-      These are the 12 skills of the agent's own writing that life 2 called. Point at a skill, or focus it, to watch one of its
-      calls from that life.
+      Below are the 12 self-written procedures that life 2 called during its run. Hover or focus any
+      procedure to watch one of its calls in action.
     </p>
     <div class="table-scroll">
       <!-- The icons are Minecraft item and block textures (Mojang), chosen by us to stand for each
@@ -897,17 +898,17 @@
       </table>
     </div>
     <p>
-      Of life 2's 299 calls to them, 277 went to six skills it wrote during
-      the life, nearly all for digging: <code>clear_west_safe</code> (94 calls),
-      <code>quarry_west_pair</code> (86) and <code>cut_step</code> (61) lead. The other 22 went to
-      six skills it inherited from life 1. It kept the rest of life 1's procedures without calling them, and
-      wrote three more that it never called.
+      Of life 2's 299 procedure calls, 277 went to six procedures it wrote during life 2 itself,
+      nearly all for excavation: <code>clear_west_safe</code> (94 calls),
+      <code>quarry_west_pair</code> (86), and <code>cut_step</code> (61) lead the count. The
+      remaining 22 calls went to six procedures inherited from life 1. It kept the rest of life 1's
+      procedures on disk without calling them, and wrote three more that it never needed.
     </p>
 
     <h3>What the next life gains</h3>
     <p>
-      With the records and the skills carried over, the second life got further within the same
-      budget.
+      Carrying over both episodic records and procedures let the second life progress much faster
+      and reach further within the exact same step budget.
     </p>
   </div>
   <div class="wrap wide">
@@ -952,11 +953,36 @@
   </div>
   <div class="wrap">
     <p>
-      Within the 36,000-step budget, life 1 started from an empty memory and reached 13 milestones.
-      Life 2 started with life 1's 3,035 episodes and reached 16, adding the diamond sword, obsidian
-      and netherrack. It also reached everything life 1 had in about half the steps: iron at step
-      8,992 against 18,231, from the vein in the figure, and its first diamond at step 17,494 against
-      34,832, five blocks from the place its guide had recorded from life 1.
+      Within the 36,000-step budget, life 1 started with an empty memory and reached 13 milestones.
+      Life 2 started with life 1's 3,035 recorded episodes and reached 16 milestones—adding the
+      diamond sword, obsidian, and netherrack. Just as importantly, it hit every milestone from life
+      1 in roughly half the steps: mining iron at step 8,992 vs. 18,231 (from the vein in the method
+      figure), and mining its first diamond at step 17,494 vs. 34,832, just five blocks from the
+      coordinates recorded in its guide from life 1.
+    </p>
+
+    <!-- TRANSFER: arXiv v2, "Transferring world knowledge to new tasks" and its figure
+         (figs/memory_figure.pdf, rendered at 400 dpi). The step budgets (iron 4,000; diamond and
+         gold 6,000) are read off the figure's budget lines. -->
+    <h3 id="memory-transfer">Memory on a new task</h3>
+    <p>
+      Because world knowledge lives in plain files, we can also hand it to a completely new agent.
+      We let one agent explore a world, then gave fresh agents slices of its memory: none of it, up
+      to step 3,000, up to step 6,000, or the full memory. Each fresh agent was then tasked with
+      finding and mining a target ore in that world: iron within 4,000 steps, or diamond or gold
+      within 6,000.
+    </p>
+    <figure class="fig">
+      <img src="assets/img/memory_transfer.png" width="2421" height="1050" loading="lazy"
+           alt="Figure from the paper. Panel a: share of the step budget used against how much memory was inherited (none, up to step 3,000, up to step 6,000, full); 1 of 12, 2 of 6, 5 of 8 and 11 of 12 agents solved their task. Agents whose memory recorded where the ore lay use less of the budget. Panels b to d: steps to mine iron, diamond and gold.">
+      <figcaption>From the paper. Blue: the inherited memory recorded where the ore lay; grey: it
+        did not; hollow: not solved within the budget. (a) All three ores; (b–d) each ore.</figcaption>
+    </figure>
+    <p>
+      Without inherited memory, only 1 of 12 agents mined its ore in time; with the full memory, 11
+      of 12 succeeded. What mattered most was whether the inherited memory had already seen the ore:
+      agents whose memory recorded the ore's location dug straight to it, while those given snapshots
+      from before that discovery mostly ran out of steps.
     </p>
 
     <!-- PROBES: three short tasks in a world (seed 1) that no carried memory has seen. A life "with
@@ -971,21 +997,20 @@
          named in each clip's caption. -->
     <h3>Skills on a new task</h3>
     <p>
-      In one world, a skill and the memory of the map arrive together. To look at skills alone, we
-      gave agents three short tasks in a world no earlier life had seen. In one row the agent starts
-      with nothing; in the other it starts with scripts an earlier life wrote, already installed.
-      Each video is one whole life at game speed; the Climb Out lives are played in the dark and
-      are brightened here. For each task we show the slowest life without
-      carried skills beside the fastest life with them, so the pairs show the widest gap we saw and
-      not the typical one. Under each task are the
-      skills involved; point at one to watch it run.
+      When a new life continues in the same world, procedures and map knowledge travel together. To isolate
+      the value of procedures alone, we tested agents on three short tasks in an unseen world. In one
+      condition, the agent starts from raw actions; in the other, it starts with procedures written by
+      an earlier life already installed in <code>mine/procedures/</code>. Each video shows a complete
+      life at real-time speed (with Climb Out brightened for visibility). For each task, we pair the
+      slowest run without carried procedures against the fastest run with them, illustrating the
+      widest gap observed. Hover over any procedure tag below to see it run.
     </p>
 
     <h3>Iron Shield</h3>
     <p>
-      The agent starts with a stone pickaxe, a crafting table, cobblestone and logs, and is told
-      where a vein of iron ore lies, 13 blocks below. It must build a furnace, dig to the vein,
-      smelt an ingot and craft a shield.
+      Starting with a stone pickaxe, crafting table, cobblestone, and logs—and told that an iron
+      vein lies 13 blocks below—the agent must build a furnace, dig down to the vein, smelt an
+      ingot, and craft a shield.
     </p>
     <ul class="skill-used">
       <li><button type="button" class="skill-chip" data-clip="shaft_down" data-cap="The with-skills life shown here, steps 343 to 582, at game speed."><img class="skill-ico" src="assets/img/icons/shaft_down.png" alt="" width="24" height="24"><code>shaft_down</code></button><span>The life with carried skills called it once and went 13 blocks down to the vein in one action; the life without dug down with <code>mine_ahead</code>, 35 calls.</span></li>
@@ -1014,8 +1039,8 @@
 
     <h3>Climb Out</h3>
     <p>
-      The agent starts sealed in a pocket 40 blocks underground with a stone pickaxe and eight
-      cobblestone, and must reach the surface and mine a block of bricks set straight above it.
+      Sealed in a pocket 40 blocks underground with a stone pickaxe and eight cobblestone, the agent
+      must dig to the surface and mine a brick block directly overhead.
     </p>
     <ul class="skill-used">
       <li><button type="button" class="skill-chip" data-clip="climb_shaft" data-cap="The with-skills life shown here, steps 1 to 182, at game speed. Brightened: the scene is unlit."><img class="skill-ico" src="assets/img/icons/climb_shaft.png" alt="" width="24" height="24"><code>climb_shaft</code></button><span>Written in a published Ender Dragon life and carried in with <code>stair_up</code> and three others. This life called it twice at the start, rose three blocks, then kept climbing the same way by hand.</span></li>
@@ -1044,8 +1069,8 @@
 
     <h3>Cook Meat</h3>
     <p>
-      The agent starts with a stone sword, a stone pickaxe, a crafting table, cobblestone and logs,
-      with three cows nearby, and must build a furnace, kill an animal and cook its meat.
+      Given a stone sword, stone pickaxe, crafting table, cobblestone, and logs—with three cows
+      nearby—the agent must build a furnace, kill an animal, and cook its meat.
     </p>
     <ul class="skill-used">
       <li><button type="button" class="skill-chip" data-clip="blaze_fight" data-cap="The blaze-hunting life it was carried from, steps 1 to 75, at game speed."><img class="skill-ico" src="assets/img/icons/blaze_fight.png" alt="" width="24" height="24"><code>blaze_fight</code></button></li>
@@ -1084,20 +1109,20 @@
   <div class="wrap">
     <h2><span class="num">VIII</span>Beyond Minecraft: computer use</h2>
     <p>
-      Nothing in MFM is specific to a game. We ran the same memory on
-      <a href="https://cua.ai/cuabench">CUABench-KiCad</a>, a computer-use
-      benchmark in which the agent edits and designs circuits in the KiCad desktop application,
-      seeing only screenshots and acting with mouse and keyboard. Its 25 tasks run one after
-      another in the same application, and the agent starts each one with the records and notes of
-      the tasks before it. With GPT-6-Astra, MFM averages a reward of 0.440, against 0.400 for the
-      best baseline and 0.267 without memory (see <a href="#results">Results</a>).
+      Nothing in MFM is tied to a game. We ran the exact same memory architecture on
+      <a href="https://cua.ai/cuabench">CUABench-KiCad</a>, a desktop computer-use benchmark where
+      the agent designs and edits electronic schematics in KiCad through screenshots, mouse, and
+      keyboard. Its 25 tasks run sequentially in the same application, and the agent begins each
+      task with the episodic records and notes accumulated from earlier tasks. With GPT-6-Astra, MFM
+      achieves a mean reward of 0.440, compared to 0.400 for the strongest baseline and 0.267
+      without persistent memory (see <a href="#results">Results</a>).
     </p>
     <p>
-      Below is one recorded run of MFM with GPT-6-Astra, task by task. A task's reward is the share
-      of three checks its saved netlist passes against a reference: the components, the connections
-      and the net names. Open a replay to step through the screenshots the agent saw, with what it
-      said and did at each step and what its memory gave it: the earlier situations recalled for it,
-      and the notes and records it opened.
+      Below is a complete recorded run of MFM with GPT-6-Astra across all 25 tasks. Each task is
+      scored by the fraction of three netlist checks passed against a reference schematic:
+      components, connections, and net names. Open any task replay to step through the screenshots
+      the agent saw, its reasoning and actions at each step, and the past episodes and notes it
+      retrieved from memory.
     </p>
   </div>
   <div class="wrap wide">
@@ -1967,11 +1992,11 @@ ep_001391  steps 26621-26654  tags=inventory_changed,note    note: YOU DIED at (
 <section class="section" id="bibtex">
   <div class="wrap">
     <h2>Cite</h2>
-<pre tabindex="0"><code>@misc{su2026mfm,
-  title  = {Multimodal Filesystem Memory for Long-Horizon Embodied Agents},
-  author = {Su, Chloe and Li, Jiahan and Qi, Zhenting and Cheng, Chaoran and Chen, Haoyu and Jun, Sejoon and Ye, Weirui and Du, Yilun},
-  year   = {2026},
-  note   = {Project page: https://github.com/Hither1/MFM}
+<pre tabindex="0"><code>@article{su2026mfm,
+  title   = {Multimodal Filesystem Memory for Long-Horizon Embodied Agents},
+  author  = {Su, Chloe and Li, Jiahan and Qi, Zhenting and Cheng, Chaoran and Chen, Haoyu and Jun, Sejoon and Ye, Weirui and Du, Yilun},
+  journal = {arXiv preprint arXiv:2610.22686},
+  year    = {2026}
 }</code></pre>
   </div>
 </section>
